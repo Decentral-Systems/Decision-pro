@@ -165,6 +165,7 @@ The dashboard uses WebSocket for real-time updates:
 
 ## Documentation
 
+- **Single complete doc**: [DECISION_PRO_DOCUMENTATION.md](DECISION_PRO_DOCUMENTATION.md) — one-file reference for setup, API, deployment, testing, troubleshooting
 - **Guides** (testing, auth, UI, quick start): [docs/guides/](docs/guides/)
 - **Core docs** (API, deployment, env, troubleshooting): [docs/](docs/)
 - **Doc index**: [docs/README.md](docs/README.md)
