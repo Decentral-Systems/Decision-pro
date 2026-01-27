@@ -1,0 +1,124 @@
+/**
+ * React Query hook for checking API Gateway health status
+ * Returns real-time connectivity status based on actual API health checks
+ */
+import { useQuery } from "@tanstack/react-query";
+import { apiGatewayClient } from "../clients/api-gateway";
+import { API_BASE_URLS } from "@/lib/config/apiEndpoints";
+
+export interface ApiHealthStatus {
+  isOnline: boolean;
+  isChecking: boolean;
+  lastChecked: Date | null;
+  error: Error | null;
+  responseTime: number | null;
+}
+
+/**
+ * Check API Gateway health
+ */
+async function checkApiHealth(): Promise<{ online: boolean; responseTime: number }> {
+  const startTime = Date.now();
+  try {
+    // Use a lightweight health check endpoint
+    const response = await fetch(`${API_BASE_URLS.apiGateway}/health`, {
+      method: "GET",
+      headers: {
+        "X-API-Key": process.env.NEXT_PUBLIC_API_KEY || "ugQue9i_Qp5cfB94IuqrmdsHxD3PLBGOA7ehu5VH21mixlRh4ZfYUJ38Yy_H0CZ4",
+      },
+      // Short timeout for health checks
+      signal: AbortSignal.timeout(5000), // 5 second timeout
+    });
+    
+    const responseTime = Date.now() - startTime;
+    
+    if (response.ok) {
+      return { online: true, responseTime };
+    }
+    
+    return { online: false, responseTime };
+  } catch (error: any) {
+    const responseTime = Date.now() - startTime;
+    // Network errors, timeouts, etc. mean offline
+    return { online: false, responseTime };
+  }
+}
+
+/**
+ * Hook to check API Gateway health status
+ * @param enabled - Whether to enable the health check (default: true)
+ * @param refetchInterval - How often to refetch in milliseconds (default: 30000 = 30 seconds)
+ */
+export function useApiHealth(
+  enabled: boolean = true,
+  refetchInterval: number = 30000
+): ApiHealthStatus {
+  const { data, isLoading, error, dataUpdatedAt } = useQuery({
+    queryKey: ["api-health"],
+    queryFn: checkApiHealth,
+    enabled,
+    refetchInterval, // Check every 30 seconds
+    refetchOnWindowFocus: true, // Check when user returns to tab
+    refetchOnReconnect: true, // Check when network reconnects
+    retry: 1, // Only retry once on failure
+    retryDelay: 2000, // Wait 2 seconds before retry
+    staleTime: 10000, // Consider data stale after 10 seconds
+  });
+
+  return {
+    isOnline: data?.online ?? false,
+    isChecking: isLoading,
+    lastChecked: dataUpdatedAt ? new Date(dataUpdatedAt) : null,
+    error: error as Error | null,
+    responseTime: data?.responseTime ?? null,
+  };
+}
+
+/**
+ * Hook to check a specific API endpoint health
+ * Useful for pages that depend on specific services
+ */
+export function useEndpointHealth(
+  endpoint: string,
+  enabled: boolean = true,
+  refetchInterval: number = 30000
+): ApiHealthStatus {
+  const { data, isLoading, error, dataUpdatedAt } = useQuery({
+    queryKey: ["endpoint-health", endpoint],
+    queryFn: async () => {
+      const startTime = Date.now();
+      try {
+        const response = await fetch(`${API_BASE_URLS.apiGateway}${endpoint}`, {
+          method: "GET",
+          headers: {
+            "X-API-Key": process.env.NEXT_PUBLIC_API_KEY || "ugQue9i_Qp5cfB94IuqrmdsHxD3PLBGOA7ehu5VH21mixlRh4ZfYUJ38Yy_H0CZ4",
+          },
+          signal: AbortSignal.timeout(5000),
+        });
+        
+        const responseTime = Date.now() - startTime;
+        return { online: response.ok, responseTime };
+      } catch (error: any) {
+        const responseTime = Date.now() - startTime;
+        return { online: false, responseTime };
+      }
+    },
+    enabled,
+    refetchInterval,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    retry: 1,
+    retryDelay: 2000,
+    staleTime: 10000,
+  });
+
+  return {
+    isOnline: data?.online ?? false,
+    isChecking: isLoading,
+    lastChecked: dataUpdatedAt ? new Date(dataUpdatedAt) : null,
+    error: error as Error | null,
+    responseTime: data?.responseTime ?? null,
+  };
+}
+
+

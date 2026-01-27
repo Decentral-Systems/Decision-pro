@@ -1,0 +1,125 @@
+// ... existing code ...
+
+  async exportCustomers(format: string = "csv", limit: number = 1000): Promise<any> {
+    try {
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/customers/export",
+        { params: { format, limit } }
+      );
+      if (response.data?.success && response.data) {
+        return response.data;
+      }
+      if (response.data && typeof response.data === "object") {
+        return response.data;
+      }
+      throw new APIServiceError(response.status || 500, "Failed to export customers");
+    } catch (error: any) {
+      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+        throw error;
+      }
+      throw new APIServiceError(500, error.message || "Failed to export customers");
+    }
+  }
+
+  // Search customers using the search endpoint
+  async searchCustomers(params: {
+    query: string;
+    limit?: number;
+    offset?: number;
+    sort_by?: string;
+    sort_order?: "asc" | "desc";
+    fields?: string;
+    status?: string;
+    region?: string;
+    employment_status?: string;
+    date_from?: string;
+    date_to?: string;
+    min_credit_score?: number;
+    max_credit_score?: number;
+  }): Promise<{ results: any[]; total: number; limit: number; offset: number }> {
+    try {
+      const response = await this.client.get<ApiResponse<{
+        results: any[];
+        total: number;
+        limit: number;
+        offset: number;
+      }>>(
+        "/api/customers/search/",
+        { params }
+      );
+
+      // Handle different response formats
+      if (response.data?.success && response.data.data) {
+        const data = response.data.data;
+        if (Array.isArray(data)) {
+          return {
+            results: data,
+            total: data.length,
+            limit: params.limit || 50,
+            offset: params.offset || 0,
+          };
+        }
+        if (data.results && Array.isArray(data.results)) {
+          return {
+            results: data.results,
+            total: data.total || data.results.length,
+            limit: data.limit || params.limit || 50,
+            offset: data.offset || params.offset || 0,
+          };
+        }
+      }
+
+      // Handle direct results format
+      if (response.data?.results && Array.isArray(response.data.results)) {
+        return {
+          results: response.data.results,
+          total: response.data.total || response.data.results.length,
+          limit: response.data.limit || params.limit || 50,
+          offset: response.data.offset || params.offset || 0,
+        };
+      }
+
+      // Fallback: try to extract from response.data directly
+      if (Array.isArray(response.data)) {
+        return {
+          results: response.data,
+          total: response.data.length,
+          limit: params.limit || 50,
+          offset: params.offset || 0,
+        };
+      }
+
+      throw new APIServiceError(
+        response.status || 500,
+        "Failed to search customers - invalid response format"
+      );
+    } catch (error: any) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
+        throw error;
+      }
+
+      // Handle 401/404 gracefully
+      if (error.response?.status === 404 || error.response?.status === 401) {
+        console.warn(`Customer search endpoint unavailable (${error.response?.status}), returning empty result`);
+        return {
+          results: [],
+          total: 0,
+          limit: params.limit || 50,
+          offset: params.offset || 0,
+        };
+      }
+
+      const normalizedError = normalizeErrorResponse(error);
+      throw new APIServiceError(
+        normalizedError.statusCode,
+        normalizedError.message || "Failed to search customers",
+        normalizedError.correlationId
+      );
+    }
+  }
+
+  // ... existing code ...
