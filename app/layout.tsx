@@ -2,17 +2,16 @@ import React from "react";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
-import { BRANDING } from "@/lib/constants/branding";
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: BRANDING.metadata.themeColor,
+  themeColor: "#0ea5e9",
 };
 
 export const metadata: Metadata = {
-  title: BRANDING.company.fullName,
+  title: "Decision PRO - AIS Platform",
   icons: {
     icon: "/logos/logo_only.jpeg",
     apple: "/logos/logo_only.jpeg",
