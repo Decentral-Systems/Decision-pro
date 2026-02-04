@@ -155,9 +155,9 @@ export function ProductRecommendationsWidget() {
           {recommendations.length > 0 ? (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               <h4 className="text-sm font-semibold">Recent Recommendations</h4>
-              {recommendations.slice(0, 8).map((rec: ProductRecommendation) => (
+              {recommendations.slice(0, 8).map((rec: ProductRecommendation, index: number) => (
                 <div
-                  key={rec.product_id || rec.customer_id}
+                  key={`${rec.product_id ?? ""}-${rec.customer_id ?? ""}-${index}`}
                   className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors"
                 >
                   <div className="flex-1">
