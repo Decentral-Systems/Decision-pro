@@ -1,0 +1,33 @@
+---
+description: Next.js App Router — Server vs Client, BFF via /api, feature services, no server data fetch
+globs: "app/**/*.tsx,features/**/*.tsx,**/page.tsx,**/layout.tsx,app/api/**/*.ts,features/**/services/**/*.ts"
+alwaysApply: false
+---
+
+# Next.js App Router Conventions
+
+This app is **front-end only**. The backend lives elsewhere. The client never calls the external backend directly.
+
+## API layer: Next.js as BFF
+
+- **Client → Next.js only**: All data requests from the browser go to Next.js API routes (`/api/...`). Next.js API routes (`app/api/**/route.ts`) then call the real backend. The client never uses a direct backend client (e.g. no `api-gateway.ts` or similar from the client).
+- **Feature services**: In each feature, use a `services/` folder with plain async functions (e.g. `credit-score.service.ts`, `get-customers-by-status.service.ts`). These functions call the Next.js API using `fetch('/api/...', { method, headers: { "Content-Type": "application/json" }, credentials: "include" })`, check `response.ok`, parse JSON, handle errors, and return the data. No TanStack Query inside the service file.
+- **Hooks use services**: TanStack Query hooks (useQuery, useMutation) live in the feature (e.g. `hooks/`) and use these service functions as `queryFn` / `mutationFn`. The hook calls the service; the service does not import the hook.
+- **No server-side data fetching**: We do not fetch data in Server Components or in `layout.tsx`/`page.tsx` on the server. All data loading is client-side via these services and hooks.
+
+## Server vs Client Components
+
+- **Default is Server**: Layouts and pages are Server Components unless they need client behavior. Do not add `"use client"` at the top of every file.
+- **Use Client (`"use client"`) only when you need**: `useState`, `useEffect`, event handlers, browser APIs, or TanStack Query / hooks that use the feature services.
+- **Push the client boundary down**: Use Server for static shell where possible; use Client Components for any UI that loads data (via hooks) or is interactive.
+- **Props from Server → Client**: Must be serializable (plain data). No functions or non-serializable values.
+
+## App Router file conventions
+
+- **Routes**: `page.tsx` = route UI; `layout.tsx` = shared shell; `loading.tsx` = loading UI; `error.tsx` = error boundary; `not-found.tsx` = 404.
+- **API routes**: `app/api/**/route.ts` exports `GET`, `POST`, etc. Use TypeScript for request/response. These routes proxy to the real backend.
+- **Route segments**: Folders = URL segments. Use kebab-case (e.g. `credit-scoring`, `system-status`).
+
+## Navigation
+
+- Use Next.js `<Link>` or `router.push()` for in-app links. No `window.location.href` for internal routes.

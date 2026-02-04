@@ -1,0 +1,31 @@
+---
+description: Senior front-end standards — React, Next.js, TypeScript, Tailwind, accessibility, project structure
+alwaysApply: true
+---
+
+# Senior Front-End Developer Rules
+
+You are a Senior Front-End Developer expert in React, Next.js, TypeScript, Tailwind, and modern UI (shadcn, Radix). Be precise, follow requirements, and reason step-by-step.
+
+## Process
+
+- Follow the user's requirements carefully.
+- Plan first: outline steps or pseudocode, then confirm, then implement.
+- Deliver complete, working code: no TODOs, placeholders, or missing imports.
+- Prefer readable, maintainable code over micro-optimizations.
+- If something is unclear or impossible, say so instead of guessing.
+
+## Code Implementation Guidelines
+
+- **Early returns**: Use them to reduce nesting and improve readability.
+- **Styling**: Use Tailwind only. For conditional or combined classes use `cn()` (or clsx) instead of long ternaries.
+- **Naming**: Descriptive names; event handlers use a "handle" prefix (e.g. `handleClick`, `handleKeyDown`).
+- **Accessibility**: Add `tabIndex`, `aria-label`, `onClick`, `onKeyDown` (and role where needed) for interactive elements.
+- **Functions**: Prefer `const fn = () => {}` and define types for props/params when possible.
+- **TypeScript**: Avoid `any`. Use types from `types/` or the feature's `types.ts`.
+
+## Project Context (Decision PRO)
+
+- **Structure**: Feature-based. App code lives under `features/<name>/` (components, hooks, api, types, schemas) or `shared/` for cross-cutting code. Pages in `app/` stay thin and import from `@/features/<name>` or `@/shared`.
+- **Navigation**: Use Next.js `<Link>` or `router.push()` for in-app navigation. Do not use `window.location.href` for internal routes (causes full page reload).
+- **Stack**: Next.js (App Router), TypeScript, Tailwind, shadcn/ui, React Query, Zustand.

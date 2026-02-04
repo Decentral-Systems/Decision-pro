@@ -1,0 +1,31 @@
+---
+description: File and symbol naming — kebab-case files, SCREAMING_PASCAL constants, PascalCase types, use-*-kebab hooks
+alwaysApply: true
+---
+
+# Naming Conventions
+
+**When to apply:** Use these conventions for **new files and new code** only. **Do not rename or move existing files** to match these conventions unless the user explicitly asks you to (e.g. "rename this file to kebab-case" or "refactor naming in this folder"). If you notice existing files use a different style, do not change them on your own—ask the user or wait for explicit instruction.
+
+## File names
+
+- **kebab-case** for all files (e.g. `batch-results-table.tsx`, `api-response-normalizer.ts`).
+- **Route/feature folders** in `app/` and `features/`: kebab-case (e.g. `credit-scoring`, `system-status`).
+- **Test files**: same base name + suffix, kebab-case (e.g. `use-credit-score.test.ts`, `batch-results-table.spec.tsx`).
+
+## Code symbols
+
+- **Constants**: SCREAMING_PASCAL_CASE (e.g. `API_BASE_URL`, `MAX_RETRY_ATTEMPTS`).
+- **Types (interfaces, type aliases)**: PascalCase (e.g. `CreditScoreResponse`, `BatchCreditScoreResult`).
+- **Variables and functions**: camelCase (e.g. `customerId`, `handleSubmit`, `getAllCustomers`).
+- **Booleans**: prefix with `is`, `has`, or `can` when it helps (e.g. `isLoading`, `hasError`, `canSubmit`).
+- **Component names (React)**: PascalCase; typically match the file (e.g. file `batch-results-table.tsx` → component `BatchResultsTable`).
+
+## Hooks
+
+- **Hook file names**: kebab-case and must start with `use-` (e.g. `use-get-all-customers.ts`, `use-credit-score.ts`, `use-batch-credit-score.ts`).
+- Hook identifiers inside the file remain camelCase (e.g. `useGetAllCustomers`, `useCreditScore`).
+
+## Environment and config
+
+- **Environment variables**: SCREAMING_SNAKE_CASE (e.g. `NEXT_PUBLIC_API_GATEWAY_URL`, `NEXTAUTH_SECRET`).
