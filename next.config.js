@@ -1,3 +1,8 @@
+/**
+ * Next.js 16 config.
+ * - Build uses Webpack (see package.json: "next build --webpack") so the webpack() block below is applied.
+ * - Dev uses Turbopack by default; to use Webpack in dev too, run: next dev --webpack -p 4009
+ */
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -6,7 +11,6 @@ const nextConfig = {
   reactStrictMode: true,
   // output: "standalone" - disabled: standalone has MODULE_NOT_FOUND (lib/url) with Node 22
   // Use "next start" for production instead
-  // Optimize compilation and build performance
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
@@ -29,33 +33,15 @@ const nextConfig = {
       },
     };
 
-    // Fix Zod tree-shaking issue - ensure Zod is properly bundled
+    // Optional: vendor chunk splitting (Zod-specific workaround removed; Zod 3 + Next 16 usually fine without it)
     if (!isServer) {
-      // Ensure Zod is properly resolved and not aggressively tree-shaken
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        zod: require.resolve("zod"),
-      };
-
-      // Add Zod to optimization configuration
       config.optimization = {
         ...config.optimization,
-        // Preserve side effects to prevent incorrect tree-shaking of Zod methods
-        sideEffects: true,
         splitChunks: {
           chunks: "all",
           cacheGroups: {
             default: false,
             vendors: false,
-            // Zod gets its own chunk to prevent tree-shaking issues
-            zod: {
-              name: "zod",
-              test: /[\\/]node_modules[\\/](zod)[\\/]/,
-              priority: 25,
-              reuseExistingChunk: true,
-              enforce: true, // Force this chunk to always be created
-            },
-            // Vendor chunk for large libraries
             recharts: {
               name: "recharts",
               test: /[\\/]node_modules[\\/](recharts)[\\/]/,
