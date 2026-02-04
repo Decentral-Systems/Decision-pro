@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +17,22 @@ import { AuditLogDetailDialog } from "@/components/admin/AuditLogDetailDialog";
 import { useAuditLogs } from "@/lib/api/hooks/useAuditLogs";
 import { AuditLogFilters, AuditLogEntry } from "@/types/admin";
 import { exportToCSV, exportToPDF } from "@/lib/utils/exportHelpers";
-import { AlertTriangle, Download, Filter, X, RefreshCw, Play, Pause, Save, Bookmark, TrendingUp, User, Link as LinkIcon, FileText, Activity } from "lucide-react";
+import {
+  AlertTriangle,
+  Download,
+  Filter,
+  X,
+  RefreshCw,
+  Play,
+  Pause,
+  Save,
+  Bookmark,
+  TrendingUp,
+  User,
+  Link as LinkIcon,
+  FileText,
+  Activity,
+} from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { Badge } from "@/components/ui/badge";
 import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
@@ -37,7 +58,10 @@ export default function AuditLogsPage() {
   const [sortBy, setSortBy] = useState<string>("timestamp");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [savedFilters, setSavedFilters] = useState<any[]>([]);
-  const [spikeAlert, setSpikeAlert] = useState<{ count: number; timeWindow: string } | null>(null);
+  const [spikeAlert, setSpikeAlert] = useState<{
+    count: number;
+    timeWindow: string;
+  } | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -49,7 +73,7 @@ export default function AuditLogsPage() {
     sort_by: sortBy,
     order: sortOrder,
   });
-  
+
   // Detect spikes in audit log volume
   useEffect(() => {
     if (data?.items && data.items.length > 0) {
@@ -58,7 +82,7 @@ export default function AuditLogsPage() {
         const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
         return logTime > fiveMinutesAgo;
       }).length;
-      
+
       if (recentCount > 100) {
         setSpikeAlert({
           count: recentCount,
@@ -74,7 +98,7 @@ export default function AuditLogsPage() {
       }
     }
   }, [data, toast]);
-  
+
   // Load saved filters
   useEffect(() => {
     const saved = localStorage.getItem("audit_logs_saved_filters");
@@ -86,18 +110,18 @@ export default function AuditLogsPage() {
       }
     }
   }, []);
-  
+
   const saveCurrentFilters = () => {
     const filterName = prompt("Enter a name for this filter:");
     if (!filterName) return;
-    
+
     const newFilter = {
       id: `filter_${Date.now()}`,
       name: filterName,
       filters: { ...filters },
       createdAt: new Date().toISOString(),
     };
-    
+
     const updated = [...savedFilters, newFilter];
     setSavedFilters(updated);
     localStorage.setItem("audit_logs_saved_filters", JSON.stringify(updated));
@@ -106,7 +130,7 @@ export default function AuditLogsPage() {
       description: `Filter "${filterName}" saved successfully`,
     });
   };
-  
+
   const loadSavedFilter = (savedFilter: any) => {
     setFilters(savedFilter.filters);
     setPage(1);
@@ -158,46 +182,57 @@ export default function AuditLogsPage() {
       });
       return;
     }
-    
+
     const correlationId = getOrCreateCorrelationId();
     const requesterIdentity = user?.email || user?.name || "Unknown";
-    
+
     const exportData = data.items.map((log) => ({
-      "Timestamp": log.timestamp,
-      "Status": log.status,
-      "User": log.user_id || log.username || "N/A",
-      "Action": log.action,
+      Timestamp: log.timestamp,
+      Status: log.status,
+      User: log.user_id || log.username || "N/A",
+      Action: log.action,
       "Resource Type": log.resource_type || "N/A",
       "Resource ID": log.resource_id || "N/A",
       "Correlation ID": (log.details as any)?.correlation_id || "N/A",
       "IP Address": log.ip_address || "N/A",
-      "Details": JSON.stringify(log.details || {}),
+      Details: JSON.stringify(log.details || {}),
     }));
-    
-    const filterSummary = Object.entries(filters)
-      .filter(([_, v]) => v)
-      .map(([k, v]) => `${k}: ${v}`)
-      .join(", ") || "No filters";
-    
-    await exportToCSV(exportData, `audit_logs_${new Date().toISOString().split('T')[0]}`, undefined, {
-      includeSignature: true,
-      version: "1.0.0",
-      filterSummary: filterSummary,
-      requesterIdentity: requesterIdentity,
-      correlationId: correlationId,
-    });
-    
+
+    const filterSummary =
+      Object.entries(filters)
+        .filter(([_, v]) => v)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(", ") || "No filters";
+
+    await exportToCSV(
+      exportData,
+      `audit_logs_${new Date().toISOString().split("T")[0]}`,
+      undefined,
+      {
+        includeSignature: true,
+        version: "1.0.0",
+        filterSummary: filterSummary,
+        requesterIdentity: requesterIdentity,
+        correlationId: correlationId,
+      }
+    );
+
     toast({
       title: "Export Successful",
       description: `Audit logs exported with signature (ID: ${correlationId.substring(0, 8)}...)`,
     });
   };
 
-  const generateAuditLogsPDF = (logs: AuditLogEntry[], filters: AuditLogFilters, correlationId: string, requesterIdentity: string): string => {
+  const generateAuditLogsPDF = (
+    logs: AuditLogEntry[],
+    filters: AuditLogFilters,
+    correlationId: string,
+    requesterIdentity: string
+  ): string => {
     const filteredCount = logs.length;
-    const successCount = logs.filter(log => log.status === "success").length;
-    const failureCount = logs.filter(log => log.status === "failure").length;
-    const errorCount = logs.filter(log => log.status === "error").length;
+    const successCount = logs.filter((log) => log.status === "success").length;
+    const failureCount = logs.filter((log) => log.status === "failure").length;
+    const errorCount = logs.filter((log) => log.status === "error").length;
 
     return `
       <!DOCTYPE html>
@@ -225,11 +260,16 @@ export default function AuditLogsPage() {
           <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
           <p><strong>Requester:</strong> ${requesterIdentity}</p>
           <p><strong>Correlation ID:</strong> ${correlationId}</p>
-          ${filters.start_date || filters.end_date ? `<p><strong>Date Range:</strong> ${filters.start_date || 'All'} to ${filters.end_date || 'All'}</p>` : ''}
-          ${filters.status ? `<p><strong>Status Filter:</strong> ${filters.status}</p>` : ''}
-          ${filters.action ? `<p><strong>Action Filter:</strong> ${filters.action}</p>` : ''}
-          ${filters.correlation_id ? `<p><strong>Correlation ID Filter:</strong> ${filters.correlation_id}</p>` : ''}
-          <p><strong>Filter Summary:</strong> ${Object.entries(filters).filter(([_, v]) => v).map(([k, v]) => `${k}: ${v}`).join(", ") || "No filters"}</p>
+          ${filters.start_date || filters.end_date ? `<p><strong>Date Range:</strong> ${filters.start_date || "All"} to ${filters.end_date || "All"}</p>` : ""}
+          ${filters.status ? `<p><strong>Status Filter:</strong> ${filters.status}</p>` : ""}
+          ${filters.action ? `<p><strong>Action Filter:</strong> ${filters.action}</p>` : ""}
+          ${filters.correlation_id ? `<p><strong>Correlation ID Filter:</strong> ${filters.correlation_id}</p>` : ""}
+          <p><strong>Filter Summary:</strong> ${
+            Object.entries(filters)
+              .filter(([_, v]) => v)
+              .map(([k, v]) => `${k}: ${v}`)
+              .join(", ") || "No filters"
+          }</p>
         </div>
         <div class="summary">
           <div class="summary-item">Total: <span class="summary-label">${filteredCount}</span></div>
@@ -250,20 +290,25 @@ export default function AuditLogsPage() {
             </tr>
           </thead>
           <tbody>
-            ${logs.slice(0, 500).map(log => `
+            ${logs
+              .slice(0, 500)
+              .map(
+                (log) => `
               <tr>
                 <td>${new Date(log.timestamp).toLocaleString()}</td>
                 <td class="${log.status}">${log.status.toUpperCase()}</td>
-                <td>${log.user_id || log.username || 'N/A'}</td>
+                <td>${log.user_id || log.username || "N/A"}</td>
                 <td>${log.action}</td>
-                <td>${log.resource_type || 'N/A'}</td>
-                <td>${log.resource_id || 'N/A'}</td>
-                <td>${log.ip_address || 'N/A'}</td>
+                <td>${log.resource_type || "N/A"}</td>
+                <td>${log.resource_id || "N/A"}</td>
+                <td>${log.ip_address || "N/A"}</td>
               </tr>
-            `).join('')}
+            `
+              )
+              .join("")}
           </tbody>
         </table>
-        ${logs.length > 500 ? `<p class="metadata"><em>Showing first 500 results. Total: ${logs.length}</em></p>` : ''}
+        ${logs.length > 500 ? `<p class="metadata"><em>Showing first 500 results. Total: ${logs.length}</em></p>` : ""}
       </body>
       </html>
     `;
@@ -278,19 +323,32 @@ export default function AuditLogsPage() {
       });
       return;
     }
-    
+
     const correlationId = getOrCreateCorrelationId();
     const requesterIdentity = user?.email || user?.name || "Unknown";
-    const htmlContent = generateAuditLogsPDF(data.items, filters, correlationId, requesterIdentity);
-    
-    await exportToPDF(htmlContent, `audit_logs_${new Date().toISOString().split('T')[0]}`, {
-      includeSignature: true,
-      version: "1.0.0",
-      filterSummary: Object.entries(filters).filter(([_, v]) => v).map(([k, v]) => `${k}: ${v}`).join(", ") || "No filters",
-      requesterIdentity: requesterIdentity,
-      correlationId: correlationId,
-    });
-    
+    const htmlContent = generateAuditLogsPDF(
+      data.items,
+      filters,
+      correlationId,
+      requesterIdentity
+    );
+
+    await exportToPDF(
+      htmlContent,
+      `audit_logs_${new Date().toISOString().split("T")[0]}`,
+      {
+        includeSignature: true,
+        version: "1.0.0",
+        filterSummary:
+          Object.entries(filters)
+            .filter(([_, v]) => v)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join(", ") || "No filters",
+        requesterIdentity: requesterIdentity,
+        correlationId: correlationId,
+      }
+    );
+
     toast({
       title: "Export Successful",
       description: `PDF exported with signature (ID: ${correlationId.substring(0, 8)}...)`,
@@ -317,12 +375,14 @@ export default function AuditLogsPage() {
           <ApiStatusIndicator endpoint="/api/v1/audit/logs" label="Live" />
           <div className="flex items-center gap-2">
             {savedFilters.length > 0 && (
-              <Select onValueChange={(value) => {
-                const saved = savedFilters.find(f => f.id === value);
-                if (saved) loadSavedFilter(saved);
-              }}>
+              <Select
+                onValueChange={(value) => {
+                  const saved = savedFilters.find((f) => f.id === value);
+                  if (saved) loadSavedFilter(saved);
+                }}
+              >
                 <SelectTrigger className="w-[180px]">
-                  <Bookmark className="h-4 w-4 mr-2" />
+                  <Bookmark className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Saved Filters" />
                 </SelectTrigger>
                 <SelectContent>
@@ -334,7 +394,10 @@ export default function AuditLogsPage() {
                 </SelectContent>
               </Select>
             )}
-            <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+            >
               <Filter className="mr-2 h-4 w-4" />
               Filters
             </Button>
@@ -345,8 +408,8 @@ export default function AuditLogsPage() {
               </Button>
             )}
           </div>
-          <Button 
-            variant={autoRefresh ? "default" : "outline"} 
+          <Button
+            variant={autoRefresh ? "default" : "outline"}
             onClick={() => setAutoRefresh(!autoRefresh)}
             title={autoRefresh ? "Stop auto-refresh" : "Start auto-refresh"}
           >
@@ -362,8 +425,14 @@ export default function AuditLogsPage() {
               </>
             )}
           </Button>
-          <Button variant="outline" onClick={() => refetch()} disabled={isLoading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+          <Button
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
           <Button variant="outline" onClick={handleExport}>
@@ -382,7 +451,8 @@ export default function AuditLogsPage() {
         <Alert variant="destructive">
           <TrendingUp className="h-4 w-4" />
           <AlertDescription>
-            High activity detected: {spikeAlert.count} audit log entries in the last {spikeAlert.timeWindow}
+            High activity detected: {spikeAlert.count} audit log entries in the
+            last {spikeAlert.timeWindow}
           </AlertDescription>
         </Alert>
       )}
@@ -394,7 +464,12 @@ export default function AuditLogsPage() {
           icon={Filter}
           actions={
             <>
-              <Button variant="ghost" size="sm" onClick={saveCurrentFilters} disabled={Object.keys(filters).length === 0}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={saveCurrentFilters}
+                disabled={Object.keys(filters).length === 0}
+              >
                 <Save className="mr-2 h-4 w-4" />
                 Save
               </Button>
@@ -407,114 +482,132 @@ export default function AuditLogsPage() {
         >
           <Card>
             <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select
-                  value={filters.status || "all"}
-                  onValueChange={(value) =>
-                    handleFilterChange("status", value === "all" ? "" : value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="success">Success</SelectItem>
-                    <SelectItem value="failure">Failure</SelectItem>
-                    <SelectItem value="error">Error</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select
+                    value={filters.status || "all"}
+                    onValueChange={(value) =>
+                      handleFilterChange("status", value === "all" ? "" : value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="success">Success</SelectItem>
+                      <SelectItem value="failure">Failure</SelectItem>
+                      <SelectItem value="error">Error</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-2">
-                <Label>Action</Label>
-                <Input
-                  placeholder="Filter by action"
-                  value={filters.action || ""}
-                  onChange={(e) => handleFilterChange("action", e.target.value)}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label>Action</Label>
+                  <Input
+                    placeholder="Filter by action"
+                    value={filters.action || ""}
+                    onChange={(e) =>
+                      handleFilterChange("action", e.target.value)
+                    }
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label>Resource Type</Label>
-                <Input
-                  placeholder="Filter by resource"
-                  value={filters.resource_type || ""}
-                  onChange={(e) => handleFilterChange("resource_type", e.target.value)}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label>Resource Type</Label>
+                  <Input
+                    placeholder="Filter by resource"
+                    value={filters.resource_type || ""}
+                    onChange={(e) =>
+                      handleFilterChange("resource_type", e.target.value)
+                    }
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label>Correlation ID</Label>
-                <Input
-                  placeholder="Search by correlation ID"
-                  value={filters.correlation_id || ""}
-                  onChange={(e) => handleFilterChange("correlation_id", e.target.value)}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label>Correlation ID</Label>
+                  <Input
+                    placeholder="Search by correlation ID"
+                    value={filters.correlation_id || ""}
+                    onChange={(e) =>
+                      handleFilterChange("correlation_id", e.target.value)
+                    }
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label>User ID</Label>
-                <Input
-                  placeholder="Filter by user"
-                  value={filters.user_id || ""}
-                  onChange={(e) => handleFilterChange("user_id", e.target.value)}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label>User ID</Label>
+                  <Input
+                    placeholder="Filter by user"
+                    value={filters.user_id || ""}
+                    onChange={(e) =>
+                      handleFilterChange("user_id", e.target.value)
+                    }
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label>Start Date</Label>
-                <Input
-                  type="date"
-                  value={filters.start_date || ""}
-                  onChange={(e) => handleFilterChange("start_date", e.target.value)}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label>Start Date</Label>
+                  <Input
+                    type="date"
+                    value={filters.start_date || ""}
+                    onChange={(e) =>
+                      handleFilterChange("start_date", e.target.value)
+                    }
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label>End Date</Label>
-                <Input
-                  type="date"
-                  value={filters.end_date || ""}
-                  onChange={(e) => handleFilterChange("end_date", e.target.value)}
-                />
+                <div className="space-y-2">
+                  <Label>End Date</Label>
+                  <Input
+                    type="date"
+                    value={filters.end_date || ""}
+                    onChange={(e) =>
+                      handleFilterChange("end_date", e.target.value)
+                    }
+                  />
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </DashboardSection>
+            </CardContent>
+          </Card>
+        </DashboardSection>
       )}
 
-      {error && (error as any)?.statusCode !== 401 && (error as any)?.statusCode !== 404 && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between">
-            <div>
-              <span className="font-semibold">Failed to load audit logs from API.</span>
-              <p className="text-sm mt-1 text-muted-foreground">
-                Error: {(error as any)?.message || "Unknown error occurred"}
-                {(error as any)?.statusCode && ` (Status: ${(error as any)?.statusCode})`}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="ml-4"
-              onClick={() => refetch()}
-            >
-              Retry
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
+      {error &&
+        (error as any)?.statusCode !== 401 &&
+        (error as any)?.statusCode !== 404 && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <div>
+                <span className="font-semibold">
+                  Failed to load audit logs from API.
+                </span>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Error: {(error as any)?.message || "Unknown error occurred"}
+                  {(error as any)?.statusCode &&
+                    ` (Status: ${(error as any)?.statusCode})`}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-4"
+                onClick={() => refetch()}
+              >
+                Retry
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
       {(data === null || error) && (
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Audit Logs API is currently unavailable. Please check your connection or try again later.
+            Audit Logs API is currently unavailable. Please check your
+            connection or try again later.
           </AlertDescription>
         </Alert>
       )}
@@ -545,30 +638,30 @@ export default function AuditLogsPage() {
                 : "System activity logs"}
             </CardDescription>
           </CardHeader>
-        <CardContent>
-          <AuditLogsTable 
-            data={data?.items || []} 
-            isLoading={isLoading}
-            onRowClick={(log) => setSelectedLog(log)}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            onSortChange={(field, order) => {
-              setSortBy(field);
-              setSortOrder(order);
-            }}
-          />
-          {data && data.total && (
-            <div className="mt-4">
-              <Pagination
-                currentPage={page}
-                totalPages={Math.ceil(data.total / 20)}
-                pageSize={20}
-                totalItems={data.total}
-                onPageChange={setPage}
-              />
-            </div>
-          )}
-        </CardContent>
+          <CardContent>
+            <AuditLogsTable
+              data={data?.items || []}
+              isLoading={isLoading}
+              onRowClick={(log) => setSelectedLog(log)}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSortChange={(field, order) => {
+                setSortBy(field);
+                setSortOrder(order);
+              }}
+            />
+            {data && data.total && (
+              <div className="mt-4">
+                <Pagination
+                  currentPage={page}
+                  totalPages={Math.ceil(data.total / 20)}
+                  pageSize={20}
+                  totalItems={data.total}
+                  onPageChange={setPage}
+                />
+              </div>
+            )}
+          </CardContent>
         </Card>
       </DashboardSection>
 
@@ -582,5 +675,3 @@ export default function AuditLogsPage() {
     </div>
   );
 }
-
-
