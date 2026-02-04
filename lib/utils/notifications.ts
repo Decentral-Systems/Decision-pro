@@ -78,7 +78,10 @@ class NotificationManager {
         setTimeout(() => notification.close(), 5000);
       }
     } catch (error) {
-      console.error("[Notifications] Failed to show browser notification:", error);
+      console.error(
+        "[Notifications] Failed to show browser notification:",
+        error
+      );
     }
   }
 
@@ -88,24 +91,21 @@ class NotificationManager {
   private playSound(soundName: string = "default"): void {
     if (!this.soundEnabled) return;
 
-    try {
-      // Create audio context for sound
-      const audio = new Audio();
-      
-      // Use different sounds based on notification type
-      const soundMap: Record<string, string> = {
-        default: "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77+efTRAMUKfj8LZjHAY4kdfyzHksBSR3x/DdkEAKFF606euoVRQKRp/g8r5sIQUrgc7y2Yk2CBlou+/nn00QDFCn4/C2YxwGOJHX8sx5LAUkd8fw3ZBAC",
-        success: "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77+efTRAMUKfj8LZjHAY4kdfyzHksBSR3x/DdkEAKFF606euoVRQKRp/g8r5sIQUrgc7y2Yk2CBlou+/nn00QDFCn4/C2YxwGOJHX8sx5LAUkd8fw3ZBAC",
-        error: "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77+efTRAMUKfj8LZjHAY4kdfyzHksBSR3x/DdkEAKFF606euoVRQKRp/g8r5sIQUrgc7y2Yk2CBlou+/nn00QDFCn4/C2YxwGOJHX8sx5LAUkd8fw3ZBAC",
-      };
+    const audio = new Audio();
+    const soundMap: Record<string, string> = {
+      default:
+        "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77+efTRAMUKfj8LZjHAY4kdfyzHksBSR3x/DdkEAKFF606euoVRQKRp/g8r5sIQUrgc7y2Yk2CBlou+/nn00QDFCn4/C2YxwGOJHX8sx5LAUkd8fw3ZBAC",
+      success:
+        "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77+efTRAMUKfj8LZjHAY4kdfyzHksBSR3x/DdkEAKFF606euoVRQKRp/g8r5sIQUrgc7y2Yk2CBlou+/nn00QDFCn4/C2YxwGOJHX8sx5LAUkd8fw3ZBAC",
+      error:
+        "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77+efTRAMUKfj8LZjHAY4kdfyzHksBSR3x/DdkEAKFF606euoVRQKRp/g8r5sIQUrgc7y2Yk2CBlou+/nn00QDFCn4/C2YxwGOJHX8sx5LAUkd8fw3ZBAC",
+    };
 
-      audio.src = soundMap[soundName] || soundMap.default;
-      audio.volume = 0.3; // 30% volume
-      await audio.play();
-    } catch (error) {
-      // Sound playback failed (user may have blocked it)
-      console.warn("[Notifications] Failed to play sound:", error);
-    }
+    audio.src = soundMap[soundName] || soundMap.default;
+    audio.volume = 0.3;
+    audio.play().catch(() => {
+      console.warn("[Notifications] Failed to play sound");
+    });
   }
 
   /**
@@ -165,7 +165,10 @@ export const notificationManager = new NotificationManager();
 /**
  * Convenience functions for common notification types
  */
-export async function notifyTrainingJobCompleted(jobName: string, channels?: NotificationChannel[]) {
+export async function notifyTrainingJobCompleted(
+  jobName: string,
+  channels?: NotificationChannel[]
+) {
   await notificationManager.notify({
     title: "Training Job Completed",
     description: `Training job "${jobName}" has completed successfully.`,
@@ -175,7 +178,10 @@ export async function notifyTrainingJobCompleted(jobName: string, channels?: Not
   });
 }
 
-export async function notifyTrainingJobFailed(jobName: string, channels?: NotificationChannel[]) {
+export async function notifyTrainingJobFailed(
+  jobName: string,
+  channels?: NotificationChannel[]
+) {
   await notificationManager.notify({
     title: "Training Job Failed",
     description: `Training job "${jobName}" has failed. Please check the logs.`,
@@ -185,7 +191,10 @@ export async function notifyTrainingJobFailed(jobName: string, channels?: Notifi
   });
 }
 
-export async function notifyModelDeployed(modelName: string, channels?: NotificationChannel[]) {
+export async function notifyModelDeployed(
+  modelName: string,
+  channels?: NotificationChannel[]
+) {
   await notificationManager.notify({
     title: "Model Deployed",
     description: `Model "${modelName}" has been deployed successfully.`,
@@ -195,7 +204,10 @@ export async function notifyModelDeployed(modelName: string, channels?: Notifica
   });
 }
 
-export async function notifyDriftDetected(featureCount: number, channels?: NotificationChannel[]) {
+export async function notifyDriftDetected(
+  featureCount: number,
+  channels?: NotificationChannel[]
+) {
   await notificationManager.notify({
     title: "Data Drift Detected",
     description: `${featureCount} feature${featureCount !== 1 ? "s" : ""} have detected drift.`,
@@ -220,4 +232,3 @@ export async function notifyPerformanceThresholdExceeded(
     sound: "error",
   });
 }
-
