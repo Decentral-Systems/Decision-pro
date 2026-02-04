@@ -1,30 +1,21 @@
-/**
- * Next.js 16 config.
- * - Build uses Webpack (see package.json: "next build --webpack") so the webpack() block below is applied.
- * - Dev uses Turbopack by default; to use Webpack in dev too, run: next dev --webpack -p 4009
- */
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {},
   typescript: {
     ignoreBuildErrors: false,
   },
   reactStrictMode: true,
-  // output: "standalone" - disabled: standalone has MODULE_NOT_FOUND (lib/url) with Node 22
-  // Use "next start" for production instead
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
-  // Enable faster refresh and compilation
   webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
-      // Faster refresh in development
       config.watchOptions = {
         poll: 1000,
         aggregateTimeout: 300,
       };
     }
 
-    // Fix for lucide-react and other ESM modules
     config.resolve = {
       ...config.resolve,
       extensionAlias: {
@@ -33,7 +24,6 @@ const nextConfig = {
       },
     };
 
-    // Optional: vendor chunk splitting (Zod-specific workaround removed; Zod 3 + Next 16 usually fine without it)
     if (!isServer) {
       config.optimization = {
         ...config.optimization,
@@ -48,28 +38,24 @@ const nextConfig = {
               priority: 20,
               reuseExistingChunk: true,
             },
-            // React Query chunk
             reactQuery: {
               name: "react-query",
               test: /[\\/]node_modules[\\/](@tanstack[\\/]react-query)[\\/]/,
               priority: 20,
               reuseExistingChunk: true,
             },
-            // Radix UI components
             radix: {
               name: "radix-ui",
               test: /[\\/]node_modules[\\/](@radix-ui)[\\/]/,
               priority: 15,
               reuseExistingChunk: true,
             },
-            // Lucide React icons
             lucide: {
               name: "lucide-react",
               test: /[\\/]node_modules[\\/](lucide-react)[\\/]/,
               priority: 15,
               reuseExistingChunk: true,
             },
-            // Common vendor chunk
             vendor: {
               name: "vendor",
               test: /[\\/]node_modules[\\/]/,
@@ -83,13 +69,8 @@ const nextConfig = {
 
     return config;
   },
-  // Optimize bundle size
-  experimental: {
-    outputFileTracingIncludes: {
-      "/api/**/*": ["./node_modules/**/*.wasm"],
-    },
-    // Disable optimizeCss to avoid critters dependency issues
-    // optimizeCss: true,
+  outputFileTracingIncludes: {
+    "/api/**/*": ["./node_modules/**/*.wasm"],
   },
   images: {
     unoptimized: true,
@@ -104,8 +85,6 @@ const nextConfig = {
       },
     ],
   },
-  // Enable static page generation where possible
-  // This pre-renders pages at build time for faster load
   async headers() {
     return [
       {
