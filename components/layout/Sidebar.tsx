@@ -10,20 +10,21 @@ import { useUIStore } from "@/lib/stores/ui-store";
 import { useAuth } from "@/lib/auth/auth-context";
 import { hasAnyRole } from "@/lib/auth/permissions";
 import { Button } from "@/components/ui/button";
-import { BRANDING } from "@/lib/constants/branding";
 import { menuItems, type MenuItem } from "@/lib/constants/menu-config";
+
+const SIDEBAR_LOGO = "/logos/logo_only.jpeg";
 
 // Skeleton component for SSR
 function SidebarSkeleton() {
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 bg-card border-r border-border/50">
+    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-border/50 bg-card">
       <div className="flex h-full flex-col">
         <div className="flex h-20 items-center border-b border-border/50 px-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-muted animate-pulse" />
+            <div className="h-10 w-10 animate-pulse rounded-lg bg-muted" />
             <div className="flex flex-col gap-2">
-              <div className="h-4 w-24 bg-muted animate-pulse rounded" />
-              <div className="h-2 w-16 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+              <div className="h-2 w-16 animate-pulse rounded bg-muted" />
             </div>
           </div>
         </div>
@@ -33,8 +34,8 @@ function SidebarSkeleton() {
               key={i}
               className="flex items-center gap-3 rounded-xl px-3 py-2.5"
             >
-              <div className="h-5 w-5 bg-muted animate-pulse rounded" />
-              <div className="h-4 flex-1 bg-muted animate-pulse rounded" />
+              <div className="h-5 w-5 animate-pulse rounded bg-muted" />
+              <div className="h-4 flex-1 animate-pulse rounded bg-muted" />
             </div>
           ))}
         </nav>
@@ -71,23 +72,36 @@ function MenuItemComponent({
     // Don't prevent default - let Link handle it first
     // But add a fallback in case router doesn't update the URL
     const currentPath = window.location.pathname;
-    
+
     // Set a timeout to check if navigation occurred
     setTimeout(() => {
       // If URL hasn't changed after 200ms, force navigation
-      if (window.location.pathname === currentPath && currentPath !== item.href) {
-        console.warn('[Sidebar] Link navigation may have failed, forcing router.push');
+      if (
+        window.location.pathname === currentPath &&
+        currentPath !== item.href
+      ) {
+        console.warn(
+          "[Sidebar] Link navigation may have failed, forcing router.push"
+        );
         try {
           router.push(item.href);
           // Check again after another 100ms, if still not changed, use window.location
           setTimeout(() => {
-            if (window.location.pathname === currentPath && currentPath !== item.href) {
-              console.warn('[Sidebar] Router.push also failed, using window.location');
+            if (
+              window.location.pathname === currentPath &&
+              currentPath !== item.href
+            ) {
+              console.warn(
+                "[Sidebar] Router.push also failed, using window.location"
+              );
               window.location.href = item.href;
             }
           }, 100);
         } catch (err) {
-          console.error('[Sidebar] Router.push failed, using window.location:', err);
+          console.error(
+            "[Sidebar] Router.push failed, using window.location:",
+            err
+          );
           window.location.href = item.href;
         }
       }
@@ -125,7 +139,7 @@ function MenuItemComponent({
       {!isCollapsed && <span className="flex-1 truncate">{item.title}</span>}
 
       {!isCollapsed && item.badge && (
-        <span className="px-2 py-0.5 text-xs font-semibold bg-destructive/10 text-destructive rounded-full">
+        <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
           {item.badge}
         </span>
       )}
@@ -157,7 +171,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen bg-gradient-to-b from-card to-card/80 border-r border-border/50 backdrop-blur-sm transition-all duration-300 ease-in-out",
+        "fixed left-0 top-0 z-40 h-screen border-r border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm transition-all duration-300 ease-in-out",
         sidebarOpen ? "w-64" : "w-20"
       )}
     >
@@ -167,35 +181,35 @@ export function Sidebar() {
           className={cn(
             "flex items-center border-b border-border/50 bg-primary/5 transition-all duration-300",
             sidebarOpen
-              ? "h-20 px-6 justify-between"
-              : "h-20 px-3 justify-center"
+              ? "h-20 justify-between px-6"
+              : "h-20 justify-center px-3"
           )}
         >
           {sidebarOpen ? (
-            <Link href="/dashboard" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-lg overflow-hidden bg-white p-1 shadow-md group-hover:shadow-lg transition-shadow flex items-center justify-center">
+            <Link href="/dashboard" className="group flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-white p-1 shadow-md transition-shadow group-hover:shadow-lg">
                 <img
-                  src={BRANDING.logos.icon}
+                  src={SIDEBAR_LOGO}
                   alt="Decision PRO"
-                  className="w-full h-full object-contain"
+                  className="h-full w-full object-contain"
                 />
               </div>
               <div className="flex flex-col">
-                <h1 className="text-lg font-bold text-foreground leading-tight">
+                <h1 className="text-lg font-bold leading-tight text-foreground">
                   Decision PRO
                 </h1>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                   AIS Platform
                 </span>
               </div>
             </Link>
           ) : (
             <Link href="/dashboard" className="group">
-              <div className="w-12 h-12 rounded-xl overflow-hidden bg-white p-1.5 shadow-md group-hover:shadow-xl group-hover:scale-105 transition-all flex items-center justify-center">
+              <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 shadow-md transition-all group-hover:scale-105 group-hover:shadow-xl">
                 <img
-                  src={BRANDING.logos.icon}
+                  src={SIDEBAR_LOGO}
                   alt="Decision PRO"
-                  className="w-full h-full object-contain"
+                  className="h-full w-full object-contain"
                 />
               </div>
             </Link>
@@ -207,7 +221,7 @@ export function Sidebar() {
             size="icon"
             onClick={toggleSidebar}
             className={cn(
-              "h-8 w-8 rounded-lg hover:bg-primary/10 transition-colors",
+              "h-8 w-8 rounded-lg transition-colors hover:bg-primary/10",
               !sidebarOpen && "hidden"
             )}
           >
@@ -216,7 +230,7 @@ export function Sidebar() {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 space-y-1 p-3 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+        <nav className="scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent flex-1 space-y-1 overflow-y-auto p-3">
           {filteredMenuItems.map((item, index) => {
             const isActive =
               pathname === item.href || pathname?.startsWith(item.href + "/");
@@ -234,12 +248,12 @@ export function Sidebar() {
 
         {/* Footer with collapse button when sidebar is collapsed */}
         {!sidebarOpen && (
-          <div className="p-3 border-t border-border/50">
+          <div className="border-t border-border/50 p-3">
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="w-full h-12 hover:bg-primary/10 rounded-xl transition-colors"
+              className="h-12 w-full rounded-xl transition-colors hover:bg-primary/10"
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
@@ -248,18 +262,18 @@ export function Sidebar() {
 
         {/* User info section when expanded */}
         {sidebarOpen && user && (
-          <div className="p-4 border-t border-border/50 bg-muted/30">
-            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-background/50">
-              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+          <div className="border-t border-border/50 bg-muted/30 p-4">
+            <div className="flex items-center gap-3 rounded-lg bg-background/50 px-3 py-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
                 <span className="text-sm font-semibold text-primary">
                   {user?.name?.[0] || "U"}
                 </span>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-foreground">
                   {user?.name || "User"}
                 </p>
-                <p className="text-xs text-muted-foreground truncate">
+                <p className="truncate text-xs text-muted-foreground">
                   {user?.roles?.[0] || "User"}
                 </p>
               </div>
