@@ -23,10 +23,15 @@ build.log
 .DS_Store
 *.pem
 
+# lockfiles (this repo uses pnpm)
+package-lock.json
+yarn.lock
+
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # local env files
 .env*.local

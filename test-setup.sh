@@ -22,18 +22,18 @@ fi
 
 echo "✅ Node.js version: $(node --version)"
 
-# Check if npm is installed
-if ! command -v npm &> /dev/null; then
-    echo "❌ npm is not installed."
+# Check if pnpm is installed
+if ! command -v pnpm &> /dev/null; then
+    echo "❌ pnpm is not installed. Enable with: corepack enable && corepack prepare pnpm@9.15.0 --activate"
     exit 1
 fi
 
-echo "✅ npm version: $(npm --version)"
+echo "✅ pnpm version: $(pnpm --version)"
 echo ""
 
 # Install dependencies
 echo "📦 Installing dependencies..."
-npm install
+pnpm install
 
 echo ""
 
@@ -90,7 +90,7 @@ echo ""
 
 # Run build test
 echo "🏗️  Testing build..."
-if npm run build > /dev/null 2>&1; then
+if pnpm run build > /dev/null 2>&1; then
     echo "✅ Build successful"
 else
     echo "❌ Build failed. Check the errors above."
@@ -102,7 +102,7 @@ echo "✅ Setup complete!"
 echo ""
 echo "📝 Next steps:"
 echo "   1. Start the development server:"
-echo "      npm run dev"
+echo "      pnpm dev"
 echo ""
 echo "   2. Open your browser and navigate to:"
 echo "      http://localhost:3000"

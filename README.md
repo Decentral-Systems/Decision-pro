@@ -26,15 +26,16 @@ Modern Next.js 14+ admin dashboard for the AIS (Akafay Intelligent Services) pla
 
 ### Prerequisites
 
-- Node.js 18+ and npm 9+
+- Node.js 18+
+- pnpm 9+ (recommended: `corepack enable` then use the version from `packageManager` in package.json)
 - API Gateway running on port 4000
 - Credit Scoring Service running on port 4001
 
 ### Installation
 
-1. Install dependencies:
+1. Install dependencies (use pnpm; the project does not use npm):
 ```bash
-npm install
+pnpm install
 ```
 
 2. Copy environment variables:
@@ -54,7 +55,7 @@ NEXT_PUBLIC_DEFAULT_PREDICTION_API_URL=http://196.188.249.48:4002
 
 4. Run development server:
 ```bash
-npm run dev
+pnpm dev
 ```
 
 5. Open [http://196.188.249.48:4009](http://196.188.249.48:4009)
@@ -62,8 +63,8 @@ npm run dev
 ## Building for Production
 
 ```bash
-npm run build
-npm start
+pnpm build
+pnpm start
 ```
 
 ## Docker Deployment
