@@ -22,7 +22,7 @@ import {
   Pie,
   Cell
 } from "recharts";
-import { Download, TrendingUp, Users, DollarSign, Calendar, AlertCircle } from "lucide-react";
+import { Download, TrendingUp, Users, DollarSign, AlertCircle } from "lucide-react";
 import { exportToExcel } from "@/lib/utils/export-service";
 
 interface CustomerCLVData {

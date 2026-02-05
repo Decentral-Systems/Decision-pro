@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { retryWithBackoff } from "@/lib/utils/retry";
 import { executeWithCircuitBreaker } from "@/lib/utils/circuitBreaker";
-import { getErrorDetails, logError } from "@/lib/utils/errorHandler";
+import { logError } from "@/lib/utils/errorHandler";
 import { trackAPICall } from "@/lib/utils/performanceMetrics";
 
 export type JobPriority = "low" | "normal" | "high" | "urgent";

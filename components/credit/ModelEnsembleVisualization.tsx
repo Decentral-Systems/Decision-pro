@@ -11,8 +11,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import {
   BarChart3,
-  TrendingUp,
-  TrendingDown,
   AlertTriangle,
   CheckCircle2,
   Info,

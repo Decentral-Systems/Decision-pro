@@ -1,15 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo, Suspense, lazy } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { useDashboardData } from "@/lib/api/hooks/useDashboard";
 import { useExecutiveDashboardData } from "@/lib/api/hooks/useExecutiveDashboard";
 // Real-time WebSocket imports removed - executive dashboard uses manual refresh only
-import type { ExecutiveDashboardData } from "@/types/dashboard";
-import { Badge } from "@/components/ui/badge";
 import {
-  Wifi,
-  WifiOff,
   AlertTriangle,
   AlertCircle,
   RefreshCw,
@@ -17,8 +13,6 @@ import {
   TrendingUp,
   BarChart3,
   Building2,
-  Wallet,
-  PieChart,
   Activity,
   Shield,
   Brain,
@@ -47,7 +41,6 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  EnhancedSkeleton,
   MetricsSkeleton,
 } from "@/components/common/EnhancedSkeleton";
 import { DashboardCustomization } from "@/components/dashboard/DashboardCustomization";
@@ -70,7 +63,7 @@ import { formatLastUpdated } from "@/lib/utils/cacheMetadata";
 import { CorrelationIdDisplay } from "@/components/common/CorrelationIdDisplay";
 // SLAStatusChip import removed - using real health check components only
 import { EmptyState } from "@/components/common/EmptyState";
-import { exportToCSV, exportToPDF } from "@/lib/utils/exportHelpers";
+import { exportToCSV } from "@/lib/utils/exportHelpers";
 import { KPIPinManager } from "@/components/dashboard/KPIPinManager";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ScenarioToggle } from "@/components/dashboard/ScenarioToggle";

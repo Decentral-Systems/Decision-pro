@@ -4,7 +4,6 @@ import {
   RadialBarChart,
   RadialBar,
   ResponsiveContainer,
-  Legend,
   Cell,
 } from "recharts";
 

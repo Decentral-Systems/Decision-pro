@@ -24,7 +24,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,10 +32,8 @@ import {
   AlertTriangle,
   Info,
   GitBranch,
-  TrendingUp,
   Clock,
   Activity,
-  Shield,
 } from "lucide-react";
 import { useModelVersionHistory } from "@/lib/api/hooks/useModelVersionHistory";
 import { useAuditLogger } from "@/lib/utils/audit-logger";

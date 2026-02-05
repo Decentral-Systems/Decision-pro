@@ -12,7 +12,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, TrendingDown, Info, Download, BarChart3, Eye, Droplet, Zap } from "lucide-react";
 import { useState } from "react";
-import { exportToPDF } from "@/lib/utils/exportHelpers";
 import { LIMEExplanationModal } from "./LIMEExplanationModal";
 import { SHAPWaterfallChart } from "./SHAPWaterfallChart";
 import { SHAPForcePlot } from "./SHAPForcePlot";

@@ -3,7 +3,6 @@
  * Subscribes to WebSocket streams for ML Center data
  */
 
-import { useEffect, useState } from "react";
 import { useWebSocket } from "./useWebSocket";
 
 interface RealtimeMLDataOptions {

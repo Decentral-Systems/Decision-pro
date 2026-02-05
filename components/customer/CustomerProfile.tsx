@@ -1,8 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { formatCurrency, formatDate, getCustomerProfile } from "@/lib/utils/customer360Transform";
 import type { Customer360Data } from "@/lib/utils/customer360Transform";
 import { Mail, Phone, MapPin, Briefcase, Calendar, User } from "lucide-react";

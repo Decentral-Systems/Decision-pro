@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Download, Filter, BarChart3, List, History, Activity } from "lucide-react";
+import { Download, Filter, BarChart3, List, History } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { ExportService } from "@/lib/utils/export-service";
 import { CustomerAutocomplete } from "@/components/common/CustomerAutocomplete";
@@ -28,7 +28,6 @@ import Link from "next/link";
 import { Pagination } from "@/components/common/Pagination";
 import { CacheMetadata } from "@/components/common/CacheMetadata";
 import { useAuth } from "@/lib/auth/auth-context";
-import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
 
 // Wrap main component content for Suspense
 function CreditScoringHistoryPageContent() {

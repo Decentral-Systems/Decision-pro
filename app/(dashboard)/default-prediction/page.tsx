@@ -19,7 +19,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { exportToCSV, exportToPDF } from "@/lib/utils/exportHelpers";
 const AlertCircleIcon = AlertCircle;
 import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
-import { EmptyState } from "@/components/common/EmptyState";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";

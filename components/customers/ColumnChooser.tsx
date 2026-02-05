@@ -18,7 +18,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { GripVertical, Settings2, Eye, EyeOff } from "lucide-react";
+import { GripVertical, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface ColumnConfig {

@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { getWebSocketClient, createWebSocketClient, WebSocketClient } from "@/lib/utils/websocketClient";
+import { getWebSocketClient, WebSocketClient } from "@/lib/utils/websocketClient";
 
 type ConnectionState = "connecting" | "connected" | "disconnected" | "error";
 

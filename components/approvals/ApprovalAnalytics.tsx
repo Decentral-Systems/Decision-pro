@@ -6,18 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   TrendingUp, 
-  TrendingDown, 
   Clock, 
-  CheckCircle, 
-  XCircle, 
   AlertCircle,
   BarChart3
 } from "lucide-react";
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,

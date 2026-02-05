@@ -7,7 +7,6 @@ import {
   CheckCircle, 
   Clock, 
   AlertCircle,
-  ArrowRight,
   Calendar,
   Timer
 } from "lucide-react";

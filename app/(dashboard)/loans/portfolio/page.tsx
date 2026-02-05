@@ -33,12 +33,10 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
-  Users,
   AlertCircle,
   FileText,
   Download,
   RefreshCw,
-  Calendar,
   PieChart,
   LineChart as LineChartIcon,
   ArrowUpRight,
@@ -49,8 +47,6 @@ import {
   Layers,
   Filter,
   Eye,
-  Maximize2,
-  MoreHorizontal,
 } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { useToast } from "@/hooks/use-toast";
@@ -61,12 +57,9 @@ import {
   useProductPerformance,
   useGenerateNBEComplianceReport,
 } from "@/lib/api/hooks/useLoans";
-import { format, subDays, subMonths } from "date-fns";
-import { MetricTrend } from "@/components/charts/MetricTrend";
-import { LoanPortfolioChart } from "@/components/charts/LoanPortfolioChart";
+import { format, subDays } from "date-fns";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportHelpers";
 import {
-  LineChart,
   Line,
   BarChart,
   Bar,
@@ -78,7 +71,6 @@ import {
   ResponsiveContainer,
   ComposedChart,
   Area,
-  AreaChart,
 } from "recharts";
 
 // Lazy load chart components for better performance

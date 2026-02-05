@@ -19,7 +19,6 @@ import { CustomerJourney } from "./CustomerJourney";
 import { CustomerJourneyTimeline } from "./CustomerJourneyTimeline";
 import { CustomerIntelligence } from "./CustomerIntelligence";
 import { CustomerNotes } from "./CustomerNotes";
-import { CustomerActivityTimeline } from "./CustomerActivityTimeline";
 
 interface Customer360ViewProps {
   data: Customer360Data | null | undefined;

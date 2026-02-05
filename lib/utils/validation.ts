@@ -2,17 +2,14 @@
  * Zod validation schemas for forms
  */
 import { z } from "zod";
-import { nbeComplianceValidator } from "./nbe-compliance";
 import {
   ethiopianPhoneValidator,
   ethiopianIdValidator,
   formatETB,
   parseETB,
-  etbCurrencyValidator,
   ethiopianRegionValidator,
   ethiopianBusinessSectorValidator,
   validateIncomeExpenses,
-  validateLoanAffordability,
   validateCreditUtilization,
   validateEmploymentStability,
   validateAgeEmployment,

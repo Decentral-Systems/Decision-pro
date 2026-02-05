@@ -12,8 +12,6 @@ import {
   CreditCard, 
   FileText, 
   AlertTriangle, 
-  CheckCircle2, 
-  XCircle, 
   User, 
   DollarSign,
   Calendar,

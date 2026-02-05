@@ -21,12 +21,10 @@ import {
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
-  LineChart,
   Line,
-  ComposedChart,
-  Area
+  ComposedChart
 } from "recharts";
-import { Download, ArrowUpDown, Check, X, GitCompare, Trophy, Zap } from "lucide-react";
+import { Download, GitCompare, Trophy, Zap } from "lucide-react";
 import { exportToExcel } from "@/lib/utils/export-service";
 
 interface ModelMetrics {

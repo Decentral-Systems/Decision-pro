@@ -21,9 +21,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSettings, useUpdateSettings, useResetSettings } from "@/lib/api/hooks/useSettings";
 import { SettingsImportDialog } from "@/components/settings/SettingsImportDialog";
 import { SettingsHistory } from "@/components/settings/SettingsHistory";
-import { useSettingsHistory } from "@/lib/api/hooks/useSettings";
 
-import { Settings, Save, CheckCircle2, AlertTriangle, RotateCcw, AlertCircle, Download, Upload, Eye, EyeOff, History, TestTube, Info, Cog, Activity } from "lucide-react";
+import { Save, CheckCircle2, AlertTriangle, RotateCcw, AlertCircle, Download, Upload, History, TestTube, Info, Cog } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,7 +36,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 // Textarea component not available, using Input instead if needed

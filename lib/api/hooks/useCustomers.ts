@@ -3,7 +3,6 @@
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
-import { creditScoringClient } from "../clients/credit-scoring";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { CustomersListResponse } from "@/types/api";
 import { useAuth } from "@/lib/auth/auth-context";

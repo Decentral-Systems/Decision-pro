@@ -1,19 +1,17 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter, RefreshCw, Settings, Code, Workflow, ShieldCheck, Palette, TestTube } from "lucide-react";
+import { Plus, Search, Filter, RefreshCw, Settings, Code, Workflow, Palette, TestTube } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   useCustomProductRules,
   useDeleteCustomProductRule,
-  useCreateCustomProductRule,
   useUpdateCustomProductRule,
   useWorkflowRules,
   useDeleteWorkflowRule,

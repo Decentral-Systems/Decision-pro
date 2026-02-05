@@ -3,7 +3,7 @@
  * Handles chunked processing of large datasets with progress tracking
  */
 
-import { withRetryResult, RetryResult } from "./retry";
+import { withRetryResult } from "./retry";
 
 export interface BatchProcessorOptions<TInput, TOutput> {
   /** Number of items to process in each chunk (default: 10) */

@@ -2,7 +2,6 @@
  * Unit Tests for Validation Utilities
  */
 
-import { z } from 'zod';
 import { ethiopianPhoneSchema, ethiopianIdSchema } from '@/lib/utils/validation';
 
 describe('Ethiopian Phone Validation', () => {

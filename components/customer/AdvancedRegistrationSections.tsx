@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, ChevronUp, Banknote, Smartphone, ShieldCheck, History, MoreHorizontal, Wifi } from "lucide-react";
+import { ChevronDown, ChevronUp, Banknote, ShieldCheck, MoreHorizontal, Wifi } from "lucide-react";
 import { CustomerRegistrationFormData } from "@/lib/utils/customerRegistrationSchema";
 import { useState } from "react";
 import { Separator } from "@/components/ui/separator";

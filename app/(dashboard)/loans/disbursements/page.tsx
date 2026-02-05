@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,12 +18,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { RefreshCw, Eye, Play, RotateCw, X, Filter, Search, Download, BarChart3, TrendingUp, AlertTriangle, CheckCircle2, Clock, Wallet, Activity } from "lucide-react";
+import { RefreshCw, Eye, Play, RotateCw, X, Filter, Download, BarChart3, TrendingUp, AlertTriangle, CheckCircle2, Clock, Wallet } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";

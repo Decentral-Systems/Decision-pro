@@ -22,8 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus, Trash2, AlertTriangle, Loader2, Layout, FileText } from "lucide-react";
+import { Plus, Trash2, Loader2, Layout, FileText } from "lucide-react";
 import { useCreateWorkflowRule, useUpdateWorkflowRule } from "@/lib/api/hooks/useRules";
 import { useToast } from "@/hooks/use-toast";
 import { workflowRuleRequestSchema } from "@/lib/validations/rules";
@@ -31,7 +30,7 @@ import { WorkflowRule, WorkflowRuleRequest } from "@/types/rules";
 import { getOperatorsForField, inferFieldType } from "@/lib/utils/ruleHelpers";
 import { Checkbox } from "@/components/ui/checkbox";
 import { VisualRuleBuilder } from "./VisualRuleBuilder";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InfoButton } from "./InfoButton";
 import { PRODUCT_TYPES, getAllCustomerSegments, WORKFLOW_RULE_TYPES, ERROR_HANDLING_OPTIONS } from "@/lib/constants/rules";
 

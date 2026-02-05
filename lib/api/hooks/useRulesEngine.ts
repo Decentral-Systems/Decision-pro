@@ -2,7 +2,7 @@
  * React Query hooks for Rules Engine operations
  */
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { rulesEngineService, LoanTermsRequest, EligibilityRequest, WorkflowEvaluationRequest } from "@/lib/api/services/rules-engine";
 import { useToast } from "@/hooks/use-toast";
 

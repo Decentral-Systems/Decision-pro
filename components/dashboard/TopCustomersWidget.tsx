@@ -13,9 +13,8 @@ import {
 } from "@/components/ui/select";
 import { useTopCustomers } from "@/lib/api/hooks/useCustomerJourney";
 import { TopCustomer } from "@/types/customer-intelligence";
-import { formatCurrency, formatNumber, safeFormatDate } from "@/lib/utils/format";
+import { formatCurrency, safeFormatDate } from "@/lib/utils/format";
 import { Users, TrendingUp, ExternalLink } from "lucide-react";
-import Link from "next/link";
 import { navigateTo } from "@/lib/utils/navigation";
 import { useState } from "react";
 

@@ -13,11 +13,8 @@ import {
   CheckCircle2,
   XCircle,
   FileText,
-  Download,
   RefreshCw,
-  Calendar,
   ClipboardCheck,
-  BarChart3,
 } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import {
@@ -27,16 +24,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { generateBatchResultsPDF, exportToPDF } from "@/lib/utils/exportHelpers";
-import { formatCurrency, safeFormatDate } from "@/lib/utils/format";
+import { exportToPDF } from "@/lib/utils/exportHelpers";
+import { safeFormatDate } from "@/lib/utils/format";
 import { useToast } from "@/hooks/use-toast";
-import { AlertCircle } from "lucide-react";
 import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
 import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
 import { SLATimer } from "@/components/compliance/SLATimer";
 import { EmptyState } from "@/components/common/EmptyState";
-import { Checkbox } from "@/components/ui/checkbox";
-import { exportToCSV } from "@/lib/utils/exportHelpers";
 import { Input } from "@/components/ui/input";
 
 const getSeverityColor = (severity: string) => {

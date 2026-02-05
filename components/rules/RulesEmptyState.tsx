@@ -9,7 +9,6 @@ import {
   FileQuestion,
   BookOpen,
   Lightbulb,
-  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {

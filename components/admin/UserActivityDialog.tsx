@@ -7,9 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useUserActivity } from "@/lib/api/hooks/useUsers";
 import { AuditLogsTable } from "./AuditLogsTable";
 import { Skeleton } from "@/components/ui/skeleton";

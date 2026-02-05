@@ -13,8 +13,6 @@ import { transformDriftData } from "@/lib/utils/dataDriftTransformer";
 import {
   Brain,
   PlayCircle,
-  CheckCircle2,
-  XCircle,
   Clock,
   TrendingUp,
   Zap,
@@ -29,19 +27,16 @@ import {
   GitBranch,
   FileText,
   RefreshCw,
-  Calendar,
   BarChart3,
 } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { safeFormatDate } from "@/lib/utils/format";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MetricTrend } from "@/components/charts/MetricTrend";
 import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
-import { ModelComparison } from "@/components/ml/ModelComparison";
 import { AdvancedModelComparison } from "@/components/ml/AdvancedModelComparison";
 import { DataDriftMonitor } from "@/components/ml/DataDriftMonitor";
-import { exportToCSV, exportToPDF } from "@/lib/utils/exportHelpers";
+import { exportToCSV } from "@/lib/utils/exportHelpers";
 import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
 import { useToast } from "@/hooks/use-toast";
 import { CacheMetadata } from "@/components/common/CacheMetadata";
@@ -54,8 +49,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

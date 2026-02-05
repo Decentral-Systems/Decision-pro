@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useDriftDetection } from "@/lib/api/hooks/useDriftDetection";
 import { DriftTrendChart } from "@/components/charts/DriftTrendChart";
 import { DriftHeatmapChart } from "@/components/charts/DriftHeatmapChart";
-import { AlertTriangle, TrendingUp, Info, XCircle, AlertCircle } from "lucide-react";
+import { AlertTriangle, Info, XCircle, AlertCircle } from "lucide-react";
 import { EmptyState } from "@/components/common/EmptyState";
 import type { MLPerformanceMetrics } from "@/types/dashboard";
 

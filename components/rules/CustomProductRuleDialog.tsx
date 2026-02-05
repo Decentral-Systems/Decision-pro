@@ -31,9 +31,9 @@ import { CustomProductRule, CustomProductRuleRequest } from "@/types/rules";
 import { getOperatorsForField, inferFieldType } from "@/lib/utils/ruleHelpers";
 import { Checkbox } from "@/components/ui/checkbox";
 import { VisualRuleBuilder } from "./VisualRuleBuilder";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InfoButton } from "./InfoButton";
-import { PRODUCT_TYPES, EVALUATION_SCOPES } from "@/lib/constants/rules";
+import { PRODUCT_TYPES } from "@/lib/constants/rules";
 
 type CustomProductRuleFormData = CustomProductRuleRequest;
 

@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { History, X, Star, Trash2, Search, Clock } from "lucide-react";
+import { History, X, Star, Trash2, Search } from "lucide-react";
 // Toast notifications - using console for now, can be replaced with toast library
 const showToast = (title: string, description?: string) => {
   console.log(`Toast: ${title}${description ? ` - ${description}` : ''}`);

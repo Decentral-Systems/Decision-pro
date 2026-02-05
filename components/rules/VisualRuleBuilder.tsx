@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -13,9 +13,7 @@ import ReactFlow, {
   Background,
   BackgroundVariant,
   NodeTypes,
-  EdgeTypes,
   ReactFlowProvider,
-  useReactFlow,
   Panel,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -23,21 +21,14 @@ import 'reactflow/dist/style.css';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Play, 
   Save, 
-  Undo, 
-  Redo, 
-  Trash2, 
   Eye, 
-  Code, 
   Plus,
-  Settings,
   AlertCircle,
-  CheckCircle,
-  Info
+  CheckCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 

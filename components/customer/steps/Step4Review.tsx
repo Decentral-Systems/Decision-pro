@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormContext } from "react-hook-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomerRegistrationFormData } from "@/lib/utils/customerRegistrationSchema";
 import { FeatureCompletenessIndicator } from "../FeatureCompletenessIndicator";
 

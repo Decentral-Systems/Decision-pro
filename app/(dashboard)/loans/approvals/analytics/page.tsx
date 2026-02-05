@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApprovalAnalytics } from "@/components/approvals/ApprovalAnalytics";
 import { useApprovalAnalytics } from "@/lib/api/hooks/useLoans";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, BarChart3 } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 

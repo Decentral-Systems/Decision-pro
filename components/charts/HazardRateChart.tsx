@@ -1,7 +1,6 @@
 "use client";
 import React, { useMemo, useState } from "react";
 
-import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +17,7 @@ import {
   ReferenceLine,
   ReferenceArea
 } from "recharts";
-import { Download, Info, TrendingUp, AlertTriangle, ChevronDown } from "lucide-react";
+import { Download, Info, TrendingUp, AlertTriangle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface HazardDataPoint {

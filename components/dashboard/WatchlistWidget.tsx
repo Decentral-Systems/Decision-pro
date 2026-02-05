@@ -7,8 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useWatchlist } from "@/lib/api/hooks/useRiskAlerts";
 import { WatchlistCustomer } from "@/types/risk";
 import { safeFormatDate } from "@/lib/utils/format";
-import { Eye, ExternalLink, Shield } from "lucide-react";
-import Link from "next/link";
+import { ExternalLink, Shield } from "lucide-react";
 import { navigateTo } from "@/lib/utils/navigation";
 
 export function WatchlistWidget() {

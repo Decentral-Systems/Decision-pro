@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Phone, Mail, MessageSquare, User, Calendar, DollarSign, RefreshCw, Plus, Filter, TrendingUp, BarChart3, Users, Activity, Target } from "lucide-react";
+import { AlertCircle, Calendar, RefreshCw, Plus, TrendingUp, BarChart3, Users, Activity } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";

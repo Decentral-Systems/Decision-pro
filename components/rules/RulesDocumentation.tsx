@@ -21,7 +21,6 @@ import {
   Rows3,
   History,
   Filter,
-  Search,
   FileText,
   Layout,
   AlertCircle,

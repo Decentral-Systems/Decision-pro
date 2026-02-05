@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GaugeChart } from "@/components/charts/GaugeChart";
-import { User, TrendingUp, TrendingDown, DollarSign, AlertTriangle } from "lucide-react";
+import { User, TrendingUp, DollarSign, AlertTriangle } from "lucide-react";
 import { formatCurrency, getCreditScoreLabel, getRiskLevelColor } from "@/lib/utils/customer360Transform";
 import type { Customer360Data } from "@/lib/utils/customer360Transform";
 import { getMissingDataMessage } from "@/lib/utils/missingDataMessages";

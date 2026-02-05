@@ -13,15 +13,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
+
 import { Settings, Save, Trash2, RotateCcw } from "lucide-react";
-import { useDashboardCustomization, DashboardLayout } from "@/lib/hooks/useDashboardCustomization";
+import { useDashboardCustomization } from "@/lib/hooks/useDashboardCustomization";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 

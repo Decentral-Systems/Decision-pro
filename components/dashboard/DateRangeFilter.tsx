@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils/cn";
 import { useDateRange } from "@/lib/hooks/useDateRange";
 import type { UseDateRangeOptions, UseDateRangeReturn } from "@/lib/hooks/useDateRange";
-import type { DateRangePreset, DateRange } from "@/lib/utils/dateUtils";
+import type { DateRangePreset } from "@/lib/utils/dateUtils";
 
 interface DateRangeFilterProps {
   /**

@@ -9,13 +9,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Search, User, X, Clock } from "lucide-react";
+import { Loader2, Search, User, X } from "lucide-react";
 import { useCustomerSearchAutocomplete } from "@/lib/api/hooks/useCustomers";
 import { CustomerListItem } from "@/types/api";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 import { CreateCustomerSuggestion } from "./CreateCustomerSuggestion";
-import { format } from "date-fns";
 import { searchAnalytics } from "@/lib/utils/searchAnalytics";
 
 interface CustomerAutocompleteProps {

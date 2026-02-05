@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Edit, FileText, Calendar, User, DollarSign, Percent, Clock, CheckCircle2, XCircle, AlertCircle, History, Upload, Download, Play, CreditCard, TrendingUp, TrendingDown, Minus, Info, Activity } from "lucide-react";
+import { ArrowLeft, Edit, FileText, Calendar, User, DollarSign, Percent, Clock, CheckCircle2, XCircle, AlertCircle, History, Upload, Play, CreditCard, TrendingUp, TrendingDown, Minus, Info, Activity } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { ErrorBoundary } from "@/components/ErrorBoundary";

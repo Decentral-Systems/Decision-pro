@@ -22,7 +22,6 @@ import {
   DollarSign,
   Calendar,
   Percent,
-  TrendingUp,
   Clock,
   CheckCircle2,
   XCircle,

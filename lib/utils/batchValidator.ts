@@ -3,7 +3,7 @@
  * Validates CSV data for credit scoring batch processing
  */
 
-import { CSVParseResult, CSVParseError } from './csvParser';
+import { CSVParseResult } from './csvParser';
 import { ethiopianPhoneSchema, ethiopianIdSchema } from './validation';
 
 export interface ValidationResult {

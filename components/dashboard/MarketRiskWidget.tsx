@@ -6,14 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMarketRiskAnalysis, useMarketRiskHistorical, useMarketRiskSectors } from "@/lib/api/hooks/useRiskAlerts";
-import type { MarketRiskAnalysis } from "@/types/risk";
 import type { ExecutiveDashboardData } from "@/types/dashboard";
 import { ConcentrationRiskChart } from "@/components/charts/ConcentrationRiskChart";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
-import { TrendingUp, TrendingDown, AlertTriangle, Info, BarChart3, RefreshCw } from "lucide-react";
-import { formatPercentage, formatNumber } from "@/lib/utils/format";
+import { TrendingUp, TrendingDown, AlertTriangle, Info, RefreshCw } from "lucide-react";
+import { formatPercentage } from "@/lib/utils/format";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
 

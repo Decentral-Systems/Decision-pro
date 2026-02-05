@@ -2,12 +2,11 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { useModelComparison } from "@/lib/api/hooks/useModelPerformance";
 import { useEnsembleWeights, useEnsembleAgreement } from "@/lib/api/hooks/useEnsemble";
 import { EnsembleWeightsChart } from "@/components/charts/EnsembleWeightsChart";
 import { EnsembleContributionChart } from "@/components/charts/EnsembleContributionChart";
-import { Network, AlertCircle } from "lucide-react";
+import { Network } from "lucide-react";
 import { useMemo } from "react";
 import { EmptyState } from "@/components/common/EmptyState";
 import { EnsembleMetrics } from "@/types/ml";

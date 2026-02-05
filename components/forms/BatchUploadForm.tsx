@@ -1,7 +1,6 @@
 "use client";
 import React, { useRef, useState } from "react";
 
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, FileText, X, CheckCircle2, AlertCircle } from "lucide-react";

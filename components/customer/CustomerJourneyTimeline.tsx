@@ -12,7 +12,6 @@ import { useCustomerJourneyTimeline } from "@/lib/api/hooks/useCustomerJourney";
 import type { CustomerJourneyTimelineItem, JourneyStage } from "@/types/customer-journey";
 import { formatDate } from "@/lib/utils/customer360Transform";
 import { 
-  CheckCircle2, 
   Circle, 
   Clock, 
   AlertCircle, 
@@ -23,7 +22,6 @@ import {
   FileText,
   Activity,
   CreditCard,
-  Calendar,
   X
 } from "lucide-react";
 

@@ -4,7 +4,6 @@
  */
 
 import { aggregateDashboardData } from '@/lib/utils/dashboardDataAggregator';
-import { DashboardData } from '@/types/dashboard';
 
 describe('Dashboard Data Aggregation Integration', () => {
   it('should aggregate data with priority: realtime > primary > fallback', () => {

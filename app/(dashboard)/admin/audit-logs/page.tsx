@@ -28,10 +28,7 @@ import {
   Save,
   Bookmark,
   TrendingUp,
-  User,
-  Link as LinkIcon,
   FileText,
-  Activity,
 } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { Badge } from "@/components/ui/badge";

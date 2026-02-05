@@ -14,7 +14,6 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -28,8 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, X, Loader2 } from "lucide-react";
-import { useCustomersList, useCustomer360 } from "@/lib/api/hooks/useCustomers";
-import { CustomerListItem } from "@/types/api";
+import { useCustomersList } from "@/lib/api/hooks/useCustomers";
 
 interface CustomerSearchFilterProps {
   onSelectCustomer: (customerId: string) => void;

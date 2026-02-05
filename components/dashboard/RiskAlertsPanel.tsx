@@ -10,7 +10,6 @@ import { useRiskAlerts } from "@/lib/api/hooks/useRiskAlerts";
 import { RiskAlert } from "@/types/risk";
 import { safeFormatDate } from "@/lib/utils/format";
 import { AlertTriangle, AlertCircle, Info, XCircle, ExternalLink } from "lucide-react";
-import Link from "next/link";
 import { navigateTo } from "@/lib/utils/navigation";
 import type { ComplianceMetrics } from "@/types/dashboard";
 

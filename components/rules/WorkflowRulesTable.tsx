@@ -42,8 +42,6 @@ import {
   Eye,
   ChevronRight,
   ChevronDown,
-  Sparkles,
-  AlertCircle,
   Workflow,
 } from "lucide-react";
 import { WorkflowRule } from "@/types/rules";

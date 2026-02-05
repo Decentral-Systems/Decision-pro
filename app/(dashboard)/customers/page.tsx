@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -86,7 +85,6 @@ const ColumnChooser = dynamic(() => import("@/components/customers/ColumnChooser
 });
 
 // Import hooks that are used (must be imported directly, not lazy loaded)
-import { useSearchHistory } from "@/components/customers/SearchHistory";
 import type { SearchCondition } from "@/components/customers/AdvancedSearchBuilder";
 
 function CustomersPageContentInternal() {

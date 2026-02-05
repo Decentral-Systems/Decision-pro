@@ -17,14 +17,12 @@ import {
   Cell,
   PieChart,
   Pie,
-  RadialBarChart,
-  RadialBar,
   Legend,
   ScatterChart,
   Scatter,
   ZAxis
 } from "recharts";
-import { Download, AlertTriangle, TrendingUp, Shield, Users, AlertCircle } from "lucide-react";
+import { Download, AlertTriangle, Shield, Users, AlertCircle } from "lucide-react";
 import { exportToExcel } from "@/lib/utils/export-service";
 
 interface RiskCategory {

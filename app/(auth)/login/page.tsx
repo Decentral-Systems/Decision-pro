@@ -18,7 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { NetworkStatusIndicator } from "@/components/common/NetworkStatusIndicator";
 

@@ -28,8 +28,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Download,
   Search,
-  Filter,
-  Calendar,
   User,
   FileText,
   AlertTriangle,
@@ -40,7 +38,6 @@ import {
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { useAuditLogs } from "@/lib/api/hooks/useAuditLogs";
-import { AuditLogEntry } from "@/types/admin";
 import { exportToPDF, exportToExcel, exportToCSV } from "@/lib/utils/exportHelpers";
 
 interface AuditTrailDisplayProps {

@@ -15,12 +15,9 @@ import {
   Legend,
   ResponsiveContainer,
   Brush,
-  ReferenceLine,
-  ReferenceArea,
   ComposedChart,
   Scatter,
   ScatterChart,
-  Cell,
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,16 +42,10 @@ import {
   LineChart as LineChartIcon,
   Activity,
   Settings,
-  Download,
   Maximize2,
   Minimize2,
-  RefreshCw,
-  Filter,
   Eye,
   EyeOff,
-  Palette,
-  TrendingUp,
-  TrendingDown,
   Zap,
 } from "lucide-react";
 

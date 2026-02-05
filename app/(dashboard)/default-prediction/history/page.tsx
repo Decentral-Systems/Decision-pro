@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Download, Filter, AlertTriangle, History, Activity } from "lucide-react";
+import { Download, Filter, AlertTriangle, History } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { ExportService } from "@/lib/utils/export-service";
 import { CustomerAutocomplete } from "@/components/common/CustomerAutocomplete";

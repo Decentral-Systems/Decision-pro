@@ -34,7 +34,7 @@ import {
   Calendar,
   User
 } from "lucide-react";
-import { format, parseISO, differenceInDays } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ExportService } from "@/lib/utils/export-service";
 import { FeatureComparison } from "./FeatureComparison";
 

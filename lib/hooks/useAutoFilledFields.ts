@@ -2,7 +2,7 @@
  * Hook to track auto-filled fields and their data sources
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { FieldDataSource, DataSource } from "@/components/common/FieldDataSourceBadge";
 
 export interface AutoFilledFieldInfo {

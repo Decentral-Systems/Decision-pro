@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Zap, Clock, TrendingUp, Users } from "lucide-react";
 import { MetricTrend } from "@/components/charts/MetricTrend";
 

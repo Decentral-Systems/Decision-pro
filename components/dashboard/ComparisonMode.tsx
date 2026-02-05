@@ -3,19 +3,12 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
+
 import { Input } from "@/components/ui/input";
-import { GitCompare, Calendar, X } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
+import { GitCompare, X } from "lucide-react";
 
 export interface ComparisonPeriod {
   id: string;

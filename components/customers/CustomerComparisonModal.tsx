@@ -22,8 +22,8 @@ import {
 } from "@/components/ui/select";
 import { useCustomersList } from "@/lib/api/hooks/useCustomers";
 import { CustomerListItem } from "@/types/api";
-import { Users, X, TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { formatCurrency, formatDate } from "@/lib/utils/customer360Transform";
+import { Users, X, TrendingUp, TrendingDown } from "lucide-react";
+import { formatDate } from "@/lib/utils/customer360Transform";
 
 interface CustomerComparisonModalProps {
   selectedCustomerIds: string[];

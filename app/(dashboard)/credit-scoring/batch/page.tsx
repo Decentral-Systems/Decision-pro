@@ -12,7 +12,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BatchCreditScoreResponse } from "@/types/credit";
 import { exportToCSV, exportToExcel, generateBatchResultsPDF, exportToPDF } from "@/lib/utils/exportHelpers";
 import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
-import { BatchJobStatus } from "@/components/batch/BatchJobStatus";
 import {
   DropdownMenu,
   DropdownMenuContent,

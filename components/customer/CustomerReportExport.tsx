@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Download, FileText } from "lucide-react";
+import { Download } from "lucide-react";
 import { exportCustomer360Report } from "@/lib/utils/customerReportExport";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";

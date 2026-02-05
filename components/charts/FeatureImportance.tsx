@@ -14,12 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+
+
 import { 
   BarChart, 
   Bar, 
@@ -30,7 +26,7 @@ import {
   ResponsiveContainer,
   Cell
 } from "recharts";
-import { Download, Search, ArrowUp, ArrowDown, Info, TrendingUp, TrendingDown } from "lucide-react";
+import { Download, Search, ArrowUp, ArrowDown, TrendingUp, TrendingDown } from "lucide-react";
 import { exportToExcel } from "@/lib/utils/export-service";
 
 export interface FeatureData {
