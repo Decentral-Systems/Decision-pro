@@ -29,7 +29,6 @@ import { NetworkStatusIndicator } from "@/components/common/NetworkStatusIndicat
 
 export function Header() {
   const { user, logout } = useAuth();
-  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
