@@ -25,7 +25,15 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       <SkipLink href="#main-content" label="Skip to main content" />
       <div className="flex min-h-screen flex-col">
         <div className="flex h-16 shrink-0 items-center gap-2 border-b px-2">
-          {isCollapsed && <SidebarTrigger />}
+          {isCollapsed && (
+            <>
+              <SidebarTrigger />
+              <div
+                className="h-6 w-px shrink-0 bg-border"
+                aria-hidden
+              />
+            </>
+          )}
           <div className="min-w-0 flex-1">
             <Header />
           </div>
@@ -55,7 +63,9 @@ export default function DashboardLayout({
   if (!mounted) {
     return (
       <KeyboardShortcutsProvider>
-        <SidebarProvider>
+        <SidebarProvider
+          style={{ "--sidebar-width-icon": "4rem" } as React.CSSProperties}
+        >
           <AppSidebar />
           <SidebarInset>
             <DashboardContent>{children}</DashboardContent>
@@ -67,7 +77,9 @@ export default function DashboardLayout({
 
   return (
     <KeyboardShortcutsProvider>
-      <SidebarProvider>
+      <SidebarProvider
+        style={{ "--sidebar-width-icon": "4rem" } as React.CSSProperties}
+      >
         <AppSidebar />
         <SidebarInset>
           <DashboardContent>{children}</DashboardContent>
