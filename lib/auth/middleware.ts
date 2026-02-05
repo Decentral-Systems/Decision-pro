@@ -3,7 +3,6 @@
  * Note: For direct authentication, most auth checks happen client-side via useAuth hook
  * These functions are for server-side route protection if needed
  */
-import { redirect } from "next/navigation";
 import { UserRole } from "@/types/user";
 
 export async function requireAuth() {

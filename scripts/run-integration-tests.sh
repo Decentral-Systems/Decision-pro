@@ -48,7 +48,7 @@ export NEXT_PUBLIC_API_GATEWAY_URL="$BACKEND_URL"
 export NEXT_PUBLIC_WEBSOCKET_URL="$WS_URL"
 
 # Run Jest with integration test pattern
-npm test -- --testPathPattern=integration --verbose
+pnpm test -- --testPathPattern=integration --verbose
 
 echo ""
 echo "✅ Integration tests completed"

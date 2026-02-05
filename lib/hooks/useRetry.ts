@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { withRetry, withRetryResult, RetryOptions, RetryResult } from "@/lib/utils/retry";
+import { withRetryResult, RetryOptions } from "@/lib/utils/retry";
 import { ErrorHandler } from "@/lib/utils/error-handler";
 
 export interface UseRetryState<T> {

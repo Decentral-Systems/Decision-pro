@@ -4,11 +4,8 @@
  */
 
 import { apiGatewayClient } from "@/lib/api/clients/api-gateway";
-import {
-  APIServiceError,
-  APITimeoutError,
-  APINetworkError,
-} from "@/types/api";
+
+
 
 export interface ExplainabilityRequest {
   prediction_id?: string;

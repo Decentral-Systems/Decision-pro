@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -31,8 +31,6 @@ import {
   BarChart3,
   PieChart as PieChartIcon,
   Layers,
-  TrendingUp,
-  TrendingDown,
 } from "lucide-react";
 
 interface DrillDownLevel {

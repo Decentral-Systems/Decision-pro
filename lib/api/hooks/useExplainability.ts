@@ -2,7 +2,7 @@
  * React Query hooks for Explainability operations
  */
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   explainabilityService,
   ExplainabilityRequest,

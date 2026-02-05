@@ -3,7 +3,6 @@
 import { memo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { KPICard } from "./KPICard";
 import { OperationalMetricsChart } from "@/components/charts/OperationalMetricsChart";
 import { formatNumber, formatPercentage } from "@/lib/utils/format";
 import { TrendingUp, TrendingDown, Zap, Clock, Activity, AlertCircle } from "lucide-react";

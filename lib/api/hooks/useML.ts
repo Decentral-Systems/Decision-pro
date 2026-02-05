@@ -10,7 +10,7 @@ import { retryWithBackoff } from "@/lib/utils/retry";
 import { executeWithCircuitBreaker } from "@/lib/utils/circuitBreaker";
 import { getErrorDetails, logError } from "@/lib/utils/errorHandler";
 import { trackAPICall } from "@/lib/utils/performanceMetrics";
-import { validateMLCenterData, safeParseMLData, MLCenterDataSchema } from "@/lib/schemas/mlSchemas";
+import { safeParseMLData, MLCenterDataSchema } from "@/lib/schemas/mlSchemas";
 
 export function useMLCenterData() {
   const { isAuthenticated, tokenSynced, session } = useAuth();

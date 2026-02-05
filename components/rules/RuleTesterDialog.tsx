@@ -13,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Play, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { useEvaluateRules, useEvaluateWorkflow } from "@/lib/api/hooks/useRules";
 import { useToast } from "@/hooks/use-toast";

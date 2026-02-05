@@ -40,11 +40,8 @@ import {
   ArrowDown, 
   Download, 
   Eye,
-  CheckSquare,
-  Square,
   ChevronRight,
   ChevronDown,
-  Filter,
   Sparkles,
   AlertCircle,
 } from "lucide-react";
@@ -54,18 +51,10 @@ import { RuleActionsDisplay } from "./RuleActionsDisplay";
 import { RuleStats } from "./RuleStats";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+
+
+
+
 
 interface CustomProductRulesTableProps {
   rules: CustomProductRule[];

@@ -1,7 +1,10 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { useKeyboardShortcuts, KeyboardShortcut } from "@/lib/hooks/useKeyboardShortcuts";
+import {
+  useKeyboardShortcuts,
+  KeyboardShortcut,
+} from "@/lib/hooks/useKeyboardShortcuts";
 import { KeyboardShortcutsDialog } from "@/components/dashboard/KeyboardShortcutsDialog";
 import { usePathname } from "next/navigation";
 
@@ -13,12 +16,15 @@ interface KeyboardShortcutsContextType {
   setEnabled: (enabled: boolean) => void;
 }
 
-const KeyboardShortcutsContext = createContext<KeyboardShortcutsContextType | null>(null);
+const KeyboardShortcutsContext =
+  createContext<KeyboardShortcutsContextType | null>(null);
 
 export function useKeyboardShortcutsContext() {
   const context = useContext(KeyboardShortcutsContext);
   if (!context) {
-    throw new Error("useKeyboardShortcutsContext must be used within KeyboardShortcutsProvider");
+    throw new Error(
+      "useKeyboardShortcutsContext must be used within KeyboardShortcutsProvider"
+    );
   }
   return context;
 }
@@ -37,9 +43,9 @@ export function KeyboardShortcutsProvider({
 }: KeyboardShortcutsProviderProps) {
   const [shortcuts, setShortcuts] = useState<KeyboardShortcut[]>([]);
   const [enabled, setEnabled] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
-  // Default shortcuts
   const defaultShortcuts: KeyboardShortcut[] = [
     {
       key: "k",
@@ -99,9 +105,18 @@ export function KeyboardShortcutsProvider({
   ];
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     const safePageShortcuts = Array.isArray(pageShortcuts) ? pageShortcuts : [];
-    setShortcuts([...defaultShortcuts, ...safePageShortcuts]);
-  }, [pathname, pageShortcuts]);
+    const nextShortcuts = [...defaultShortcuts, ...safePageShortcuts];
+    const id = setTimeout(() => {
+      setShortcuts(nextShortcuts);
+    }, 0);
+    return () => clearTimeout(id);
+  }, [mounted, pathname, pageShortcuts]);
 
   const addShortcut = (shortcut: KeyboardShortcut) => {
     setShortcuts((prev) => [...prev, shortcut]);
@@ -111,12 +126,14 @@ export function KeyboardShortcutsProvider({
     setShortcuts((prev) => prev.filter((s) => s.key !== key));
   };
 
-  useKeyboardShortcuts(shortcuts, enabled);
+  const effectiveShortcuts = mounted ? shortcuts : [];
+
+  useKeyboardShortcuts(effectiveShortcuts, enabled);
 
   return (
     <KeyboardShortcutsContext.Provider
       value={{
-        shortcuts,
+        shortcuts: effectiveShortcuts,
         addShortcut,
         removeShortcut,
         enabled,
@@ -124,7 +141,7 @@ export function KeyboardShortcutsProvider({
       }}
     >
       {children}
-      <KeyboardShortcutsDialog shortcuts={Array.isArray(shortcuts) ? shortcuts : []} />
+      {mounted && <KeyboardShortcutsDialog shortcuts={effectiveShortcuts} />}
     </KeyboardShortcutsContext.Provider>
   );
 }

@@ -20,7 +20,7 @@ echo "=========================================="
 echo "WebSocket URL: $WEBSOCKET_URL"
 echo ""
 echo -e "${YELLOW}Note: This script requires Node.js and ws package${NC}"
-echo "Install: npm install ws"
+echo "Install: pnpm add -D ws"
 echo ""
 
 # Check if Node.js is available
@@ -171,11 +171,11 @@ runTests();
 EOF
 
 # Run the test script
-if [ -f "node_modules/ws/package.json" ] || npm list ws &> /dev/null; then
+if [ -f "node_modules/ws/package.json" ] || pnpm list ws &> /dev/null; then
     WEBSOCKET_URL="$WEBSOCKET_URL" API_KEY="$API_KEY" node /tmp/test-websocket.js
 else
     echo -e "${YELLOW}ws package not found. Installing...${NC}"
-    cd /home/AIS/decision-pro-admin && npm install ws --save-dev
+    cd "$(dirname "$0")/.." && pnpm add -D ws
     WEBSOCKET_URL="$WEBSOCKET_URL" API_KEY="$API_KEY" node /tmp/test-websocket.js
 fi
 

@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  Cell,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-  Tooltip,
-} from "recharts";
+
+
 
 interface ConfusionMatrix {
   true_positive: number;

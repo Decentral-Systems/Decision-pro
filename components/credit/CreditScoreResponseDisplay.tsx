@@ -39,7 +39,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SHAPVisualization } from "./SHAPVisualization";
 import { AuditTrailDisplay } from "./AuditTrailDisplay";
 import { HistoricalScoreTrend } from "./HistoricalScoreTrend";
 import { LoanTermsDisplay } from "./LoanTermsDisplay";

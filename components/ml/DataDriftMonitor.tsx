@@ -22,7 +22,7 @@ import {
   AreaChart,
   Area
 } from "recharts";
-import { Download, AlertTriangle, CheckCircle, TrendingUp, RefreshCw, Activity } from "lucide-react";
+import { AlertTriangle, CheckCircle, RefreshCw, Activity } from "lucide-react";
 
 interface FeatureDrift {
   feature: string;

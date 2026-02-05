@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LucideIcon, Package, Workflow, Shield, TrendingUp } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import { StatCardTrend } from "./StatCardTrend";
 import { cn } from "@/lib/utils";
 import { useCallback } from "react";

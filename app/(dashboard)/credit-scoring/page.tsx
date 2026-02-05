@@ -4,7 +4,7 @@ import { useState } from "react";
 import dynamicImport from "next/dynamic";
 import { CreditScoringForm } from "@/components/forms/CreditScoringForm";
 import { CreditScoreResponse } from "@/types/credit";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserPlus, Users, Brain, Calculator } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";

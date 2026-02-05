@@ -9,7 +9,7 @@ import { useModelPerformance, useModelComparison } from "@/lib/api/hooks/useMode
 import { ModelComparisonChart } from "@/components/charts/ModelComparisonChart";
 import { ConfusionMatrixChart } from "@/components/charts/ConfusionMatrixChart";
 import { MetricsGaugeChart } from "@/components/charts/MetricsGaugeChart";
-import { BarChart3, TrendingUp, AlertCircle } from "lucide-react";
+import { BarChart3, AlertCircle } from "lucide-react";
 import { useState, useMemo } from "react";
 import type { MLPerformanceMetrics } from "@/types/dashboard";
 import { EmptyState } from "@/components/common/EmptyState";

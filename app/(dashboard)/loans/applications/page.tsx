@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter, Download, RefreshCw, X, ChevronDown, Calendar, CheckCircle2, AlertCircle, Info, Loader2, Upload, FileSpreadsheet, FileText, List } from "lucide-react";
+import { Plus, Search, Filter, Download, RefreshCw, X, ChevronDown, Calendar, CheckCircle2, AlertCircle, Info, Loader2, Upload, FileSpreadsheet, FileText } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";

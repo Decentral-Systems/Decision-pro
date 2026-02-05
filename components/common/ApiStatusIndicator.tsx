@@ -8,7 +8,7 @@ import { useMemo } from "react";
 import type React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Wifi, WifiOff, Loader2 } from "lucide-react";
-import { useApiHealth, useEndpointHealth, ApiHealthStatus } from "@/lib/api/hooks/useApiHealth";
+import { useApiHealth, useEndpointHealth } from "@/lib/api/hooks/useApiHealth";
 import { cn } from "@/lib/utils";
 
 interface ApiStatusIndicatorProps {

@@ -15,12 +15,9 @@ import { creditScoringClient } from '@/lib/api/clients/credit-scoring';
 import { UserRole } from '@/types/user';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
-  decodeJWT, 
   isTokenExpired, 
   getTokenExpiry, 
-  validateTokenFormat,
-  willExpireSoon,
-  getUserFromToken
+  validateTokenFormat
 } from './jwt-utils';
 
 interface User {

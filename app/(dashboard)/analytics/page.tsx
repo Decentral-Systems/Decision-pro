@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EnhancedSkeleton, MetricsSkeleton, SectionSkeleton } from "@/components/common/EnhancedSkeleton";
+import { MetricsSkeleton } from "@/components/common/EnhancedSkeleton";
 import { ComparisonMode } from "@/components/dashboard/ComparisonMode";
 import { DashboardCustomization } from "@/components/dashboard/DashboardCustomization";
 import { KeyboardShortcutsDialog } from "@/components/dashboard/KeyboardShortcutsDialog";
@@ -32,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TrendingUp, TrendingDown, DollarSign, Users, FileText, AlertTriangle, AlertCircle, Download, Minus, BarChart3, PieChart, Activity, Target } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, AlertTriangle, Download, Minus, BarChart3, PieChart } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { formatCurrency } from "@/lib/utils/format";
 import { Button } from "@/components/ui/button";
@@ -41,9 +41,7 @@ import { exportToCSV, exportToCSVSync } from "@/lib/utils/exportHelpers";
 import { formatLastUpdated } from "@/lib/utils/cacheMetadata";
 import { getCacheMetadata } from "@/lib/utils/cacheMetadata";
 import { EmptyState } from "@/components/common/EmptyState";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth/auth-context";
-import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
 
 // Helper function to ensure value is an array (defined outside component to avoid JSX parsing issues)
 function ensureArray(value: unknown): unknown[] {

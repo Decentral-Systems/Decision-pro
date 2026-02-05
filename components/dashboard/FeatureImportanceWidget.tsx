@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useFeatureImportance } from "@/lib/api/hooks/useFeatureImportance";
 import { FeatureImportanceChart } from "@/components/charts/FeatureImportanceChart";
 import { FeatureImportanceComparisonChart } from "@/components/charts/FeatureImportanceComparisonChart";
-import { TrendingUp, Search, AlertCircle } from "lucide-react";
+import { TrendingUp, Search } from "lucide-react";
 import { useState, useMemo } from "react";
 import { EmptyState } from "@/components/common/EmptyState";
 import type { MLPerformanceMetrics } from "@/types/dashboard";

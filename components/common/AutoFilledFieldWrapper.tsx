@@ -7,7 +7,7 @@
 
 import { ReactNode, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { FieldDataSourceBadge, FieldDataSource, DataSource } from "./FieldDataSourceBadge";
+import { FieldDataSourceBadge, FieldDataSource } from "./FieldDataSourceBadge";
 import { Badge } from "@/components/ui/badge";
 import { Edit2, CheckCircle2 } from "lucide-react";
 

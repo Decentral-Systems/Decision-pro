@@ -3,7 +3,7 @@
  * Simple i18n hook without external dependencies
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { getLocale, setLocale, type Locale } from "../config";
 
 type Translations = Record<string, any>;

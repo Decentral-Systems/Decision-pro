@@ -9,7 +9,7 @@
  * 6. Fallback defaults (last resort)
  */
 
-import { FieldMapping, getFieldMapping } from '@/lib/config/fieldMapping';
+import { getFieldMapping } from '@/lib/config/fieldMapping';
 
 export interface SmartDefaultOptions {
   formData: Record<string, any>;

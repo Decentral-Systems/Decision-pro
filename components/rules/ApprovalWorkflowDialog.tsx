@@ -19,7 +19,7 @@ import { Plus, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 import { useUpdateApprovalWorkflowRules, useApprovalWorkflowRules } from "@/lib/api/hooks/useRules";
 import { useToast } from "@/hooks/use-toast";
 import { approvalWorkflowRuleRequestSchema } from "@/lib/validations/rules";
-import { ApprovalWorkflowRuleRequest, ApprovalLevel } from "@/types/rules";
+import { ApprovalWorkflowRuleRequest } from "@/types/rules";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface ApprovalWorkflowDialogProps {

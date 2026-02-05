@@ -20,7 +20,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -39,7 +38,6 @@ import {
   Clock,
   TrendingUp,
   FileCheck,
-  Sparkles,
 } from "lucide-react";
 import { ApprovalLevel } from "@/types/rules";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, TrendingDown, CheckCircle2, AlertTriangle, DollarSign } from "lucide-react";
+import { CheckCircle2, AlertTriangle, DollarSign } from "lucide-react";
 import { useMemo } from "react";
 import { validationService, AffordabilityCalculation } from "@/lib/services/validation-service";
 import {

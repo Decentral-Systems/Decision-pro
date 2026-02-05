@@ -12,14 +12,8 @@ import { PaymentSchedule } from "@/components/charts/PaymentSchedule";
 import { MonteCarloSimulation } from "@/components/charts/MonteCarloSimulation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
-import { formatCurrency } from "@/lib/utils/format";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { exportToCSV, exportToPDF } from "@/lib/utils/exportHelpers";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { nbeComplianceValidator } from "@/lib/utils/nbe-compliance";
-import { Calendar, CheckCircle2, AlertCircle, DollarSign, AlertTriangle, TrendingUp, Activity } from "lucide-react";
+import { Calendar, CheckCircle2, AlertCircle, DollarSign, AlertTriangle, TrendingUp } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 
 export default function DynamicPricingPage() {

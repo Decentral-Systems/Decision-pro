@@ -5,8 +5,7 @@
  * Connects to backend WebSocket endpoint for live credit score updates
  */
 import { useState, useEffect, useCallback } from "react";
-import { useWebSocket, UseWebSocketOptions } from "./useWebSocket";
-import { WebSocketMessage } from "./websocket-client";
+import { useWebSocket } from "./useWebSocket";
 
 export interface CreditScoreUpdate {
   customer_id: string;

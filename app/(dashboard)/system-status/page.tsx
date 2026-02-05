@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SystemStatus as SystemStatusComponent } from "@/components/system/SystemStatus";
 import { ServiceHealth } from "@/components/system/ServiceHealth";
 import { useSystemStatus } from "@/lib/api/hooks/useSystemStatus";
-import { AlertTriangle, RefreshCw, AlertCircle, Activity, TrendingUp, TrendingDown, Clock, Zap, Network, CheckCircle2, Server, BarChart3 } from "lucide-react";
+import { AlertTriangle, RefreshCw, AlertCircle, Activity, Zap, Network, CheckCircle2, Server, BarChart3 } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { Button } from "@/components/ui/button";
 import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
@@ -13,7 +13,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { MetricTrend } from "@/components/charts/MetricTrend";
 
 export default function SystemStatusPage() {

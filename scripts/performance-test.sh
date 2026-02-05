@@ -185,7 +185,7 @@ if [ -d ".next" ]; then
         fi
     fi
 else
-    echo "  ⚠ Build directory not found, run 'npm run build' first"
+    echo "  ⚠ Build directory not found, run 'pnpm build' first"
 fi
 
 echo ""

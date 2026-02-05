@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, CheckCircle2, XCircle, Clock, AlertCircle, Wallet, FileText } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, Wallet, FileText } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useDisbursement, useConfirmDisbursement, useRetryDisbursement, useCancelDisbursement } from "@/lib/api/hooks/useDisbursements";
@@ -20,9 +20,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { format } from "date-fns";
 import { navigateTo } from "@/lib/utils/navigation";
 
 function DisbursementDetailsPageContent() {

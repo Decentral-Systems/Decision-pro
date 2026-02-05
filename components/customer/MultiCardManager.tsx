@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { CustomerRegistrationFormData, cardSchema } from "@/lib/utils/customerRegistrationSchema";
+import { CustomerRegistrationFormData } from "@/lib/utils/customerRegistrationSchema";
 import { Plus, Trash2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";

@@ -5,7 +5,6 @@
 
 import { nbeComplianceValidator, NBEComplianceResult } from "@/lib/utils/nbe-compliance";
 import { ethiopianPhoneValidator, ethiopianIdValidator } from "@/lib/utils/ethiopianValidators";
-import { z } from "zod";
 
 export interface ValidationResult {
   valid: boolean;

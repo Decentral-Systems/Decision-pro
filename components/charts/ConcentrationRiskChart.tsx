@@ -14,7 +14,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
-import { formatNumber, formatPercentage } from "@/lib/utils/format";
+import { formatPercentage } from "@/lib/utils/format";
 import { AlertTriangle } from "lucide-react";
 
 export interface ConcentrationRiskDataPoint {

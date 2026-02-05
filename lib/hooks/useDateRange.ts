@@ -8,7 +8,6 @@ import {
   getDateRangeForPreset,
   parseDateRangeFromURL,
   formatDateRangeToURL,
-  getDefaultDateRange,
   validateDateRange,
 } from "@/lib/utils/dateUtils";
 

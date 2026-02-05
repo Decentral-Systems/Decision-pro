@@ -16,9 +16,6 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PricingRequest } from "@/types/pricing";
 import { CustomerAutocomplete } from "@/components/common/CustomerAutocomplete";
-import { nbeComplianceValidator } from "@/lib/utils/nbe-compliance";
-import { NBEComplianceDisplay } from "@/components/common/NBEComplianceDisplay";
-import { useMemo } from "react";
 import { PRODUCT_TYPES } from "@/lib/constants/rules";
 
 const pricingFormSchema = z.object({

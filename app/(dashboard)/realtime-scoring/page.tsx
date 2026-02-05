@@ -3,11 +3,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { useWebSocket, useWebSocketChannel } from "@/lib/hooks/useWebSocket";
 import { Badge } from "@/components/ui/badge";
-import { Wifi, WifiOff, AlertTriangle, Search, AlertCircle, Pause, Play, Download, Settings, Clock, FileText, BarChart3, Activity, Zap, Filter } from "lucide-react";
+import { Wifi, WifiOff, AlertTriangle, AlertCircle, Pause, Play, Download, Settings, Clock, FileText, BarChart3, Activity, Zap, Filter } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { RealtimeDashboard } from "@/components/realtime/RealtimeDashboard";
@@ -23,14 +22,12 @@ import {
 } from "@/lib/api/hooks/useRealtimeScoring";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CustomerAutocomplete } from "@/components/common/CustomerAutocomplete";
-import { RealtimeScoringFilters, useRealtimeFilters, RealtimeFilters, DEFAULT_FILTERS } from "@/components/realtime/RealtimeScoringFilters";
-import { ErrorDisplay } from "@/components/common/ErrorDisplay";
+import { RealtimeScoringFilters, useRealtimeFilters } from "@/components/realtime/RealtimeScoringFilters";
 import { useToast } from "@/hooks/use-toast";
 import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
 import { exportToCSV, exportToPDF, exportToExcel } from "@/lib/utils/exportHelpers";
 import { Slider } from "@/components/ui/slider";
 import { CacheMetadata } from "@/components/common/CacheMetadata";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,

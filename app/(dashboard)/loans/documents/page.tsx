@@ -26,18 +26,14 @@ import {
   Upload,
   FileText,
   CheckCircle,
-  XCircle,
   AlertTriangle,
-  Eye,
   RefreshCw,
-  Calendar,
   Filter,
   Download,
   BarChart3,
   Clock,
   CheckCircle2,
   FolderOpen,
-  Activity,
 } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { useToast } from "@/hooks/use-toast";

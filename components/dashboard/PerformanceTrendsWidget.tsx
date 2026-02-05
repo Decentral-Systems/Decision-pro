@@ -7,8 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { usePerformanceTrends } from "@/lib/api/hooks/usePerformanceTrends";
 import { PerformanceTrendChart } from "@/components/charts/PerformanceTrendChart";
-import { PerformanceFunnelChart } from "@/components/charts/PerformanceFunnelChart";
-import { TrendingUp, TrendingDown, Minus, AlertCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useState } from "react";
 import { EmptyState } from "@/components/common/EmptyState";
 import type { MLPerformanceMetrics } from "@/types/dashboard";

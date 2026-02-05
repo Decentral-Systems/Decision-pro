@@ -3,8 +3,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { SystemStatus as SystemStatusType, SystemMetrics } from "@/types/system";
-import { Activity, Server, Database, Zap } from "lucide-react";
+import { SystemStatus as SystemStatusType } from "@/types/system";
+import { Activity, Server, Database } from "lucide-react";
 
 interface SystemStatusProps {
   status: SystemStatusType;

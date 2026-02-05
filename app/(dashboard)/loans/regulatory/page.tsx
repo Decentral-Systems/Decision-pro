@@ -50,15 +50,10 @@ import {
   RefreshCw,
   BarChart3,
   Shield,
-  FileCheck,
-  Activity,
   Bell,
-  Eye,
-  Filter,
   Users,
   DollarSign,
   Target,
-  Layers,
 } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { useToast } from "@/hooks/use-toast";
@@ -68,10 +63,9 @@ import {
   usePortfolioOverview,
   useGenerateNBEComplianceReport,
 } from "@/lib/api/hooks/useLoans";
-import { format, subDays, subMonths } from "date-fns";
+import { format, subDays } from "date-fns";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportHelpers";
 import {
-  LineChart,
   Line,
   BarChart,
   Bar,
@@ -86,7 +80,6 @@ import {
   ResponsiveContainer,
   ComposedChart,
   Area,
-  AreaChart,
 } from "recharts";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];

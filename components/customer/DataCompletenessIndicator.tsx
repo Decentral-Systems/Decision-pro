@@ -4,8 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle2, XCircle, Info, Edit } from "lucide-react";
+import { AlertCircle, CheckCircle2, XCircle, Info } from "lucide-react";
 import type { Customer360Data } from "@/lib/utils/customer360Transform";
 import { getCustomerProfile } from "@/lib/utils/customer360Transform";
 

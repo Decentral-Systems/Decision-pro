@@ -21,7 +21,6 @@ import {
   ToggleRight,
   Plus,
   Clock,
-  User,
 } from "lucide-react";
 import { CustomProductRule, WorkflowRule } from "@/types/rules";
 import { format } from "date-fns";

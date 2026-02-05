@@ -23,14 +23,10 @@ import {
   XCircle, 
   RefreshCw, 
   AlertCircle, 
-  Info, 
   Clock,
   FileText,
-  Users,
   Filter,
-  Download,
   CheckSquare,
-  Square,
   ChevronRight,
   ChevronDown,
   Loader2,
@@ -60,11 +56,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+
+
 import {
   Select,
   SelectContent,
@@ -78,7 +71,6 @@ import { WorkflowStageTimeline } from "@/components/approvals/WorkflowStageTimel
 import { ApprovalExportDialog } from "@/components/approvals/ApprovalExportDialog";
 import { useApprovalWebSocket } from "@/lib/hooks/useApprovalWebSocket";
 import { navigateTo } from "@/lib/utils/navigation";
-import Link from "next/link";
 
 function ApprovalsPageContent() {
   const [page, setPage] = useState(1);

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -20,7 +19,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -34,7 +32,6 @@ import {
   Plus,
   Trash2,
   GripVertical,
-  X,
 } from "lucide-react";
 import { RuleCondition, RuleOperator } from "@/types/rules";
 import { getOperatorsForField, inferFieldType } from "@/lib/utils/ruleHelpers";

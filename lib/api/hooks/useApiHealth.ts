@@ -3,7 +3,6 @@
  * Returns real-time connectivity status based on actual API health checks
  */
 import { useQuery } from "@tanstack/react-query";
-import { apiGatewayClient } from "../clients/api-gateway";
 import { API_BASE_URLS } from "@/lib/config/apiEndpoints";
 
 export interface ApiHealthStatus {

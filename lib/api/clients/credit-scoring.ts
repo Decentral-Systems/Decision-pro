@@ -7,7 +7,6 @@ import {
   APIServiceError,
   APITimeoutError,
   APINetworkError,
-  ApiResponse,
 } from "@/types/api";
 import {
   CreditScoreRequest,

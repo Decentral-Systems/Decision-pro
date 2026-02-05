@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown } from "lucide-react";
+import { Download, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useMemo } from "react";
 import { exportToPDF, exportToExcel } from "@/lib/utils/export-service";
 import { ScoreHistoryItem } from "./ScoreComparison";

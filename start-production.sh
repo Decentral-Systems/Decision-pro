@@ -92,6 +92,6 @@ elif [ -d ".next" ]; then
   echo "🎯 Starting with next start (standalone disabled or not built)..."
   exec npx next start -p ${PORT} -H ${HOSTNAME}
 else
-  echo "❌ No build found. Run 'npm run build' first."
+  echo "❌ No build found. Run 'pnpm build' first."
   exit 1
 fi

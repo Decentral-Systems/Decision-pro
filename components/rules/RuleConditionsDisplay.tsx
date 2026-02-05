@@ -1,7 +1,7 @@
 "use client";
 
 import { RuleCondition, WorkflowRuleCondition } from "@/types/rules";
-import { formatRuleCondition, getOperatorSymbol } from "@/lib/utils/ruleHelpers";
+import { formatRuleCondition } from "@/lib/utils/ruleHelpers";
 import { Badge } from "@/components/ui/badge";
 
 interface RuleConditionsDisplayProps {

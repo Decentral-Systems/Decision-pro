@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { creditScoringClient } from "@/lib/api/clients/credit-scoring";
 import { useCreateCustomerNote } from "@/lib/api/hooks/useCustomers";
 import { useToast } from "@/hooks/use-toast";
-import { exportToCSV, exportToPDF } from "@/lib/utils/exportHelpers";
+import { exportToCSV } from "@/lib/utils/exportHelpers";
 import { VirtualizedTableBody } from "./VirtualizedTableBody";
 
 import {
@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { navigateTo } from "@/lib/utils/navigation";
-import { ArrowUpDown, ArrowUp, ArrowDown, Eye, MoreHorizontal, Download, Trash2, UserCheck, UserX, Settings2, Check, Calculator, Mail, FileText, ExternalLink } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Eye, MoreHorizontal, Download, Trash2, UserCheck, UserX, Settings2, Calculator, Mail, FileText, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface CustomersTableProps {

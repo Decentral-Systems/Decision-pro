@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -13,7 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { 
-  LineChart, 
   Line, 
   XAxis, 
   YAxis, 
@@ -25,7 +22,7 @@ import {
   ComposedChart,
   Legend
 } from "recharts";
-import { Download, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 
 interface SurvivalDataPoint {
   month: number;

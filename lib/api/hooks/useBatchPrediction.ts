@@ -2,7 +2,6 @@
  * React Query hooks for Batch Prediction
  */
 import { useState, useCallback, useRef } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { 
   processBatch, 

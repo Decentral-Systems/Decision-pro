@@ -15,21 +15,16 @@ import {
   XCircle,
   AlertTriangle,
   Calculator,
-  TrendingUp,
-  TrendingDown,
   Info,
   DollarSign,
   Percent,
-  Calendar,
 } from "lucide-react";
 import {
-  useCalculateLoanTerms,
-  useEvaluateWorkflow,
   useRealtimeRulesEvaluation,
 } from "@/lib/api/hooks/useRulesEngine";
 import { useEvaluateWorkflow as useEvaluateWorkflowLegacy } from "@/lib/api/hooks/useRules";
 import { useDebounce } from "@/lib/utils/debouncedValidation";
-import { AlertCircle, Edit2, Save, X } from "lucide-react";
+import { AlertCircle, Edit2, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
