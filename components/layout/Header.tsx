@@ -1,45 +1,18 @@
 "use client";
 
-import { useAuth } from "@/lib/auth/auth-context";
-import { useRouter } from "next/navigation";
-import { navigateTo } from "@/lib/utils/navigation";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  LogOut,
-  Settings,
-  Bell,
-  Moon,
-  Sun,
-  Activity,
-  HelpCircle,
-} from "lucide-react";
-import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 import { NetworkStatusIndicator } from "@/components/common/NetworkStatusIndicator";
+import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth/auth-context";
+import { navigateTo } from "@/lib/utils/navigation";
+import { Activity, Bell, HelpCircle, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import { UserMenu } from "../user-menu";
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const handleSignOut = async () => {
-    await logout();
-    navigateTo("/login");
-  };
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -95,17 +68,15 @@ export function Header() {
           </Button>
 
           {/* Theme Toggle */}
-          {mounted && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              title="Toggle theme"
-            >
-              <Sun className="h-5 w-5 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            title="Toggle theme"
+          >
+            <Sun className="h-5 w-5 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
+          </Button>
 
           {/* Help */}
           <Button
@@ -118,62 +89,7 @@ export function Header() {
           </Button>
 
           {/* User Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="flex items-center gap-2 hover:bg-accent"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-sm font-semibold text-primary-foreground">
-                  {user?.name?.[0] || "U"}
-                </div>
-                <div className="hidden flex-col items-start md:flex">
-                  <span className="text-sm font-medium">
-                    {user?.name || "User"}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {user?.roles?.[0] || "User"}
-                  </span>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
-              <DropdownMenuLabel>
-                <div className="flex items-center gap-3 py-2">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 font-bold text-primary-foreground">
-                    {user?.name?.[0] || "U"}
-                  </div>
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <p className="truncate text-sm font-semibold">
-                      {user?.name}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {user?.email}
-                    </p>
-                    <Badge
-                      variant="secondary"
-                      className="mt-1 w-fit text-[10px]"
-                    >
-                      {user?.roles?.[0]}
-                    </Badge>
-                  </div>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigateTo("/settings")}>
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleSignOut}
-                className="text-destructive"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <UserMenu />
         </div>
       </div>
     </header>
