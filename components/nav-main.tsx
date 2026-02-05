@@ -111,6 +111,7 @@ export function NavMain() {
                             pathname,
                             subItem.url
                           );
+
                           return (
                             <SidebarMenuSubItem key={subItem.url}>
                               <SidebarMenuSubButton
@@ -118,7 +119,7 @@ export function NavMain() {
                                 isActive={isSubActive}
                                 className={cn(
                                   "gap-2 text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
-                                  "data-[active=true]:bg-primary data-[active=true]:text-primary-foreground",
+                                  "data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:[&>svg]:!text-white",
                                   "[&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground"
                                 )}
                               >
@@ -127,7 +128,7 @@ export function NavMain() {
                                     <SubIcon
                                       className={cn(
                                         "size-4 shrink-0",
-                                        isSubActive && "text-primary-foreground"
+                                        isSubActive && "!text-white"
                                       )}
                                     />
                                   )}
