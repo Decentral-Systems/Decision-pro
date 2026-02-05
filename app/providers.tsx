@@ -51,39 +51,44 @@ export function Providers({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const healthCheckInterval = setInterval(() => {
-      try {
-        const queryCache = queryClient.getQueryCache();
-        const allQueries = queryCache.getAll();
-        
-        // Find queries that are stuck (in error state for more than 5 minutes)
-        const stuckQueries = allQueries.filter((query) => {
-          const state = query.state;
-          if (!state.error) return false;
-          
-          // Check if error has been present for more than 5 minutes
-          const errorAge = state.errorUpdatedAt 
-            ? Date.now() - state.errorUpdatedAt 
-            : Infinity;
-          
-          // Only recover if not currently fetching and error is old
-          return errorAge > 5 * 60 * 1000 && state.fetchStatus !== "fetching";
-        });
-        
-        if (stuckQueries.length > 0) {
-          console.log(`[Providers] Found ${stuckQueries.length} stuck queries, attempting recovery`);
-          
-          // Reset stuck queries to allow retry
-          stuckQueries.forEach((query) => {
-            queryClient.resetQueries({ queryKey: query.queryKey });
-            // Invalidate to trigger refetch
-            queryClient.invalidateQueries({ queryKey: query.queryKey });
+    const healthCheckInterval = setInterval(
+      () => {
+        try {
+          const queryCache = queryClient.getQueryCache();
+          const allQueries = queryCache.getAll();
+
+          // Find queries that are stuck (in error state for more than 5 minutes)
+          const stuckQueries = allQueries.filter((query) => {
+            const state = query.state;
+            if (!state.error) return false;
+
+            // Check if error has been present for more than 5 minutes
+            const errorAge = state.errorUpdatedAt
+              ? Date.now() - state.errorUpdatedAt
+              : Infinity;
+
+            // Only recover if not currently fetching and error is old
+            return errorAge > 5 * 60 * 1000 && state.fetchStatus !== "fetching";
           });
+
+          if (stuckQueries.length > 0) {
+            console.log(
+              `[Providers] Found ${stuckQueries.length} stuck queries, attempting recovery`
+            );
+
+            // Reset stuck queries to allow retry
+            stuckQueries.forEach((query) => {
+              queryClient.resetQueries({ queryKey: query.queryKey });
+              // Invalidate to trigger refetch
+              queryClient.invalidateQueries({ queryKey: query.queryKey });
+            });
+          }
+        } catch (error) {
+          console.error("[Providers] Error during query health check:", error);
         }
-      } catch (error) {
-        console.error("[Providers] Error during query health check:", error);
-      }
-    }, 2 * 60 * 1000); // Check every 2 minutes
+      },
+      2 * 60 * 1000
+    ); // Check every 2 minutes
 
     return () => clearInterval(healthCheckInterval);
   }, [queryClient]);
