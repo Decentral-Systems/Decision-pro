@@ -44,11 +44,11 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 items-center justify-between px-6 gap-4">
+      <div className="flex h-16 items-center justify-between gap-4 px-6">
         {/* Left Section: Page Title or Breadcrumb */}
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="flex flex-col min-w-0">
-            <h2 className="text-lg font-semibold text-foreground truncate">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex min-w-0 flex-col">
+            <h2 className="truncate text-lg font-semibold text-foreground">
               Dashboard
             </h2>
             <p className="text-xs text-muted-foreground">
@@ -58,7 +58,7 @@ export function Header() {
         </div>
 
         {/* Center Section: Enhanced Search */}
-        <div className="flex-1 max-w-xl">
+        <div className="max-w-xl flex-1">
           <GlobalSearchBar
             placeholder="Search customers, loans, users..."
             className="w-full"
@@ -69,17 +69,17 @@ export function Header() {
         <div className="flex items-center gap-2">
           {/* Network Status Indicator */}
           <NetworkStatusIndicator compact />
-          
+
           {/* System Status Indicator */}
           <Button
             variant="ghost"
             size="icon"
-            className="relative group"
+            className="group relative"
             onClick={() => navigateTo("/system-status")}
             title="System Status"
           >
             <Activity className="h-5 w-5" />
-            <span className="absolute bottom-1 right-1 h-2 w-2 rounded-full bg-success animate-pulse-slow"></span>
+            <span className="absolute bottom-1 right-1 h-2 w-2 animate-pulse-slow rounded-full bg-success"></span>
           </Button>
 
           {/* Notifications */}
@@ -90,7 +90,7 @@ export function Header() {
             title="Notifications"
           >
             <Bell className="h-5 w-5" />
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+            <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center p-0 text-[10px]">
               3
             </Badge>
           </Button>
@@ -125,10 +125,10 @@ export function Header() {
                 variant="ghost"
                 className="flex items-center gap-2 hover:bg-accent"
               >
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-semibold text-sm">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-sm font-semibold text-primary-foreground">
                   {user?.name?.[0] || "U"}
                 </div>
-                <div className="hidden md:flex flex-col items-start">
+                <div className="hidden flex-col items-start md:flex">
                   <span className="text-sm font-medium">
                     {user?.name || "User"}
                   </span>
@@ -141,14 +141,14 @@ export function Header() {
             <DropdownMenuContent align="end" className="w-64">
               <DropdownMenuLabel>
                 <div className="flex items-center gap-3 py-2">
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-bold">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 font-bold text-primary-foreground">
                     {user?.name?.[0] || "U"}
                   </div>
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <p className="truncate text-sm font-semibold">
                       {user?.name}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="truncate text-xs text-muted-foreground">
                       {user?.email}
                     </p>
                     <Badge

@@ -91,7 +91,7 @@ importers:
         specifier: ^1.0.30001765
         version: 1.0.30001767
       class-variance-authority:
-        specifier: ^0.7.0
+        specifier: ^0.7.1
         version: 0.7.1
       clsx:
         specifier: ^2.1.0
