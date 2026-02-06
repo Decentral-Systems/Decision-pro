@@ -12,6 +12,7 @@ alwaysApply: true
 - **kebab-case** for all files (e.g. `batch-results-table.tsx`, `api-response-normalizer.ts`).
 - **Route/feature folders** in `app/` and `features/`: kebab-case (e.g. `credit-scoring`, `system-status`).
 - **Test files**: same base name + suffix, kebab-case (e.g. `use-credit-score.test.ts`, `batch-results-table.spec.tsx`).
+- **Feature-scoped files** inside `features/<name>/`: use `<feature>.category.ts` pattern (e.g. `scoring.type.ts`, `scoring.schema.ts`, `scoring.constant.ts`, `scoring.keys.ts`). Folders: `types/`, `schema/`, `constants/`. Root-level feature utils can be `utils.ts` (no prefix). The feature prefix in the filename makes fuzzy search unambiguous (e.g. "scoring type" vs "auth type").
 
 ## Code symbols
 
