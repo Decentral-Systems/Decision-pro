@@ -40,8 +40,16 @@ export type SidebarNavEntry =
   | { type: "group"; group: SidebarGroupConfig };
 
 const SCORING_ITEMS: SidebarItem[] = [
-  { label: "Credit Scoring", url: "/credit-scoring", icon: IconCreditCard },
-  { label: "Real-Time Scoring", url: "/realtime-scoring", icon: IconBolt },
+  {
+    label: "Credit Scoring",
+    url: "/scoring/credit-scoring",
+    icon: IconCreditCard,
+  },
+  {
+    label: "Real-Time Scoring",
+    url: "/scoring/realtime-scoring",
+    icon: IconBolt,
+  },
 ];
 
 const LOAN_ITEMS: SidebarItem[] = [
