@@ -3,7 +3,7 @@
 import { UserActivityDialog } from "@/components/admin/UserActivityDialog";
 import { UserForm } from "@/components/admin/UserForm";
 import { UsersTable } from "@/components/admin/UsersTable";
-import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
+import { ApiStatusIndicator } from "@/components/api-status-indicator";
 import { Pagination } from "@/components/common/Pagination";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { Alert, AlertDescription } from "@/components/ui/alert";

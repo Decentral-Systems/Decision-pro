@@ -5,7 +5,7 @@
  * Displays API health status with latency for multiple services
  */
 
-import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
+import { ApiStatusIndicator } from "@/components/api-status-indicator";
 import { cn } from "@/lib/utils";
 
 interface ServiceSLA {
@@ -37,7 +37,7 @@ export function SLAStatusChips({
   compact = false,
 }: SLAStatusChipsProps) {
   return (
-    <div className={cn("flex items-center gap-2 flex-wrap", className)}>
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
       {services.map((service) => (
         <ApiStatusIndicator
           key={service.name}
@@ -50,4 +50,3 @@ export function SLAStatusChips({
     </div>
   );
 }
-

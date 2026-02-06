@@ -21,7 +21,7 @@ import {
   LineChart,
 } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
-import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
+import { ApiStatusIndicator } from "@/components/api-status-indicator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useCustomerStats } from "@/lib/api/hooks/useCustomerStats";
 import { useRecommendationStats } from "@/lib/api/hooks/useProductIntelligence";
@@ -40,9 +40,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  MetricsSkeleton,
-} from "@/components/common/EnhancedSkeleton";
+import { MetricsSkeleton } from "@/components/common/EnhancedSkeleton";
 import { DashboardCustomization } from "@/components/dashboard/DashboardCustomization";
 import { KeyboardShortcutsDialog } from "@/components/dashboard/KeyboardShortcutsDialog";
 import { usePageShortcuts } from "@/lib/hooks/useKeyboardShortcuts";

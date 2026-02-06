@@ -8,10 +8,17 @@ import { Customer360View } from "@/components/customer/Customer360View";
 import { CustomerReportExport } from "@/components/customer/CustomerReportExport";
 import { CustomerEditDialog } from "@/components/customer/CustomerEditDialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, Download, Activity, History, TrendingUp } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit,
+  Download,
+  Activity,
+  History,
+  TrendingUp,
+} from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { transformCustomer360Data } from "@/lib/utils/customer360Transform";
-import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
+import { ApiStatusIndicator } from "@/components/api-status-indicator";
 import { CustomerAlertsBanner } from "@/components/customer/CustomerAlertsBanner";
 import { ModelExplanations } from "@/components/customer/ModelExplanations";
 import { CustomerTimeline } from "@/components/customer/CustomerTimeline";
@@ -28,21 +35,22 @@ export default function Customer360Page() {
   // Decode customer ID from URL (in case it contains special characters)
   const rawCustomerId = params.id as string;
   const customerId = rawCustomerId ? decodeURIComponent(rawCustomerId) : null;
-  
-  const { data, isLoading, error, refetch, isError } = useCustomer360(customerId);
-  
+
+  const { data, isLoading, error, refetch, isError } =
+    useCustomer360(customerId);
+
   // Generate alerts from customer data
   const alerts = useMemo(() => {
     if (!data) return [];
     const alertsList = [];
-    
+
     // Check for overdue payments
     if (data.loans && Array.isArray(data.loans)) {
       data.loans.forEach((loan: any) => {
         if (loan.status === "overdue" || loan.days_past_due > 0) {
           alertsList.push({
             type: "overdue" as const,
-            severity: loan.days_past_due > 30 ? "critical" : "high" as const,
+            severity: loan.days_past_due > 30 ? "critical" : ("high" as const),
             title: "Overdue Payment",
             description: `Loan ${loan.loan_id} is ${loan.days_past_due} days overdue`,
             amount: loan.outstanding_balance,
@@ -51,37 +59,43 @@ export default function Customer360Page() {
         }
       });
     }
-    
+
     // Check for KYC expiry
     if (data.kyc_expiry_date) {
       const expiryDate = new Date(data.kyc_expiry_date);
-      const daysUntilExpiry = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      const daysUntilExpiry = Math.ceil(
+        (expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+      );
       if (daysUntilExpiry < 30) {
         alertsList.push({
           type: "kyc_expiry" as const,
-          severity: daysUntilExpiry < 7 ? "critical" : "high" as const,
+          severity: daysUntilExpiry < 7 ? "critical" : ("high" as const),
           title: "KYC Expiry Warning",
           description: `KYC documents expire in ${daysUntilExpiry} days`,
           dueDate: data.kyc_expiry_date,
         });
       }
     }
-    
+
     // Check compliance flags
-    if (data.compliance_flags && Array.isArray(data.compliance_flags) && data.compliance_flags.length > 0) {
+    if (
+      data.compliance_flags &&
+      Array.isArray(data.compliance_flags) &&
+      data.compliance_flags.length > 0
+    ) {
       data.compliance_flags.forEach((flag: any) => {
         alertsList.push({
           type: "compliance" as const,
-          severity: flag.severity || "medium" as const,
+          severity: flag.severity || ("medium" as const),
           title: flag.title || "Compliance Issue",
           description: flag.description || flag.message,
         });
       });
     }
-    
+
     return alertsList;
   }, [data]);
-  
+
   // Generate model explanations from credit history
   const modelExplanations = useMemo(() => {
     if (!data?.credit_history || !Array.isArray(data.credit_history)) return [];
@@ -96,12 +110,12 @@ export default function Customer360Page() {
         correlation_id: h.correlation_id,
       }));
   }, [data]);
-  
+
   // Generate timeline events
   const timelineEvents = useMemo(() => {
     if (!data) return [];
     const events = [];
-    
+
     // Credit decisions
     if (data.credit_history && Array.isArray(data.credit_history)) {
       data.credit_history.forEach((h: any) => {
@@ -111,12 +125,17 @@ export default function Customer360Page() {
           title: `Credit Score: ${h.credit_score}`,
           description: `Credit decision made with ${h.model_version || "N/A"} model`,
           timestamp: h.created_at || h.timestamp,
-          status: h.recommendation === "approve" ? "approved" : h.recommendation === "reject" ? "rejected" : "pending",
+          status:
+            h.recommendation === "approve"
+              ? "approved"
+              : h.recommendation === "reject"
+                ? "rejected"
+                : "pending",
           correlation_id: h.correlation_id,
         });
       });
     }
-    
+
     // Loan applications
     if (data.loans && Array.isArray(data.loans)) {
       data.loans.forEach((loan: any) => {
@@ -132,7 +151,7 @@ export default function Customer360Page() {
         });
       });
     }
-    
+
     // Payments
     if (data.payments && Array.isArray(data.payments)) {
       data.payments.forEach((payment: any) => {
@@ -140,19 +159,23 @@ export default function Customer360Page() {
           id: `payment_${payment.id}`,
           type: "payment" as const,
           title: `Payment: ${formatCurrency(payment.amount)}`,
-          description: payment.status === "completed" ? "Payment completed" : "Payment pending",
+          description:
+            payment.status === "completed"
+              ? "Payment completed"
+              : "Payment pending",
           timestamp: payment.payment_date || payment.created_at,
           status: payment.status === "completed" ? "completed" : "pending",
           amount: payment.amount,
         });
       });
     }
-    
-    return events.sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+
+    return events.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
   }, [data]);
-  
+
   // Show error if customer ID is missing
   if (!customerId) {
     return (
@@ -177,7 +200,7 @@ export default function Customer360Page() {
             size="sm"
             onClick={() => navigateTo("/customers")}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Customers
           </Button>
           <div>
@@ -219,20 +242,18 @@ export default function Customer360Page() {
                   });
                 }}
               >
-                <Download className="h-4 w-4 mr-2" />
+                <Download className="mr-2 h-4 w-4" />
                 Export PDF
               </Button>
-              <CustomerReportExport
-                data={transformCustomer360Data(data)}
-              />
+              <CustomerReportExport data={transformCustomer360Data(data)} />
             </>
           )}
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => setEditDialogOpen(true)}
           >
-            <Edit className="h-4 w-4 mr-2" />
+            <Edit className="mr-2 h-4 w-4" />
             Edit
           </Button>
         </div>
@@ -240,7 +261,10 @@ export default function Customer360Page() {
 
       {/* Alerts Banner */}
       {alerts.length > 0 && (
-        <CustomerAlertsBanner alerts={alerts} customerId={customerId || undefined} />
+        <CustomerAlertsBanner
+          alerts={alerts}
+          customerId={customerId || undefined}
+        />
       )}
 
       {/* Customer 360 View */}
@@ -265,7 +289,10 @@ export default function Customer360Page() {
               description="Complete history of customer interactions, loans, payments, and credit decisions"
               icon={History}
             >
-              <CustomerTimeline events={timelineEvents} customerId={customerId || undefined} />
+              <CustomerTimeline
+                events={timelineEvents}
+                customerId={customerId || undefined}
+              />
             </DashboardSection>
           )}
 
@@ -279,7 +306,7 @@ export default function Customer360Page() {
               <ModelExplanations explanations={modelExplanations} />
             </DashboardSection>
           )}
-          
+
           {/* Customer Trends */}
           {customerId && (
             <DashboardSection
@@ -308,4 +335,3 @@ export default function Customer360Page() {
     </div>
   );
 }
-

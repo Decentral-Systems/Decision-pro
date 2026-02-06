@@ -1,12 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useComplianceData, useGenerateComplianceReport, useReviewViolation } from "@/lib/api/hooks/useCompliance";
+import {
+  useComplianceData,
+  useGenerateComplianceReport,
+  useReviewViolation,
+} from "@/lib/api/hooks/useCompliance";
 import {
   Shield,
   AlertTriangle,
@@ -27,7 +37,7 @@ import {
 import { exportToPDF } from "@/lib/utils/exportHelpers";
 import { safeFormatDate } from "@/lib/utils/format";
 import { useToast } from "@/hooks/use-toast";
-import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
+import { ApiStatusIndicator } from "@/components/api-status-indicator";
 import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
 import { SLATimer } from "@/components/compliance/SLATimer";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -65,7 +75,9 @@ export default function CompliancePage() {
   const reviewViolation = useReviewViolation();
   const { toast } = useToast();
   const [reportFormat, setReportFormat] = useState<string>("json");
-  const [selectedViolations, setSelectedViolations] = useState<Set<string>>(new Set());
+  const [selectedViolations, setSelectedViolations] = useState<Set<string>>(
+    new Set()
+  );
   const [filterSeverity, setFilterSeverity] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterProduct, setFilterProduct] = useState<string>("");
@@ -86,12 +98,15 @@ export default function CompliancePage() {
         period_end: periodEnd.toISOString(),
         format: reportFormat,
       });
-      
+
       // Handle PDF generation
       if (reportFormat === "pdf" && report) {
         // Generate PDF from report data
         const htmlContent = generateComplianceReportPDF(report, complianceData);
-        exportToPDF(htmlContent, `compliance_report_${report.report_id || Date.now()}`);
+        exportToPDF(
+          htmlContent,
+          `compliance_report_${report.report_id || Date.now()}`
+        );
         toast({
           title: "Success",
           description: "Compliance report PDF generated and downloaded",
@@ -124,7 +139,7 @@ export default function CompliancePage() {
     const violationsCount = report.summary?.violations_count || 0;
     const totalChecks = report.summary?.total_checks || 0;
     const compliantCount = totalChecks - violationsCount;
-    
+
     return `
       <!DOCTYPE html>
       <html>
@@ -363,19 +378,21 @@ export default function CompliancePage() {
               <tr>
                 <td>Violations Detected</td>
                 <td>${violationsCount}</td>
-                <td><span class="status-badge ${violationsCount > 0 ? 'status-non_compliant' : 'status-compliant'}">${violationsCount > 0 ? 'Action Required' : 'Compliant'}</span></td>
+                <td><span class="status-badge ${violationsCount > 0 ? "status-non_compliant" : "status-compliant"}">${violationsCount > 0 ? "Action Required" : "Compliant"}</span></td>
                 <td>0 Violations</td>
               </tr>
               <tr>
                 <td>Compliance Rate</td>
                 <td>${complianceRate.toFixed(2)}%</td>
-                <td><span class="status-badge ${complianceRate >= 95 ? 'status-compliant' : complianceRate >= 80 ? 'status-warning' : 'status-non_compliant'}">${complianceRate >= 95 ? 'Excellent' : complianceRate >= 80 ? 'Good' : 'Needs Improvement'}</span></td>
+                <td><span class="status-badge ${complianceRate >= 95 ? "status-compliant" : complianceRate >= 80 ? "status-warning" : "status-non_compliant"}">${complianceRate >= 95 ? "Excellent" : complianceRate >= 80 ? "Good" : "Needs Improvement"}</span></td>
                 <td>≥ 95%</td>
               </tr>
             </tbody>
           </table>
           
-          ${data?.rules && data.rules.length > 0 ? `
+          ${
+            data?.rules && data.rules.length > 0
+              ? `
             <h2>Compliance Rules Status</h2>
             <table>
               <thead>
@@ -387,19 +404,27 @@ export default function CompliancePage() {
                 </tr>
               </thead>
               <tbody>
-                ${data.rules.map((rule: any) => `
+                ${data.rules
+                  .map(
+                    (rule: any) => `
                   <tr>
-                    <td><strong>${rule.name || 'N/A'}</strong></td>
-                    <td>${rule.category || 'General'}</td>
-                    <td><span class="status-badge status-${rule.status || 'unknown'}">${(rule.status || 'unknown').replace('_', ' ').toUpperCase()}</span></td>
-                    <td>${rule.last_checked ? new Date(rule.last_checked).toLocaleDateString() : 'N/A'}</td>
+                    <td><strong>${rule.name || "N/A"}</strong></td>
+                    <td>${rule.category || "General"}</td>
+                    <td><span class="status-badge status-${rule.status || "unknown"}">${(rule.status || "unknown").replace("_", " ").toUpperCase()}</span></td>
+                    <td>${rule.last_checked ? new Date(rule.last_checked).toLocaleDateString() : "N/A"}</td>
                   </tr>
-                `).join('')}
+                `
+                  )
+                  .join("")}
               </tbody>
             </table>
-          ` : ''}
+          `
+              : ""
+          }
           
-          ${data?.violations && data.violations.length > 0 ? `
+          ${
+            data?.violations && data.violations.length > 0
+              ? `
             <h2>Violations Details</h2>
             <table>
               <thead>
@@ -412,24 +437,31 @@ export default function CompliancePage() {
                 </tr>
               </thead>
               <tbody>
-                ${data.violations.slice(0, 20).map((violation: any) => `
+                ${data.violations
+                  .slice(0, 20)
+                  .map(
+                    (violation: any) => `
                   <tr>
-                    <td>${violation.id || 'N/A'}</td>
-                    <td><span class="status-badge status-${violation.severity || 'medium'}">${(violation.severity || 'medium').toUpperCase()}</span></td>
-                    <td>${violation.description || violation.message || 'N/A'}</td>
-                    <td>${violation.detected_at ? new Date(violation.detected_at).toLocaleDateString() : 'N/A'}</td>
-                    <td><span class="status-badge status-${violation.status || 'open'}">${(violation.status || 'open').replace('_', ' ').toUpperCase()}</span></td>
+                    <td>${violation.id || "N/A"}</td>
+                    <td><span class="status-badge status-${violation.severity || "medium"}">${(violation.severity || "medium").toUpperCase()}</span></td>
+                    <td>${violation.description || violation.message || "N/A"}</td>
+                    <td>${violation.detected_at ? new Date(violation.detected_at).toLocaleDateString() : "N/A"}</td>
+                    <td><span class="status-badge status-${violation.status || "open"}">${(violation.status || "open").replace("_", " ").toUpperCase()}</span></td>
                   </tr>
-                `).join('')}
+                `
+                  )
+                  .join("")}
               </tbody>
             </table>
-          ` : ''}
+          `
+              : ""
+          }
           
           <div class="footer">
             <p><strong>Akafay Intelligent Services (AIS)</strong> | NBE Compliance Reporting System</p>
             <p>This report was generated automatically by the AIS Compliance Monitoring System.</p>
             <p>For questions or concerns, please contact the Compliance Department.</p>
-            <p style="margin-top: 10px; font-size: 8pt;">Report generated on ${new Date().toLocaleString()} | Correlation ID: ${report.correlation_id || 'N/A'}</p>
+            <p style="margin-top: 10px; font-size: 8pt;">Report generated on ${new Date().toLocaleString()} | Correlation ID: ${report.correlation_id || "N/A"}</p>
           </div>
         </body>
       </html>
@@ -440,7 +472,9 @@ export default function CompliancePage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Compliance Center</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Compliance Center
+          </h1>
           <p className="text-muted-foreground">
             NBE regulatory compliance monitoring and reporting
           </p>
@@ -456,10 +490,13 @@ export default function CompliancePage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
             <div>
-              <span className="font-semibold">Failed to load compliance data from API.</span>
-              <p className="text-sm mt-1 text-muted-foreground">
+              <span className="font-semibold">
+                Failed to load compliance data from API.
+              </span>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Error: {(error as any)?.message || "Unknown error occurred"}
-                {(error as any)?.statusCode && ` (Status: ${(error as any)?.statusCode})`}
+                {(error as any)?.statusCode &&
+                  ` (Status: ${(error as any)?.statusCode})`}
               </p>
             </div>
             <Button
@@ -524,7 +561,11 @@ export default function CompliancePage() {
                     <SelectItem value="excel">Excel</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button onClick={handleGenerateReport} disabled={generateReport.isPending} size="sm">
+                <Button
+                  onClick={handleGenerateReport}
+                  disabled={generateReport.isPending}
+                  size="sm"
+                >
                   <FileText className="mr-2 h-4 w-4" />
                   Generate Report
                 </Button>
@@ -532,76 +573,92 @@ export default function CompliancePage() {
             }
           >
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {isLoading ? (
-              <>
-                <Skeleton className="h-32" />
-                <Skeleton className="h-32" />
-                <Skeleton className="h-32" />
-                <Skeleton className="h-32" />
-              </>
-            ) : (
-              <>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Compliance Rate</CardTitle>
-                    <Shield className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {(complianceData.metrics?.compliance_rate || 0).toFixed(1)}%
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {complianceData.metrics?.total_checks || 0} checks performed
-                </p>
-              </CardContent>
-            </Card>
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-32" />
+                  <Skeleton className="h-32" />
+                  <Skeleton className="h-32" />
+                  <Skeleton className="h-32" />
+                </>
+              ) : (
+                <>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        Compliance Rate
+                      </CardTitle>
+                      <Shield className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {(complianceData.metrics?.compliance_rate || 0).toFixed(
+                          1
+                        )}
+                        %
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {complianceData.metrics?.total_checks || 0} checks
+                        performed
+                      </p>
+                    </CardContent>
+                  </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Violations</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {complianceData.metrics?.violations_count || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {complianceData.metrics?.critical_violations || 0} critical
-                </p>
-              </CardContent>
-            </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        Total Violations
+                      </CardTitle>
+                      <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {complianceData.metrics?.violations_count || 0}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {complianceData.metrics?.critical_violations || 0}{" "}
+                        critical
+                      </p>
+                    </CardContent>
+                  </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Resolution Rate</CardTitle>
-                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {(complianceData.metrics?.resolution_rate || 0)}%
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Avg resolution: {complianceData.metrics?.average_resolution_time_hours || 0}h
-                </p>
-              </CardContent>
-            </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        Resolution Rate
+                      </CardTitle>
+                      <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {complianceData.metrics?.resolution_rate || 0}%
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Avg resolution:{" "}
+                        {complianceData.metrics
+                          ?.average_resolution_time_hours || 0}
+                        h
+                      </p>
+                    </CardContent>
+                  </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Rules</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {(complianceData.rules || []).length}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  NBE regulatory rules
-                </p>
-              </CardContent>
-            </Card>
-          </>
-        )}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        Active Rules
+                      </CardTitle>
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {(complianceData.rules || []).length}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        NBE regulatory rules
+                      </p>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </div>
           </DashboardSection>
 
@@ -614,47 +671,52 @@ export default function CompliancePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Regulatory Rules</CardTitle>
-                <CardDescription>NBE regulatory requirements status</CardDescription>
+                <CardDescription>
+                  NBE regulatory requirements status
+                </CardDescription>
               </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {isLoading ? (
-              <Skeleton className="h-20" />
-            ) : (
-              (complianceData.rules || []).map((rule) => (
-                <div
-                  key={rule.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium">{rule.name}</h3>
-                      <Badge variant={getStatusColor(rule.status) as any}>
-                        {rule.status}
-                      </Badge>
-                      <Badge variant={getSeverityColor(rule.severity) as any}>
-                        {rule.severity}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {rule.description}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Last checked: {safeFormatDate(rule.last_checked, "PPp", "Never")}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {rule.status === "compliant" ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <XCircle className="h-5 w-5 text-red-500" />
-                    )}
-                  </div>
+              <CardContent>
+                <div className="space-y-4">
+                  {isLoading ? (
+                    <Skeleton className="h-20" />
+                  ) : (
+                    (complianceData.rules || []).map((rule) => (
+                      <div
+                        key={rule.id}
+                        className="flex items-center justify-between rounded-lg border p-4"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium">{rule.name}</h3>
+                            <Badge variant={getStatusColor(rule.status) as any}>
+                              {rule.status}
+                            </Badge>
+                            <Badge
+                              variant={getSeverityColor(rule.severity) as any}
+                            >
+                              {rule.severity}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {rule.description}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Last checked:{" "}
+                            {safeFormatDate(rule.last_checked, "PPp", "Never")}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {rule.status === "compliant" ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <XCircle className="h-5 w-5 text-red-500" />
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
-              ))
-            )}
-          </div>
-        </CardContent>
+              </CardContent>
             </Card>
           </DashboardSection>
 
@@ -689,7 +751,8 @@ export default function CompliancePage() {
                       } catch (error: any) {
                         toast({
                           title: "Error",
-                          description: error.message || "Failed to acknowledge violations",
+                          description:
+                            error.message || "Failed to acknowledge violations",
                           variant: "destructive",
                         });
                       }
@@ -702,14 +765,26 @@ export default function CompliancePage() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    if (selectedViolations.size === (complianceData?.recent_violations || []).length) {
+                    if (
+                      selectedViolations.size ===
+                      (complianceData?.recent_violations || []).length
+                    ) {
                       setSelectedViolations(new Set());
                     } else {
-                      setSelectedViolations(new Set((complianceData?.recent_violations || []).map((v: any) => v.id)));
+                      setSelectedViolations(
+                        new Set(
+                          (complianceData?.recent_violations || []).map(
+                            (v: any) => v.id
+                          )
+                        )
+                      );
                     }
                   }}
                 >
-                  {selectedViolations.size === (complianceData?.recent_violations || []).length ? "Deselect All" : "Select All"}
+                  {selectedViolations.size ===
+                  (complianceData?.recent_violations || []).length
+                    ? "Deselect All"
+                    : "Select All"}
                 </Button>
               </>
             }
@@ -719,7 +794,9 @@ export default function CompliancePage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>Violations List</CardTitle>
-                    <CardDescription>Latest compliance violations requiring attention</CardDescription>
+                    <CardDescription>
+                      Latest compliance violations requiring attention
+                    </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
                     {selectedViolations.size > 0 && (
@@ -746,7 +823,9 @@ export default function CompliancePage() {
                           } catch (error: any) {
                             toast({
                               title: "Error",
-                              description: error.message || "Failed to acknowledge violations",
+                              description:
+                                error.message ||
+                                "Failed to acknowledge violations",
                               variant: "destructive",
                             });
                           }
@@ -759,171 +838,233 @@ export default function CompliancePage() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        if (selectedViolations.size === (complianceData?.recent_violations || []).length) {
+                        if (
+                          selectedViolations.size ===
+                          (complianceData?.recent_violations || []).length
+                        ) {
                           setSelectedViolations(new Set());
                         } else {
-                          setSelectedViolations(new Set((complianceData?.recent_violations || []).map((v: any) => v.id)));
+                          setSelectedViolations(
+                            new Set(
+                              (complianceData?.recent_violations || []).map(
+                                (v: any) => v.id
+                              )
+                            )
+                          );
                         }
                       }}
                     >
-                      {selectedViolations.size === (complianceData?.recent_violations || []).length ? "Deselect All" : "Select All"}
+                      {selectedViolations.size ===
+                      (complianceData?.recent_violations || []).length
+                        ? "Deselect All"
+                        : "Select All"}
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-        <CardContent>
-          {/* Filters */}
-          <div className="mb-4 grid grid-cols-2 md:grid-cols-5 gap-2">
-            <Select value={filterSeverity} onValueChange={setFilterSeverity}>
-              <SelectTrigger>
-                <SelectValue placeholder="Severity" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Severities</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="acknowledged">Acknowledged</SelectItem>
-                <SelectItem value="resolved">Resolved</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              placeholder="Product"
-              value={filterProduct}
-              onChange={(e) => setFilterProduct(e.target.value)}
-            />
-            <Input
-              placeholder="Branch"
-              value={filterBranch}
-              onChange={(e) => setFilterBranch(e.target.value)}
-            />
-            <Input
-              placeholder="Customer ID"
-              value={filterCustomer}
-              onChange={(e) => setFilterCustomer(e.target.value)}
-            />
-          </div>
-          <div className="space-y-4">
-            {isLoading ? (
-              <Skeleton className="h-20" />
-            ) : !complianceData.recent_violations || complianceData.recent_violations.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No recent violations
-              </div>
-            ) : (
-              (complianceData.recent_violations || [])
-                .filter((v: any) => {
-                  if (filterSeverity !== "all" && v.severity !== filterSeverity) return false;
-                  if (filterStatus !== "all" && v.status !== filterStatus) return false;
-                  if (filterProduct && !v.product?.toLowerCase().includes(filterProduct.toLowerCase())) return false;
-                  if (filterBranch && !v.branch?.toLowerCase().includes(filterBranch.toLowerCase())) return false;
-                  if (filterCustomer && !v.customer_id?.includes(filterCustomer)) return false;
-                  return true;
-                })
-                .map((violation) => (
-                <div
-                  key={violation.id}
-                  className={`flex items-center justify-between p-4 border rounded-lg ${
-                    selectedViolations.has(violation.id) ? "bg-primary/5 border-primary" : ""
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedViolations.has(violation.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedViolations(new Set([...selectedViolations, violation.id]));
-                        } else {
-                          const newSet = new Set(selectedViolations);
-                          newSet.delete(violation.id);
-                          setSelectedViolations(newSet);
-                        }
-                      }}
-                      className="rounded border-gray-300"
-                    />
-                  </div>
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium">{violation.rule_name}</h3>
-                      <Badge variant={getSeverityColor(violation.severity) as any}>
-                        {violation.severity}
-                      </Badge>
-                      <Badge variant="outline">{violation.status}</Badge>
-                      <SLATimer
-                        detectedAt={violation.detected_at}
-                        severity={violation.severity}
-                      />
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {violation.description}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      {violation.loan_id && (
-                        <span>Loan: {violation.loan_id}</span>
-                      )}
-                      {violation.customer_id && (
-                        <span>Customer: {violation.customer_id}</span>
-                      )}
-                      <span>Detected: {safeFormatDate(violation.detected_at, "PPp", "Unknown")}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          const correlationId = getOrCreateCorrelationId();
-                          await reviewViolation.mutateAsync({
-                            violationId: violation.id,
-                            action: "acknowledge",
-                            notes: `Reviewed by compliance officer (Correlation ID: ${correlationId})`
-                          });
-                          toast({
-                            title: "Success",
-                            description: `Violation reviewed (Correlation ID: ${correlationId.substring(0, 8)}...)`,
-                          });
-                          refetch();
-                        } catch (error: any) {
-                          toast({
-                            title: "Error",
-                            description: error.message || "Failed to review violation",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                      disabled={reviewViolation.isPending}
-                    >
-                      Review
-                    </Button>
-                    {process.env.NODE_ENV === "development" && violation.correlation_id && (
-                      <Badge variant="outline" className="text-xs">
-                        ID: {violation.correlation_id.substring(0, 8)}...
-                      </Badge>
-                    )}
-                  </div>
+              <CardContent>
+                {/* Filters */}
+                <div className="mb-4 grid grid-cols-2 gap-2 md:grid-cols-5">
+                  <Select
+                    value={filterSeverity}
+                    onValueChange={setFilterSeverity}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Severity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Severities</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="acknowledged">Acknowledged</SelectItem>
+                      <SelectItem value="resolved">Resolved</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="Product"
+                    value={filterProduct}
+                    onChange={(e) => setFilterProduct(e.target.value)}
+                  />
+                  <Input
+                    placeholder="Branch"
+                    value={filterBranch}
+                    onChange={(e) => setFilterBranch(e.target.value)}
+                  />
+                  <Input
+                    placeholder="Customer ID"
+                    value={filterCustomer}
+                    onChange={(e) => setFilterCustomer(e.target.value)}
+                  />
                 </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-        </Card>
-      </DashboardSection>
+                <div className="space-y-4">
+                  {isLoading ? (
+                    <Skeleton className="h-20" />
+                  ) : !complianceData.recent_violations ||
+                    complianceData.recent_violations.length === 0 ? (
+                    <div className="py-8 text-center text-muted-foreground">
+                      No recent violations
+                    </div>
+                  ) : (
+                    (complianceData.recent_violations || [])
+                      .filter((v: any) => {
+                        if (
+                          filterSeverity !== "all" &&
+                          v.severity !== filterSeverity
+                        )
+                          return false;
+                        if (filterStatus !== "all" && v.status !== filterStatus)
+                          return false;
+                        if (
+                          filterProduct &&
+                          !v.product
+                            ?.toLowerCase()
+                            .includes(filterProduct.toLowerCase())
+                        )
+                          return false;
+                        if (
+                          filterBranch &&
+                          !v.branch
+                            ?.toLowerCase()
+                            .includes(filterBranch.toLowerCase())
+                        )
+                          return false;
+                        if (
+                          filterCustomer &&
+                          !v.customer_id?.includes(filterCustomer)
+                        )
+                          return false;
+                        return true;
+                      })
+                      .map((violation) => (
+                        <div
+                          key={violation.id}
+                          className={`flex items-center justify-between rounded-lg border p-4 ${
+                            selectedViolations.has(violation.id)
+                              ? "border-primary bg-primary/5"
+                              : ""
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={selectedViolations.has(violation.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedViolations(
+                                    new Set([
+                                      ...selectedViolations,
+                                      violation.id,
+                                    ])
+                                  );
+                                } else {
+                                  const newSet = new Set(selectedViolations);
+                                  newSet.delete(violation.id);
+                                  setSelectedViolations(newSet);
+                                }
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-medium">
+                                {violation.rule_name}
+                              </h3>
+                              <Badge
+                                variant={
+                                  getSeverityColor(violation.severity) as any
+                                }
+                              >
+                                {violation.severity}
+                              </Badge>
+                              <Badge variant="outline">
+                                {violation.status}
+                              </Badge>
+                              <SLATimer
+                                detectedAt={violation.detected_at}
+                                severity={violation.severity}
+                              />
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {violation.description}
+                            </p>
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              {violation.loan_id && (
+                                <span>Loan: {violation.loan_id}</span>
+                              )}
+                              {violation.customer_id && (
+                                <span>Customer: {violation.customer_id}</span>
+                              )}
+                              <span>
+                                Detected:{" "}
+                                {safeFormatDate(
+                                  violation.detected_at,
+                                  "PPp",
+                                  "Unknown"
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  const correlationId =
+                                    getOrCreateCorrelationId();
+                                  await reviewViolation.mutateAsync({
+                                    violationId: violation.id,
+                                    action: "acknowledge",
+                                    notes: `Reviewed by compliance officer (Correlation ID: ${correlationId})`,
+                                  });
+                                  toast({
+                                    title: "Success",
+                                    description: `Violation reviewed (Correlation ID: ${correlationId.substring(0, 8)}...)`,
+                                  });
+                                  refetch();
+                                } catch (error: any) {
+                                  toast({
+                                    title: "Error",
+                                    description:
+                                      error.message ||
+                                      "Failed to review violation",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              disabled={reviewViolation.isPending}
+                            >
+                              Review
+                            </Button>
+                            {process.env.NODE_ENV === "development" &&
+                              violation.correlation_id && (
+                                <Badge variant="outline" className="text-xs">
+                                  ID: {violation.correlation_id.substring(0, 8)}
+                                  ...
+                                </Badge>
+                              )}
+                          </div>
+                        </div>
+                      ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </DashboardSection>
         </>
       )}
     </div>
   );
 }
-
-

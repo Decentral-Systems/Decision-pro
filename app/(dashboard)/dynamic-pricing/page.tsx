@@ -7,20 +7,35 @@ import { useCalculatePricing } from "@/lib/api/hooks/usePricing";
 import { PricingRequest, PricingResponse } from "@/types/pricing";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
+import { ApiStatusIndicator } from "@/components/api-status-indicator";
 import { PaymentSchedule } from "@/components/charts/PaymentSchedule";
 import { MonteCarloSimulation } from "@/components/charts/MonteCarloSimulation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, CheckCircle2, AlertCircle, DollarSign, AlertTriangle, TrendingUp } from "lucide-react";
+import {
+  Calendar,
+  CheckCircle2,
+  AlertCircle,
+  DollarSign,
+  AlertTriangle,
+  TrendingUp,
+} from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 
 export default function DynamicPricingPage() {
   const [result, setResult] = useState<PricingResponse | null>(null);
   const [lastRequest, setLastRequest] = useState<PricingRequest | null>(null);
   const [scenario, setScenario] = useState<"base" | "stress" | "promo">("base");
-  const [sensitivityFactors, setSensitivityFactors] = useState<Record<string, number>>({});
+  const [sensitivityFactors, setSensitivityFactors] = useState<
+    Record<string, number>
+  >({});
   const [startTime, setStartTime] = useState<number | null>(null);
   const [latency, setLatency] = useState<number | null>(null);
   const pricingMutation = useCalculatePricing();
@@ -30,7 +45,7 @@ export default function DynamicPricingPage() {
       setLastRequest(data);
       setStartTime(Date.now());
       const correlationId = getOrCreateCorrelationId();
-      
+
       // Apply scenario adjustments
       let adjustedData = { ...data };
       if (scenario === "stress") {
@@ -38,20 +53,22 @@ export default function DynamicPricingPage() {
       } else if (scenario === "promo") {
         // Promo scenario - lower base rate
       }
-      
+
       // Apply sensitivity factors
       if (Object.keys(sensitivityFactors).length > 0) {
         // Adjust data based on sensitivity sliders
       }
-      
+
       const requestWithCorrelation = {
         ...adjustedData,
         correlation_id: correlationId,
       };
-      const response = await pricingMutation.mutateAsync(requestWithCorrelation as PricingRequest);
+      const response = await pricingMutation.mutateAsync(
+        requestWithCorrelation as PricingRequest
+      );
       const endTime = Date.now();
       setLatency(endTime - (startTime || endTime));
-      
+
       setResult({
         ...response,
         correlation_id: response.correlation_id || correlationId,
@@ -88,7 +105,11 @@ export default function DynamicPricingPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <ApiStatusIndicator endpoint="/health" label="Live" showResponseTime={true} />
+          <ApiStatusIndicator
+            endpoint="/health"
+            label="Live"
+            showResponseTime={true}
+          />
         </div>
       </div>
 
@@ -97,10 +118,15 @@ export default function DynamicPricingPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
             <div>
-              <span className="font-semibold">Failed to calculate pricing from API.</span>
-              <p className="text-sm mt-1 text-muted-foreground">
-                Error: {(pricingMutation.error as any)?.message || "Unknown error occurred"}
-                {(pricingMutation.error as any)?.statusCode && ` (Status: ${(pricingMutation.error as any)?.statusCode})`}
+              <span className="font-semibold">
+                Failed to calculate pricing from API.
+              </span>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Error:{" "}
+                {(pricingMutation.error as any)?.message ||
+                  "Unknown error occurred"}
+                {(pricingMutation.error as any)?.statusCode &&
+                  ` (Status: ${(pricingMutation.error as any)?.statusCode})`}
               </p>
             </div>
             <Button
@@ -135,40 +161,46 @@ export default function DynamicPricingPage() {
               {result.recommended_rate && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-lg">
                       Regulatory Compliance
                     </CardTitle>
                   </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Interest Rate Range (NBE):</span>
-                      <Badge variant={
-                        result.recommended_rate >= 0.12 && result.recommended_rate <= 0.25
-                          ? "default"
-                          : "destructive"
-                      }>
-                        {result.recommended_rate >= 0.12 && result.recommended_rate <= 0.25 ? (
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
-                        ) : (
-                          <AlertCircle className="mr-1 h-3 w-3" />
-                        )}
-                        12% - 25%
-                      </Badge>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">
+                          Interest Rate Range (NBE):
+                        </span>
+                        <Badge
+                          variant={
+                            result.recommended_rate >= 0.12 &&
+                            result.recommended_rate <= 0.25
+                              ? "default"
+                              : "destructive"
+                          }
+                        >
+                          {result.recommended_rate >= 0.12 &&
+                          result.recommended_rate <= 0.25 ? (
+                            <CheckCircle2 className="mr-1 h-3 w-3" />
+                          ) : (
+                            <AlertCircle className="mr-1 h-3 w-3" />
+                          )}
+                          12% - 25%
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Recommended Rate:</span>
+                        <span className="font-medium">
+                          {(result.recommended_rate * 100).toFixed(2)}%
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Recommended Rate:</span>
-                      <span className="font-medium">
-                        {(result.recommended_rate * 100).toFixed(2)}%
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            <PricingResults result={result} />
-          </div>
-        )}
+                  </CardContent>
+                </Card>
+              )}
+              <PricingResults result={result} />
+            </div>
+          )}
         </div>
       </DashboardSection>
 
@@ -212,12 +244,14 @@ export default function DynamicPricingPage() {
             <CardHeader>
               <CardTitle>Payment Schedule</CardTitle>
               <CardDescription>
-                Calculate pricing to see your personalized payment schedule and analysis
+                Calculate pricing to see your personalized payment schedule and
+                analysis
               </CardDescription>
             </CardHeader>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">
-                Enter loan details and calculate pricing to view payment schedule and risk analysis.
+                Enter loan details and calculate pricing to view payment
+                schedule and risk analysis.
               </p>
             </CardContent>
           </Card>
@@ -226,5 +260,3 @@ export default function DynamicPricingPage() {
     </div>
   );
 }
-
-

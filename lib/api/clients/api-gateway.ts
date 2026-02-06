@@ -1,8 +1,8 @@
-/**
- * API Gateway Client
- * Handles all API Gateway requests (http://196.188.249.48:4000)
- */
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from "axios";
+import axios, {
+  AxiosInstance,
+  AxiosError,
+  InternalAxiosRequestConfig,
+} from "axios";
 import {
   APIServiceError,
   APITimeoutError,
@@ -15,12 +15,15 @@ import {
 } from "@/lib/utils/apiResponseNormalizer";
 import { creditScoreCache } from "@/lib/utils/creditScoreCache";
 import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
-import { isAllowedOpaqueToken, isValidJWT, rejectDevBypass } from "@/lib/auth/utils/token-validation";
+import {
+  isAllowedOpaqueToken,
+  isValidJWT,
+  rejectDevBypass,
+} from "@/lib/auth/utils/token-validation";
 
 // API Gateway URL
 const API_GATEWAY_URL =
-  process.env.NEXT_PUBLIC_API_GATEWAY_URL ||
-  "http://196.188.249.48:4000";
+  process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://196.188.249.48:4000";
 
 class APIGatewayClient {
   private client: AxiosInstance;
@@ -41,22 +44,22 @@ class APIGatewayClient {
         Accept: "application/json",
       },
     });
-    
+
     // CRITICAL FIX: Monitor browser online/offline events
     // This keeps network state accurate and prevents blocking requests
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       this.isNetworkOffline = !navigator.onLine;
       this.lastNetworkCheck = Date.now();
-      
+
       // Listen for online/offline events
-      window.addEventListener('online', () => {
-        console.log('[APIGateway] Network came online');
+      window.addEventListener("online", () => {
+        console.log("[APIGateway] Network came online");
         this.isNetworkOffline = false;
         this.lastNetworkCheck = Date.now();
       });
-      
-      window.addEventListener('offline', () => {
-        console.warn('[APIGateway] Network went offline');
+
+      window.addEventListener("offline", () => {
+        console.warn("[APIGateway] Network went offline");
         this.isNetworkOffline = true;
         this.lastNetworkCheck = Date.now();
       });
@@ -67,48 +70,61 @@ class APIGatewayClient {
       (config: InternalAxiosRequestConfig) => {
         // CRITICAL FIX: Check network state before making requests
         // This prevents blocking all requests when network is down
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           const now = Date.now();
           // Update network state periodically
           if (now - this.lastNetworkCheck > this.networkCheckInterval) {
             this.isNetworkOffline = !navigator.onLine;
             this.lastNetworkCheck = now;
           }
-          
+
           // For login/auth endpoints, allow request even if network appears offline
           // (user might be trying to reconnect)
-          const isAuthEndpoint = config.url?.includes('/auth/login') || 
-                                 config.url?.includes('/api/v1/auth/login') ||
-                                 config.url?.includes('/auth/refresh') ||
-                                 config.url?.includes('/health');
-          
+          const isAuthEndpoint =
+            config.url?.includes("/auth/login") ||
+            config.url?.includes("/api/v1/auth/login") ||
+            config.url?.includes("/auth/refresh") ||
+            config.url?.includes("/health");
+
           // If network is offline and this is NOT an auth endpoint, fail fast
           if (this.isNetworkOffline && !isAuthEndpoint) {
-            console.warn('[APIGateway] Network appears offline, failing request fast:', config.url);
-            return Promise.reject(new APINetworkError("Network is offline - please check your connection"));
+            console.warn(
+              "[APIGateway] Network appears offline, failing request fast:",
+              config.url
+            );
+            return Promise.reject(
+              new APINetworkError(
+                "Network is offline - please check your connection"
+              )
+            );
           }
         }
-        
+
         // Check if this is a public endpoint that doesn't require authentication
-        const isPublicEndpoint = config.url?.includes('/auth/login') || config.url?.includes('/api/v1/auth/login') || 
-                                config.url?.includes('/auth/refresh') ||
-                                config.url?.includes('/health');
-        
+        const isPublicEndpoint =
+          config.url?.includes("/auth/login") ||
+          config.url?.includes("/api/v1/auth/login") ||
+          config.url?.includes("/auth/refresh") ||
+          config.url?.includes("/health");
+
         // Only add authentication for non-public endpoints
         if (!isPublicEndpoint) {
           // Always try to use access token first if available
           if (this.accessToken && this.accessToken !== "dev-bypass-token") {
             config.headers.Authorization = `Bearer ${this.accessToken}`;
           }
-          
+
           // Add API key as fallback authentication (only if no valid token or token is invalid)
           // This ensures requests work even if token sync is delayed
           const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-          
+
           // Only use API key if explicitly configured and no valid token available
           // Use API key if no token, or if token is dev-bypass (which won't work)
           // Note: API Gateway may accept both token and API key, so we can send both
-          if (apiKey && (!this.accessToken || this.accessToken === "dev-bypass-token")) {
+          if (
+            apiKey &&
+            (!this.accessToken || this.accessToken === "dev-bypass-token")
+          ) {
             config.headers["X-API-Key"] = apiKey;
             // Remove invalid Authorization header if using API key fallback
             if (this.accessToken === "dev-bypass-token") {
@@ -117,27 +133,37 @@ class APIGatewayClient {
           } else if (!this.accessToken && !apiKey) {
             // No authentication available - log warning but allow request to proceed
             // (will likely fail with 401, but that's expected)
-            console.warn("[APIGateway] No authentication token or API key available");
+            console.warn(
+              "[APIGateway] No authentication token or API key available"
+            );
           }
         }
-        
+
         // Add correlation ID for request tracing
         if (!config.headers["X-Correlation-ID"]) {
           config.headers["X-Correlation-ID"] = getOrCreateCorrelationId();
         }
-        
+
         // Log for debugging (only in development)
-        if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+        if (
+          typeof window !== "undefined" &&
+          process.env.NODE_ENV === "development"
+        ) {
           console.debug("[APIGateway] Request:", {
             url: config.url,
             method: config.method,
             hasToken: !!this.accessToken,
-            tokenType: this.accessToken === "dev-bypass-token" ? "dev-bypass" : (this.accessToken ? "jwt/opaque" : "none"),
+            tokenType:
+              this.accessToken === "dev-bypass-token"
+                ? "dev-bypass"
+                : this.accessToken
+                  ? "jwt/opaque"
+                  : "none",
             hasApiKey: !!config.headers["X-API-Key"],
             hasAuth: !!config.headers.Authorization,
           });
         }
-        
+
         return config;
       },
       (error) => Promise.reject(error)
@@ -148,137 +174,170 @@ class APIGatewayClient {
       (response) => {
         // Store correlation ID from response headers if present
         const correlationId = response.headers["x-correlation-id"];
-        if (correlationId && typeof window !== 'undefined') {
+        if (correlationId && typeof window !== "undefined") {
           // Store in sessionStorage for reference
-          sessionStorage.setItem('last_api_correlation_id', correlationId);
+          sessionStorage.setItem("last_api_correlation_id", correlationId);
         }
         return response;
       },
       async (error: AxiosError) => {
-        const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean; _retryCount?: number };
+        const originalRequest = error.config as InternalAxiosRequestConfig & {
+          _retry?: boolean;
+          _retryCount?: number;
+        };
 
         // Don't intercept 401 errors for login or refresh endpoints
-        const url = originalRequest.url || '';
-        const isAuthEndpoint = url.includes('/auth/login') || url.includes('/api/v1/auth/login') || url.includes('/auth/refresh');
-        
+        const url = originalRequest.url || "";
+        const isAuthEndpoint =
+          url.includes("/auth/login") ||
+          url.includes("/api/v1/auth/login") ||
+          url.includes("/auth/refresh");
+
         // CRITICAL FIX: Check network state BEFORE attempting token refresh
         // This prevents infinite refresh loops when network is down
-        const isNetworkError = error.code === "ERR_NETWORK" || 
-                               error.code === "ECONNABORTED" || 
-                               !error.response;
-        
+        const isNetworkError =
+          error.code === "ERR_NETWORK" ||
+          error.code === "ECONNABORTED" ||
+          !error.response;
+
         // Update network state
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           this.isNetworkOffline = !navigator.onLine || isNetworkError;
           this.lastNetworkCheck = Date.now();
         }
-        
+
         // Handle 401 Unauthorized - attempt token refresh (but not for auth endpoints)
         // Add retry limits to prevent infinite refresh loops
         const MAX_RETRY_ATTEMPTS = 1; // Only retry once
         const REFRESH_TIMEOUT_MS = 5000; // 5 second timeout for refresh operation
-        
-        if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthEndpoint) {
+
+        if (
+          error.response?.status === 401 &&
+          originalRequest &&
+          !originalRequest._retry &&
+          !isAuthEndpoint
+        ) {
           // CRITICAL FIX: Skip token refresh if network is offline
           // This prevents blocking login and other requests
           if (this.isNetworkOffline || isNetworkError) {
-            console.warn('[APIGateway] Network offline, skipping token refresh for 401');
+            console.warn(
+              "[APIGateway] Network offline, skipping token refresh for 401"
+            );
             // Don't redirect to login if network is down - allow user to try again
-            throw new APINetworkError("Network is offline - cannot refresh token");
+            throw new APINetworkError(
+              "Network is offline - cannot refresh token"
+            );
           }
-          
+
           originalRequest._retry = true;
-          
+
           // Track retry count
           originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
-          
+
           if (originalRequest._retryCount > MAX_RETRY_ATTEMPTS) {
-            console.error('[APIGateway] Max retry attempts exceeded, redirecting to login');
-            if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-              window.location.href = '/login';
+            console.error(
+              "[APIGateway] Max retry attempts exceeded, redirecting to login"
+            );
+            if (
+              typeof window !== "undefined" &&
+              window.location.pathname !== "/login"
+            ) {
+              window.location.href = "/login";
             }
             return Promise.reject(error);
           }
-          
+
           try {
-            console.log('[APIGateway] 401 error - attempting token refresh');
-            
+            console.log("[APIGateway] 401 error - attempting token refresh");
+
             // Check if we're in a browser environment and auth refresh is available
-            if (typeof window !== 'undefined') {
+            if (typeof window !== "undefined") {
               const authRefresh = (window as any).__authRefresh;
-              
-              if (authRefresh && typeof authRefresh === 'function') {
+
+              if (authRefresh && typeof authRefresh === "function") {
                 // Call the auth context refresh function with timeout
                 const refreshPromise = authRefresh();
-                const timeoutPromise = new Promise((_, reject) => 
-                  setTimeout(() => reject(new Error('Token refresh timeout')), REFRESH_TIMEOUT_MS)
+                const timeoutPromise = new Promise((_, reject) =>
+                  setTimeout(
+                    () => reject(new Error("Token refresh timeout")),
+                    REFRESH_TIMEOUT_MS
+                  )
                 );
-                
+
                 // Race between refresh and timeout
                 await Promise.race([refreshPromise, timeoutPromise]);
-                
+
                 // Get the new token from localStorage
-                const newToken = localStorage.getItem('auth_access_token');
-                
+                const newToken = localStorage.getItem("auth_access_token");
+
                 if (newToken) {
                   // Update API client token
                   this.setAccessToken(newToken);
-                  
+
                   // Update request header
                   originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                  
+
                   // Retry the original request
-                  console.log('[APIGateway] Token refreshed, retrying request');
+                  console.log("[APIGateway] Token refreshed, retrying request");
                   return this.client(originalRequest);
                 } else {
-                  console.error('[APIGateway] No token found after refresh');
+                  console.error("[APIGateway] No token found after refresh");
                 }
               } else {
-                console.warn('[APIGateway] Auth refresh function not available');
+                console.warn(
+                  "[APIGateway] Auth refresh function not available"
+                );
               }
-              
+
               // If we get here, refresh failed - redirect to login
-              console.log('[APIGateway] Token refresh failed, redirecting to login');
-              if (window.location.pathname !== '/login') {
+              console.log(
+                "[APIGateway] Token refresh failed, redirecting to login"
+              );
+              if (window.location.pathname !== "/login") {
                 // Use a timeout to allow user to see any error message
                 setTimeout(() => {
-                  window.location.href = '/login';
+                  window.location.href = "/login";
                 }, 1000);
               }
             }
           } catch (refreshError) {
-            console.error('[APIGateway] Token refresh failed:', refreshError);
-            
+            console.error("[APIGateway] Token refresh failed:", refreshError);
+
             // Clear tokens and redirect to login
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('auth_user');
-              localStorage.removeItem('auth_access_token');
-              localStorage.removeItem('auth_refresh_token');
-              localStorage.removeItem('auth_session_expires_at');
-              
-              if (window.location.pathname !== '/login') {
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("auth_user");
+              localStorage.removeItem("auth_access_token");
+              localStorage.removeItem("auth_refresh_token");
+              localStorage.removeItem("auth_session_expires_at");
+
+              if (window.location.pathname !== "/login") {
                 // Delay redirect to show error message
                 setTimeout(() => {
-                  window.location.href = '/login';
+                  window.location.href = "/login";
                 }, 1000);
               }
             }
-            
+
             return Promise.reject(refreshError);
           }
         }
 
         // CRITICAL FIX: Handle network errors gracefully without blocking everything
         // Update network state
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           this.isNetworkOffline = !navigator.onLine;
           this.lastNetworkCheck = Date.now();
         }
-        
-        if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+
+        if (
+          error.code === "ECONNABORTED" ||
+          error.message.includes("timeout")
+        ) {
           // For auth endpoints, allow timeout to pass through (user might be trying to login)
           if (isAuthEndpoint) {
-            throw new APITimeoutError("Request timeout - please check your connection");
+            throw new APITimeoutError(
+              "Request timeout - please check your connection"
+            );
           }
           throw new APITimeoutError("Request timeout");
         }
@@ -288,7 +347,9 @@ class APIGatewayClient {
           // For other endpoints, fail gracefully
           if (isAuthEndpoint) {
             // Login requests should fail gracefully so user can retry
-            throw new APINetworkError("Network error - please check your connection and try again");
+            throw new APINetworkError(
+              "Network error - please check your connection and try again"
+            );
           }
           throw new APINetworkError("Network error - cannot reach API Gateway");
         }
@@ -310,7 +371,7 @@ class APIGatewayClient {
    * This helps prevent unnecessary requests when network is down
    */
   isOffline(): boolean {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const now = Date.now();
       // Update state if check is stale
       if (now - this.lastNetworkCheck > this.networkCheckInterval) {
@@ -325,7 +386,9 @@ class APIGatewayClient {
     // Validate token before setting (reject dev bypass; allow opaque tokens if enabled)
     if (token) {
       if (rejectDevBypass(token)) {
-        console.error("[APIGateway] Attempted to set dev bypass token - rejected");
+        console.error(
+          "[APIGateway] Attempted to set dev bypass token - rejected"
+        );
         this.accessToken = null;
         return;
       }
@@ -334,11 +397,14 @@ class APIGatewayClient {
       const opaqueOk = isAllowedOpaqueToken(token);
 
       if (!jwtOk && !opaqueOk) {
-        console.error("[APIGateway] Attempted to set invalid token - rejected", {
-          tokenPrefix: token.substring(0, 12),
-          parts: token.split(".").length,
-          length: token.length,
-        });
+        console.error(
+          "[APIGateway] Attempted to set invalid token - rejected",
+          {
+            tokenPrefix: token.substring(0, 12),
+            parts: token.split(".").length,
+            length: token.length,
+          }
+        );
         this.accessToken = null;
         return;
       }
@@ -351,15 +417,19 @@ class APIGatewayClient {
   }
 
   // Generic HTTP methods
-  async get<T>(url: string, params?: Record<string, any>, config?: { signal?: AbortSignal }): Promise<T> {
+  async get<T>(
+    url: string,
+    params?: Record<string, any>,
+    config?: { signal?: AbortSignal }
+  ): Promise<T> {
     // Create request key for deduplication
     const requestKey = `${url}:${JSON.stringify(params || {})}`;
-    
+
     // Check if same request is already in flight
     if (this.pendingRequests.has(requestKey)) {
       return this.pendingRequests.get(requestKey) as Promise<T>;
     }
-    
+
     // Create new request
     const requestPromise = (async () => {
       try {
@@ -387,14 +457,18 @@ class APIGatewayClient {
         this.pendingRequests.delete(requestKey);
       }
     })();
-    
+
     // Store request in pending map
     this.pendingRequests.set(requestKey, requestPromise);
-    
+
     return requestPromise;
   }
 
-  async post<T>(url: string, data?: any, config?: { signal?: AbortSignal }): Promise<T> {
+  async post<T>(
+    url: string,
+    data?: any,
+    config?: { signal?: AbortSignal }
+  ): Promise<T> {
     try {
       const response = await this.client.post<ApiResponse<T>>(url, data, {
         signal: config?.signal,
@@ -417,7 +491,11 @@ class APIGatewayClient {
     }
   }
 
-  async put<T>(url: string, data?: any, config?: { signal?: AbortSignal }): Promise<T> {
+  async put<T>(
+    url: string,
+    data?: any,
+    config?: { signal?: AbortSignal }
+  ): Promise<T> {
     try {
       const response = await this.client.put<ApiResponse<T>>(url, data, {
         signal: config?.signal,
@@ -464,7 +542,10 @@ class APIGatewayClient {
   }
 
   // Authentication methods
-  async login(username: string, password: string): Promise<{
+  async login(
+    username: string,
+    password: string
+  ): Promise<{
     access_token: string;
     refresh_token?: string;
     user_info?: any;
@@ -473,72 +554,90 @@ class APIGatewayClient {
   }> {
     try {
       // Log request details in development mode
-      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-        console.log('[APIGateway] Login request:', {
-          url: '/auth/login',
+      if (
+        typeof window !== "undefined" &&
+        process.env.NODE_ENV === "development"
+      ) {
+        console.log("[APIGateway] Login request:", {
+          url: "/auth/login",
           baseURL: this.client.defaults.baseURL,
           hasApiKey: !!process.env.NEXT_PUBLIC_API_KEY,
           timestamp: new Date().toISOString(),
         });
       }
-      
+
       // Use /api/v1/auth/login endpoint (proxied to Credit Scoring Service - the working one)
-      const response = await this.client.post<ApiResponse<{
-        access_token: string;
-        refresh_token?: string;
-        user_info?: any;
-        user?: any;
-        expires_in?: number;
-      }>>("/api/v1/auth/login", {
+      const response = await this.client.post<
+        ApiResponse<{
+          access_token: string;
+          refresh_token?: string;
+          user_info?: any;
+          user?: any;
+          expires_in?: number;
+        }>
+      >("/api/v1/auth/login", {
         username,
         password,
       });
-      
+
       // Log response details in development mode
-      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-        console.log('[APIGateway] Login response received:', {
+      if (
+        typeof window !== "undefined" &&
+        process.env.NODE_ENV === "development"
+      ) {
+        console.log("[APIGateway] Login response received:", {
           status: response.status,
           hasAccessToken: !!response.data?.access_token,
           hasUserInfo: !!response.data?.user_info,
           timestamp: new Date().toISOString(),
         });
       }
-      
+
       // API Gateway returns response directly (not wrapped in {success: true, data: {...}})
       // BYPASS the normalizer - use response.data directly to avoid issues
       let data = response.data;
-      
+
       // If it's double-wrapped for some reason, unwrap it
       while (data && data.data && !data.access_token) {
         data = data.data;
       }
-      
+
       // Verify we have the access token
       if (!data || !data.access_token) {
-        console.error('[APIGateway] Login response missing access_token:', data);
-        throw new APIServiceError(500, "Invalid login response from server - no access token received");
+        console.error(
+          "[APIGateway] Login response missing access_token:",
+          data
+        );
+        throw new APIServiceError(
+          500,
+          "Invalid login response from server - no access token received"
+        );
       }
-      
+
       // Set the token
       this.setAccessToken(data.access_token);
-      
-      console.log('[APIGateway] Login successful, token set');
-      
+
+      console.log("[APIGateway] Login successful, token set");
+
       return data;
     } catch (error: any) {
       // Log detailed error information in development mode
-      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-        console.error('[APIGateway] Login error details:', {
+      if (
+        typeof window !== "undefined" &&
+        process.env.NODE_ENV === "development"
+      ) {
+        console.error("[APIGateway] Login error details:", {
           message: error?.message,
           status: error?.response?.status,
           statusText: error?.response?.statusText,
           data: error?.response?.data,
           code: error?.code,
-          isNetworkError: error?.code === 'ERR_NETWORK' || error?.code === 'ECONNABORTED',
+          isNetworkError:
+            error?.code === "ERR_NETWORK" || error?.code === "ECONNABORTED",
           timestamp: new Date().toISOString(),
         });
       }
-      
+
       if (
         error instanceof APIServiceError ||
         error instanceof APITimeoutError ||
@@ -546,17 +645,20 @@ class APIGatewayClient {
       ) {
         throw error;
       }
-      
+
       // Extract detailed error message from API response
-      const apiMessage = error?.response?.data?.detail || 
-                        error?.response?.data?.message ||
-                        error?.response?.data?.error ||
-                        error?.message;
-      
+      const apiMessage =
+        error?.response?.data?.detail ||
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message;
+
       const normalizedError = normalizeErrorResponse(error);
       throw new APIServiceError(
         normalizedError.statusCode,
-        apiMessage || normalizedError.message || "Login failed - please check your credentials and try again",
+        apiMessage ||
+          normalizedError.message ||
+          "Login failed - please check your credentials and try again",
         normalizedError.correlationId
       );
     }
@@ -569,24 +671,26 @@ class APIGatewayClient {
   }> {
     try {
       // Use /auth/refresh (API Gateway's own auth endpoint) instead of /api/v1/auth/refresh (proxy)
-      const response = await this.client.post<ApiResponse<{
-        access_token: string;
-        refresh_token?: string;
-        expires_in?: number;
-      }>>("/auth/refresh", {
+      const response = await this.client.post<
+        ApiResponse<{
+          access_token: string;
+          refresh_token?: string;
+          expires_in?: number;
+        }>
+      >("/auth/refresh", {
         refresh_token: refreshToken,
       });
-      
+
       const data = normalizeApiResponse<{
         access_token: string;
         refresh_token?: string;
         expires_in?: number;
       }>(response.data);
-      
+
       if (data.access_token) {
         this.setAccessToken(data.access_token);
       }
-      
+
       return data;
     } catch (error: any) {
       if (
@@ -625,20 +729,29 @@ class APIGatewayClient {
     try {
       const page = params?.page || 1;
       const page_size = params?.page_size || 50;
-      
+
       // Determine which endpoint to use based on whether we have search or filters
       const hasSearch = params?.search && params.search.trim().length > 0;
-      const hasFilters = params?.region || params?.status || params?.riskLevel || 
-                        params?.minScore || params?.maxScore || params?.dateFrom || 
-                        params?.dateTo || params?.employment_status;
-      
+      const hasFilters =
+        params?.region ||
+        params?.status ||
+        params?.riskLevel ||
+        params?.minScore ||
+        params?.maxScore ||
+        params?.dateFrom ||
+        params?.dateTo ||
+        params?.employment_status;
+
       // If we have search or filters, use search endpoint which supports advanced filtering
       // Otherwise, use the list endpoint
-      const endpoint = hasSearch || hasFilters ? "/api/v1/customers/search/" : "/api/v1/customers/";
-      
+      const endpoint =
+        hasSearch || hasFilters
+          ? "/api/v1/customers/search/"
+          : "/api/v1/customers/";
+
       // Map frontend params to backend params
       const backendParams: any = {};
-      
+
       if (hasSearch) {
         // For search endpoint, query is required
         backendParams.query = params!.search;
@@ -647,7 +760,7 @@ class APIGatewayClient {
         // The search endpoint requires a query parameter
         backendParams.query = "";
       }
-      
+
       // Pagination parameters
       if (params?.page !== undefined && params?.page_size !== undefined) {
         backendParams.page = params.page;
@@ -659,11 +772,11 @@ class APIGatewayClient {
         backendParams.limit = page_size;
         backendParams.offset = (page - 1) * page_size;
       }
-      
+
       // Sorting parameters
       if (params?.sort_by) backendParams.sort_by = params.sort_by;
       if (params?.order) backendParams.sort_order = params.order;
-      
+
       // Filter parameters - map frontend filter names to backend API parameter names
       if (params?.region && params.region !== "all") {
         backendParams.region = params.region;
@@ -686,185 +799,250 @@ class APIGatewayClient {
       if (params?.dateTo) {
         backendParams.date_to = params.dateTo;
       }
-      
+
       // Note: riskLevel filter would need backend support or client-side filtering
       // For now, we'll pass it and let backend handle if supported
       if (params?.riskLevel && params.riskLevel !== "all") {
         backendParams.risk_level = params.riskLevel;
       }
-      
+
       // For getCustomers, we need the raw response structure before normalization
       // The generic get() method normalizes responses, losing pagination metadata
       // So we'll use axios directly to preserve total, limit, offset, etc.
-      const axiosResponse = await this.client.get(endpoint, { params: backendParams });
+      const axiosResponse = await this.client.get(endpoint, {
+        params: backendParams,
+      });
       const responseData = axiosResponse.data || axiosResponse;
-      
+
       // Debug logging
-      if (typeof window !== 'undefined') {
-        console.log('[getCustomers] API Response:', {
+      if (typeof window !== "undefined") {
+        console.log("[getCustomers] API Response:", {
           endpoint,
           params: backendParams,
           status: axiosResponse.status,
           hasData: !!responseData,
           dataKeys: responseData ? Object.keys(responseData) : [],
-          dataArrayLength: responseData?.data?.length || responseData?.items?.length || 0,
+          dataArrayLength:
+            responseData?.data?.length || responseData?.items?.length || 0,
           total: responseData?.total,
           success: responseData?.success,
           sampleData: responseData?.data?.[0] || null,
         });
       }
-      
+
       // Handle the response - axios already extracts response.data, so we get the API response directly
       // The response structure is: {success: true, data: [...], total: ..., limit: ..., offset: ...}
-      
-      // Transform backend format {success: true, data: [...], total: ..., limit: ..., offset: ...} 
+
+      // Transform backend format {success: true, data: [...], total: ..., limit: ..., offset: ...}
       // to frontend format {items: [...], total: ..., page: ..., page_size: ..., has_more: ...}
-      if (responseData && typeof responseData === 'object') {
+      if (responseData && typeof responseData === "object") {
         // If it's already in the correct format (has items property)
-        if ('items' in responseData && Array.isArray(responseData.items)) {
+        if ("items" in responseData && Array.isArray(responseData.items)) {
           return responseData as import("@/types/api").CustomersListResponse;
         }
-        
+
         // If it's in backend format {success: true, data: [...], total: ..., limit: ..., offset: ...}
-        if (responseData.success && 'data' in responseData && Array.isArray(responseData.data)) {
+        if (
+          responseData.success &&
+          "data" in responseData &&
+          Array.isArray(responseData.data)
+        ) {
           const dataArray = responseData.data;
           const total = responseData.total || dataArray.length || 0;
           const limit = responseData.limit || page_size;
           const offset = responseData.offset || 0;
-          
+
           // Transform API response items to match CustomerListItem interface
           // Map fields and ensure all required fields are present
           let transformedItems = dataArray.map((item: any) => ({
             customer_id: item.customer_id || item.id,
-            full_name: item.full_name || item.name || '',
+            full_name: item.full_name || item.name || "",
             email: item.email || undefined,
             phone_number: item.phone_number || item.phone || undefined,
             region: item.region || undefined,
-            credit_score: item.credit_score !== undefined && item.credit_score !== null ? item.credit_score : 0,
-            risk_score: item.risk_score !== undefined && item.risk_score !== null ? item.risk_score : undefined,
-            status: item.status || (item.credit_score && item.credit_score > 0 ? 'active' : 'pending') || 'active',
+            credit_score:
+              item.credit_score !== undefined && item.credit_score !== null
+                ? item.credit_score
+                : 0,
+            risk_score:
+              item.risk_score !== undefined && item.risk_score !== null
+                ? item.risk_score
+                : undefined,
+            status:
+              item.status ||
+              (item.credit_score && item.credit_score > 0
+                ? "active"
+                : "pending") ||
+              "active",
             created_at: item.created_at || undefined,
             last_updated: item.updated_at || item.last_updated || undefined,
           }));
-          
+
           // Enhance credit scores by fetching from credit assessment history if not available
           // Check cache first to avoid unnecessary API calls
           // Only fetch if credit_score is 0 or missing (to avoid unnecessary API calls)
           // Limit to first 20 customers per page to avoid performance issues
-          
+
           // First, check cache for any customers needing scores
           const customersNeedingScores = transformedItems
-            .filter(item => !item.credit_score || item.credit_score === 0)
+            .filter((item) => !item.credit_score || item.credit_score === 0)
             .slice(0, 20);
-          
+
           // Apply cached scores first
           const cachedScoreMap = new Map<string, number>();
-          customersNeedingScores.forEach(customer => {
+          customersNeedingScores.forEach((customer) => {
             const cachedScore = creditScoreCache.get(customer.customer_id);
             if (cachedScore !== null) {
               cachedScoreMap.set(customer.customer_id, cachedScore);
             }
           });
-          
+
           // Filter out customers that have cached scores
           const customersToFetch = customersNeedingScores.filter(
-            customer => !cachedScoreMap.has(customer.customer_id)
+            (customer) => !cachedScoreMap.has(customer.customer_id)
           );
-          
+
           if (customersToFetch.length > 0) {
             // Fetch credit scores from credit assessment history in parallel
             // Use Promise.allSettled to handle individual failures gracefully
             try {
-              const creditScorePromises = customersToFetch.map(async (customer) => {
-                try {
-                  // Try to get from customer 360 endpoint first (most reliable source)
+              const creditScorePromises = customersToFetch.map(
+                async (customer) => {
                   try {
-                    const customer360Response = await this.client.get(
-                      `/api/v1/customers/${customer.customer_id}/360`
-                    );
-                    // this.client.get() returns axios response, so customer360Response.data is the API response
-                    // The API response structure is: {success: true, data: {...}}
-                    const apiResponse = customer360Response.data;
-                    const customer360 = apiResponse?.success && apiResponse?.data 
-                      ? apiResponse.data 
-                      : (apiResponse?.data || apiResponse);
-                    
-                    // Check credit.score first (most common location)
-                    if (customer360?.credit?.score && customer360.credit.score > 0) {
-                      // Cache the score
-                      creditScoreCache.set(customer.customer_id, customer360.credit.score);
-                      return { customer_id: customer.customer_id, credit_score: customer360.credit.score };
-                    }
-                    // Check credit.history[0].credit_score
-                    if (customer360?.credit?.history && Array.isArray(customer360.credit.history) && customer360.credit.history.length > 0) {
-                      const latestScore = customer360.credit.history[0].credit_score;
-                      if (latestScore && latestScore > 0) {
+                    // Try to get from customer 360 endpoint first (most reliable source)
+                    try {
+                      const customer360Response = await this.client.get(
+                        `/api/v1/customers/${customer.customer_id}/360`
+                      );
+                      // this.client.get() returns axios response, so customer360Response.data is the API response
+                      // The API response structure is: {success: true, data: {...}}
+                      const apiResponse = customer360Response.data;
+                      const customer360 =
+                        apiResponse?.success && apiResponse?.data
+                          ? apiResponse.data
+                          : apiResponse?.data || apiResponse;
+
+                      // Check credit.score first (most common location)
+                      if (
+                        customer360?.credit?.score &&
+                        customer360.credit.score > 0
+                      ) {
                         // Cache the score
-                        creditScoreCache.set(customer.customer_id, latestScore);
-                        return { customer_id: customer.customer_id, credit_score: latestScore };
-                      }
-                    }
-                  } catch (e) {
-                    // Ignore 360 endpoint errors, try history endpoint
-                  }
-                  
-                  // Fallback: Try credit scoring history endpoint
-                  try {
-                    const creditHistoryResponse = await this.client.get(
-                      "/api/intelligence/credit-scoring/history",
-                      {
-                        params: {
+                        creditScoreCache.set(
+                          customer.customer_id,
+                          customer360.credit.score
+                        );
+                        return {
                           customer_id: customer.customer_id,
-                          page_size: 1,
-                          sort_by: "created_at",
-                          sort_order: "desc"
+                          credit_score: customer360.credit.score,
+                        };
+                      }
+                      // Check credit.history[0].credit_score
+                      if (
+                        customer360?.credit?.history &&
+                        Array.isArray(customer360.credit.history) &&
+                        customer360.credit.history.length > 0
+                      ) {
+                        const latestScore =
+                          customer360.credit.history[0].credit_score;
+                        if (latestScore && latestScore > 0) {
+                          // Cache the score
+                          creditScoreCache.set(
+                            customer.customer_id,
+                            latestScore
+                          );
+                          return {
+                            customer_id: customer.customer_id,
+                            credit_score: latestScore,
+                          };
                         }
                       }
-                    );
-                    
-                    const apiResponse = creditHistoryResponse.data;
-                    const creditHistory = apiResponse?.success && apiResponse?.data 
-                      ? apiResponse.data 
-                      : (apiResponse?.data || apiResponse);
-                    
-                    if (creditHistory?.items && Array.isArray(creditHistory.items) && creditHistory.items.length > 0) {
-                      const latestScore = creditHistory.items[0].credit_score;
-                      if (latestScore && latestScore > 0) {
-                        // Cache the score
-                        creditScoreCache.set(customer.customer_id, latestScore);
-                        return { customer_id: customer.customer_id, credit_score: latestScore };
-                      }
+                    } catch (e) {
+                      // Ignore 360 endpoint errors, try history endpoint
                     }
-                  } catch (e) {
-                    // Ignore history endpoint errors
+
+                    // Fallback: Try credit scoring history endpoint
+                    try {
+                      const creditHistoryResponse = await this.client.get(
+                        "/api/intelligence/credit-scoring/history",
+                        {
+                          params: {
+                            customer_id: customer.customer_id,
+                            page_size: 1,
+                            sort_by: "created_at",
+                            sort_order: "desc",
+                          },
+                        }
+                      );
+
+                      const apiResponse = creditHistoryResponse.data;
+                      const creditHistory =
+                        apiResponse?.success && apiResponse?.data
+                          ? apiResponse.data
+                          : apiResponse?.data || apiResponse;
+
+                      if (
+                        creditHistory?.items &&
+                        Array.isArray(creditHistory.items) &&
+                        creditHistory.items.length > 0
+                      ) {
+                        const latestScore = creditHistory.items[0].credit_score;
+                        if (latestScore && latestScore > 0) {
+                          // Cache the score
+                          creditScoreCache.set(
+                            customer.customer_id,
+                            latestScore
+                          );
+                          return {
+                            customer_id: customer.customer_id,
+                            credit_score: latestScore,
+                          };
+                        }
+                      }
+                    } catch (e) {
+                      // Ignore history endpoint errors
+                    }
+
+                    return null;
+                  } catch (error) {
+                    // Ignore errors for individual credit score fetches
+                    return null;
                   }
-                  
-                  return null;
-                } catch (error) {
-                  // Ignore errors for individual credit score fetches
-                  return null;
                 }
-              });
-              
+              );
+
               // Use Promise.allSettled to handle individual failures gracefully
-              const creditScoreResults = await Promise.allSettled(creditScorePromises);
-              
+              const creditScoreResults =
+                await Promise.allSettled(creditScorePromises);
+
               // Merge fetched scores with cached scores
               const fetchedScoreMap = new Map(
                 creditScoreResults
-                  .filter((result): result is PromiseFulfilledResult<{ customer_id: string; credit_score: number } | null> => 
-                    result.status === 'fulfilled' && result.value !== null
+                  .filter(
+                    (
+                      result
+                    ): result is PromiseFulfilledResult<{
+                      customer_id: string;
+                      credit_score: number;
+                    } | null> =>
+                      result.status === "fulfilled" && result.value !== null
                   )
-                  .map(result => {
+                  .map((result) => {
                     const score = result.value!;
-                    return [score.customer_id, score.credit_score] as [string, number];
+                    return [score.customer_id, score.credit_score] as [
+                      string,
+                      number,
+                    ];
                   })
               );
-              
+
               // Combine cached and fetched scores
-              const allScoresMap = new Map([...cachedScoreMap, ...fetchedScoreMap]);
-              
-              transformedItems = transformedItems.map(item => {
+              const allScoresMap = new Map([
+                ...cachedScoreMap,
+                ...fetchedScoreMap,
+              ]);
+
+              transformedItems = transformedItems.map((item) => {
                 const fetchedScore = allScoresMap.get(item.customer_id);
                 if (fetchedScore && fetchedScore > 0) {
                   return { ...item, credit_score: fetchedScore };
@@ -873,18 +1051,21 @@ class APIGatewayClient {
               });
             } catch (error) {
               // If batch credit score fetch fails, use cached scores if available
-              transformedItems = transformedItems.map(item => {
+              transformedItems = transformedItems.map((item) => {
                 const cachedScore = cachedScoreMap.get(item.customer_id);
                 if (cachedScore && cachedScore > 0) {
                   return { ...item, credit_score: cachedScore };
                 }
                 return item;
               });
-              console.warn('[getCustomers] Failed to fetch credit scores:', error);
+              console.warn(
+                "[getCustomers] Failed to fetch credit scores:",
+                error
+              );
             }
           } else if (cachedScoreMap.size > 0) {
             // Only cached scores available, apply them
-            transformedItems = transformedItems.map(item => {
+            transformedItems = transformedItems.map((item) => {
               const cachedScore = cachedScoreMap.get(item.customer_id);
               if (cachedScore && cachedScore > 0) {
                 return { ...item, credit_score: cachedScore };
@@ -892,20 +1073,21 @@ class APIGatewayClient {
               return item;
             });
           }
-          
+
           const result = {
             items: transformedItems,
             total: total,
             page: responseData.page || page || Math.floor(offset / limit) + 1,
             page_size: responseData.page_size || limit || page_size,
-            has_more: responseData.has_more !== undefined 
-              ? responseData.has_more 
-              : (offset + dataArray.length < total),
+            has_more:
+              responseData.has_more !== undefined
+                ? responseData.has_more
+                : offset + dataArray.length < total,
           } as import("@/types/api").CustomersListResponse;
-          
+
           // Debug logging for transformation result
-          if (typeof window !== 'undefined') {
-            console.log('[getCustomers] Transformation result:', {
+          if (typeof window !== "undefined") {
+            console.log("[getCustomers] Transformation result:", {
               itemsCount: result.items.length,
               total: result.total,
               page: result.page,
@@ -914,135 +1096,193 @@ class APIGatewayClient {
               sampleItem: result.items[0] || null,
             });
           }
-          
+
           return result;
         }
-        
+
         // If response.data is directly an array (unwrapped)
         if (Array.isArray(responseData)) {
           // Transform array items to match CustomerListItem interface
           let transformedItems = responseData.map((item: any) => ({
             customer_id: item.customer_id || item.id,
-            full_name: item.full_name || item.name || '',
+            full_name: item.full_name || item.name || "",
             email: item.email || undefined,
             phone_number: item.phone_number || item.phone || undefined,
             region: item.region || undefined,
-            credit_score: item.credit_score !== undefined && item.credit_score !== null ? item.credit_score : 0,
-            risk_score: item.risk_score !== undefined && item.risk_score !== null ? item.risk_score : undefined,
-            status: item.status || (item.credit_score && item.credit_score > 0 ? 'active' : 'pending') || 'active',
+            credit_score:
+              item.credit_score !== undefined && item.credit_score !== null
+                ? item.credit_score
+                : 0,
+            risk_score:
+              item.risk_score !== undefined && item.risk_score !== null
+                ? item.risk_score
+                : undefined,
+            status:
+              item.status ||
+              (item.credit_score && item.credit_score > 0
+                ? "active"
+                : "pending") ||
+              "active",
             created_at: item.created_at || undefined,
             last_updated: item.updated_at || item.last_updated || undefined,
           }));
-          
+
           // Enhance credit scores by fetching from credit assessment history if not available
           // Check cache first to avoid unnecessary API calls
           // Limit to first 20 customers per page to avoid performance issues
-          
+
           const customersNeedingScores = transformedItems
-            .filter(item => !item.credit_score || item.credit_score === 0)
+            .filter((item) => !item.credit_score || item.credit_score === 0)
             .slice(0, 20);
-          
+
           // First, check cache for any customers needing scores
           const cachedScoreMap = new Map<string, number>();
-          customersNeedingScores.forEach(customer => {
+          customersNeedingScores.forEach((customer) => {
             const cachedScore = creditScoreCache.get(customer.customer_id);
             if (cachedScore !== null) {
               cachedScoreMap.set(customer.customer_id, cachedScore);
             }
           });
-          
+
           // Filter out customers that have cached scores
           const customersToFetch = customersNeedingScores.filter(
-            customer => !cachedScoreMap.has(customer.customer_id)
+            (customer) => !cachedScoreMap.has(customer.customer_id)
           );
-          
+
           if (customersToFetch.length > 0) {
             try {
-              const creditScorePromises = customersToFetch.map(async (customer) => {
-                try {
-                  // Try customer 360 endpoint first (most reliable source)
+              const creditScorePromises = customersToFetch.map(
+                async (customer) => {
                   try {
-                    const customer360Response = await this.client.get(
-                      `/api/v1/customers/${customer.customer_id}/360`
-                    );
-                    const apiResponse = customer360Response.data;
-                    const customer360 = apiResponse?.success && apiResponse?.data 
-                      ? apiResponse.data 
-                      : (apiResponse?.data || apiResponse);
-                    
-                    if (customer360?.credit?.score && customer360.credit.score > 0) {
-                      // Cache the score
-                      creditScoreCache.set(customer.customer_id, customer360.credit.score);
-                      return { customer_id: customer.customer_id, credit_score: customer360.credit.score };
-                    }
-                    if (customer360?.credit?.history && Array.isArray(customer360.credit.history) && customer360.credit.history.length > 0) {
-                      const latestScore = customer360.credit.history[0].credit_score;
-                      if (latestScore && latestScore > 0) {
+                    // Try customer 360 endpoint first (most reliable source)
+                    try {
+                      const customer360Response = await this.client.get(
+                        `/api/v1/customers/${customer.customer_id}/360`
+                      );
+                      const apiResponse = customer360Response.data;
+                      const customer360 =
+                        apiResponse?.success && apiResponse?.data
+                          ? apiResponse.data
+                          : apiResponse?.data || apiResponse;
+
+                      if (
+                        customer360?.credit?.score &&
+                        customer360.credit.score > 0
+                      ) {
                         // Cache the score
-                        creditScoreCache.set(customer.customer_id, latestScore);
-                        return { customer_id: customer.customer_id, credit_score: latestScore };
-                      }
-                    }
-                  } catch (e) {
-                    // Ignore 360 endpoint errors, try history endpoint
-                  }
-                  
-                  // Fallback: Try credit scoring history endpoint
-                  try {
-                    const creditHistoryResponse = await this.client.get(
-                      "/api/intelligence/credit-scoring/history",
-                      {
-                        params: {
+                        creditScoreCache.set(
+                          customer.customer_id,
+                          customer360.credit.score
+                        );
+                        return {
                           customer_id: customer.customer_id,
-                          page_size: 1,
-                          sort_by: "created_at",
-                          sort_order: "desc"
+                          credit_score: customer360.credit.score,
+                        };
+                      }
+                      if (
+                        customer360?.credit?.history &&
+                        Array.isArray(customer360.credit.history) &&
+                        customer360.credit.history.length > 0
+                      ) {
+                        const latestScore =
+                          customer360.credit.history[0].credit_score;
+                        if (latestScore && latestScore > 0) {
+                          // Cache the score
+                          creditScoreCache.set(
+                            customer.customer_id,
+                            latestScore
+                          );
+                          return {
+                            customer_id: customer.customer_id,
+                            credit_score: latestScore,
+                          };
                         }
                       }
-                    );
-                    
-                    const apiResponse = creditHistoryResponse.data;
-                    const creditHistory = apiResponse?.success && apiResponse?.data 
-                      ? apiResponse.data 
-                      : (apiResponse?.data || apiResponse);
-                    
-                    if (creditHistory?.items && Array.isArray(creditHistory.items) && creditHistory.items.length > 0) {
-                      const latestScore = creditHistory.items[0].credit_score;
-                      if (latestScore && latestScore > 0) {
-                        // Cache the score
-                        creditScoreCache.set(customer.customer_id, latestScore);
-                        return { customer_id: customer.customer_id, credit_score: latestScore };
-                      }
+                    } catch (e) {
+                      // Ignore 360 endpoint errors, try history endpoint
                     }
-                  } catch (e) {
-                    // Ignore history endpoint errors
+
+                    // Fallback: Try credit scoring history endpoint
+                    try {
+                      const creditHistoryResponse = await this.client.get(
+                        "/api/intelligence/credit-scoring/history",
+                        {
+                          params: {
+                            customer_id: customer.customer_id,
+                            page_size: 1,
+                            sort_by: "created_at",
+                            sort_order: "desc",
+                          },
+                        }
+                      );
+
+                      const apiResponse = creditHistoryResponse.data;
+                      const creditHistory =
+                        apiResponse?.success && apiResponse?.data
+                          ? apiResponse.data
+                          : apiResponse?.data || apiResponse;
+
+                      if (
+                        creditHistory?.items &&
+                        Array.isArray(creditHistory.items) &&
+                        creditHistory.items.length > 0
+                      ) {
+                        const latestScore = creditHistory.items[0].credit_score;
+                        if (latestScore && latestScore > 0) {
+                          // Cache the score
+                          creditScoreCache.set(
+                            customer.customer_id,
+                            latestScore
+                          );
+                          return {
+                            customer_id: customer.customer_id,
+                            credit_score: latestScore,
+                          };
+                        }
+                      }
+                    } catch (e) {
+                      // Ignore history endpoint errors
+                    }
+
+                    return null;
+                  } catch (error) {
+                    return null;
                   }
-                  
-                  return null;
-                } catch (error) {
-                  return null;
                 }
-              });
-              
+              );
+
               // Use Promise.allSettled to handle individual failures gracefully
-              const creditScoreResults = await Promise.allSettled(creditScorePromises);
-              
+              const creditScoreResults =
+                await Promise.allSettled(creditScorePromises);
+
               // Merge fetched scores with cached scores
               const fetchedScoreMap = new Map(
                 creditScoreResults
-                  .filter((result): result is PromiseFulfilledResult<{ customer_id: string; credit_score: number } | null> => 
-                    result.status === 'fulfilled' && result.value !== null
+                  .filter(
+                    (
+                      result
+                    ): result is PromiseFulfilledResult<{
+                      customer_id: string;
+                      credit_score: number;
+                    } | null> =>
+                      result.status === "fulfilled" && result.value !== null
                   )
-                  .map(result => {
+                  .map((result) => {
                     const score = result.value!;
-                    return [score.customer_id, score.credit_score] as [string, number];
+                    return [score.customer_id, score.credit_score] as [
+                      string,
+                      number,
+                    ];
                   })
               );
-              
+
               // Combine cached and fetched scores
-              const allScoresMap = new Map([...cachedScoreMap, ...fetchedScoreMap]);
-              
-              transformedItems = transformedItems.map(item => {
+              const allScoresMap = new Map([
+                ...cachedScoreMap,
+                ...fetchedScoreMap,
+              ]);
+
+              transformedItems = transformedItems.map((item) => {
                 const fetchedScore = allScoresMap.get(item.customer_id);
                 if (fetchedScore && fetchedScore > 0) {
                   return { ...item, credit_score: fetchedScore };
@@ -1051,7 +1291,7 @@ class APIGatewayClient {
               });
             } catch (error) {
               // If batch credit score fetch fails, use cached scores if available
-              transformedItems = transformedItems.map(item => {
+              transformedItems = transformedItems.map((item) => {
                 const cachedScore = cachedScoreMap.get(item.customer_id);
                 if (cachedScore && cachedScore > 0) {
                   return { ...item, credit_score: cachedScore };
@@ -1061,7 +1301,7 @@ class APIGatewayClient {
             }
           } else if (cachedScoreMap.size > 0) {
             // Only cached scores available, apply them
-            transformedItems = transformedItems.map(item => {
+            transformedItems = transformedItems.map((item) => {
               const cachedScore = cachedScoreMap.get(item.customer_id);
               if (cachedScore && cachedScore > 0) {
                 return { ...item, credit_score: cachedScore };
@@ -1069,7 +1309,7 @@ class APIGatewayClient {
               return item;
             });
           }
-          
+
           return {
             items: transformedItems,
             total: responseData.length,
@@ -1079,7 +1319,7 @@ class APIGatewayClient {
           } as import("@/types/api").CustomersListResponse;
         }
       }
-      
+
       // Fallback: return empty response
       return {
         items: [],
@@ -1111,17 +1351,21 @@ class APIGatewayClient {
         `/api/v1/customers/${customerId}/360`
       );
       const data = normalizeApiResponse<any>(response.data);
-      
+
       // Update credit score cache if available in 360 data
       if (data?.credit?.score && data.credit.score > 0) {
         creditScoreCache.set(customerId, data.credit.score);
-      } else if (data?.credit?.history && Array.isArray(data.credit.history) && data.credit.history.length > 0) {
+      } else if (
+        data?.credit?.history &&
+        Array.isArray(data.credit.history) &&
+        data.credit.history.length > 0
+      ) {
         const latestScore = data.credit.history[0].credit_score;
         if (latestScore && latestScore > 0) {
           creditScoreCache.set(customerId, latestScore);
         }
       }
-      
+
       return data;
     } catch (error: any) {
       if (
@@ -1203,7 +1447,10 @@ class APIGatewayClient {
   /**
    * Bulk Export Customers
    */
-  async bulkExportCustomers(customerIds: string[], format: string = "csv"): Promise<any> {
+  async bulkExportCustomers(
+    customerIds: string[],
+    format: string = "csv"
+  ): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>(
         "/api/v1/customers/bulk/export",
@@ -1251,11 +1498,11 @@ class APIGatewayClient {
         customerData
       );
       const data = normalizeApiResponse<any>(response.data);
-      
+
       // Invalidate credit score cache when customer is updated
       // Credit score may have changed due to profile updates
       creditScoreCache.delete(customerId);
-      
+
       return data;
     } catch (error: any) {
       if (
@@ -1274,7 +1521,10 @@ class APIGatewayClient {
     }
   }
 
-  async exportCustomers(format: string = "csv", limit: number = 1000): Promise<any> {
+  async exportCustomers(
+    format: string = "csv",
+    limit: number = 1000
+  ): Promise<any> {
     try {
       const response = await this.client.get<ApiResponse<any>>(
         "/api/v1/customers/export",
@@ -1286,12 +1536,22 @@ class APIGatewayClient {
       if (response.data && typeof response.data === "object") {
         return response.data;
       }
-      throw new APIServiceError(response.status || 500, "Failed to export customers");
+      throw new APIServiceError(
+        response.status || 500,
+        "Failed to export customers"
+      );
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
-      throw new APIServiceError(500, error.message || "Failed to export customers");
+      throw new APIServiceError(
+        500,
+        error.message || "Failed to export customers"
+      );
     }
   }
 
@@ -1310,7 +1570,12 @@ class APIGatewayClient {
     date_to?: string;
     min_credit_score?: number;
     max_credit_score?: number;
-  }): Promise<{ results: any[]; total: number; limit: number; offset: number }> {
+  }): Promise<{
+    results: any[];
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
     try {
       // Clean up params - remove empty query string, trim query
       const cleanParams: any = { ...params };
@@ -1322,38 +1587,52 @@ class APIGatewayClient {
       } else {
         delete cleanParams.query;
       }
-      
+
       // Remove undefined values
-      Object.keys(cleanParams).forEach(key => {
-        if (cleanParams[key] === undefined || cleanParams[key] === null || cleanParams[key] === '') {
+      Object.keys(cleanParams).forEach((key) => {
+        if (
+          cleanParams[key] === undefined ||
+          cleanParams[key] === null ||
+          cleanParams[key] === ""
+        ) {
           delete cleanParams[key];
         }
       });
-      
+
       // Check if we have at least query or one filter parameter
       const hasQuery = !!cleanParams.query;
-      const hasFilters = !!(cleanParams.status || cleanParams.region || cleanParams.employment_status || 
-                            cleanParams.date_from || cleanParams.date_to || 
-                            cleanParams.min_credit_score || cleanParams.max_credit_score);
-      
+      const hasFilters = !!(
+        cleanParams.status ||
+        cleanParams.region ||
+        cleanParams.employment_status ||
+        cleanParams.date_from ||
+        cleanParams.date_to ||
+        cleanParams.min_credit_score ||
+        cleanParams.max_credit_score
+      );
+
       if (!hasQuery && !hasFilters) {
         // Return empty results instead of throwing error to prevent console spam
-        return { results: [], total: 0, limit: params.limit || 50, offset: params.offset || 0 };
+        return {
+          results: [],
+          total: 0,
+          limit: params.limit || 50,
+          offset: params.offset || 0,
+        };
       }
-      
-      const response = await this.client.get<ApiResponse<{
-        results: any[];
-        total: number;
-        limit: number;
-        offset: number;
-      }>>(
-        "/api/v1/customers/search/",
-        { params: cleanParams }
-      );
+
+      const response = await this.client.get<
+        ApiResponse<{
+          results: any[];
+          total: number;
+          limit: number;
+          offset: number;
+        }>
+      >("/api/v1/customers/search/", { params: cleanParams });
 
       // Normalize the response first
       const normalized = normalizeApiResponse(response.data);
-      
+
       // Extract results from normalized response
       let results: any[] = [];
       let total = 0;
@@ -1361,26 +1640,34 @@ class APIGatewayClient {
       let offset = params.offset || 0;
 
       // Handle different response formats
-      if (normalized && typeof normalized === 'object') {
+      if (normalized && typeof normalized === "object") {
         // Check if results are directly in normalized data
         if (Array.isArray(normalized)) {
           results = normalized;
           total = normalized.length;
         }
         // Check if results are in a 'results' field
-        else if ('results' in normalized && Array.isArray((normalized as any).results)) {
+        else if (
+          "results" in normalized &&
+          Array.isArray((normalized as any).results)
+        ) {
           results = (normalized as any).results;
           total = (normalized as any).total || results.length;
           limit = (normalized as any).limit || limit;
           offset = (normalized as any).offset || offset;
         }
         // Check if results are in a 'data' field
-        else if ('data' in normalized) {
+        else if ("data" in normalized) {
           const data = (normalized as any).data;
           if (Array.isArray(data)) {
             results = data;
             total = data.length;
-          } else if (data && typeof data === 'object' && 'results' in data && Array.isArray(data.results)) {
+          } else if (
+            data &&
+            typeof data === "object" &&
+            "results" in data &&
+            Array.isArray(data.results)
+          ) {
             results = data.results;
             total = data.total || results.length;
             limit = data.limit || limit;
@@ -1388,7 +1675,10 @@ class APIGatewayClient {
           }
         }
         // Check if results are in a 'customers' field (some endpoints return this)
-        else if ('customers' in normalized && Array.isArray((normalized as any).customers)) {
+        else if (
+          "customers" in normalized &&
+          Array.isArray((normalized as any).customers)
+        ) {
           results = (normalized as any).customers;
           total = (normalized as any).total || results.length;
           limit = (normalized as any).limit || limit;
@@ -1404,7 +1694,12 @@ class APIGatewayClient {
           if (Array.isArray(data)) {
             results = data;
             total = data.length;
-          } else if (data && typeof data === 'object' && 'results' in data && Array.isArray(data.results)) {
+          } else if (
+            data &&
+            typeof data === "object" &&
+            "results" in data &&
+            Array.isArray(data.results)
+          ) {
             results = data.results;
             total = data.total || results.length;
             limit = data.limit || limit;
@@ -1438,7 +1733,9 @@ class APIGatewayClient {
 
       // Handle 401/404 gracefully
       if (error.response?.status === 404 || error.response?.status === 401) {
-        console.warn(`Customer search endpoint unavailable (${error.response?.status}), returning empty result`);
+        console.warn(
+          `Customer search endpoint unavailable (${error.response?.status}), returning empty result`
+        );
         return {
           results: [],
           total: 0,
@@ -1469,22 +1766,28 @@ class APIGatewayClient {
           { params: { include: "intelligence" } }
         );
         const data = normalizeApiResponse<any>(response.data);
-        
+
         if (data?.intelligence) {
           return data.intelligence;
         }
       } catch (error: any) {
         // If Customer 360 fails, fetch from individual endpoints
-        console.warn("Customer 360 intelligence fetch failed, trying individual endpoints:", error);
+        console.warn(
+          "Customer 360 intelligence fetch failed, trying individual endpoints:",
+          error
+        );
       }
-      
+
       // Fetch from individual intelligence endpoints
       const [recommendations, lifeEvents, insights] = await Promise.all([
         this.getProductRecommendations(customerId, 10).catch(() => []),
-        this.getLifeEvents(customerId, 20).catch(() => ({ events: [], statistics: {} })),
+        this.getLifeEvents(customerId, 20).catch(() => ({
+          events: [],
+          statistics: {},
+        })),
         Promise.resolve([]), // Insights can be derived or fetched separately
       ]);
-      
+
       return {
         recommendations: Array.isArray(recommendations) ? recommendations : [],
         life_events: lifeEvents?.events || lifeEvents || [],
@@ -1492,7 +1795,11 @@ class APIGatewayClient {
         statistics: lifeEvents?.statistics || {},
       };
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -1505,25 +1812,33 @@ class APIGatewayClient {
   }
 
   // Product Intelligence methods
-  async getProductRecommendations(customerId?: string, limit: number = 10): Promise<any[]> {
+  async getProductRecommendations(
+    customerId?: string,
+    limit: number = 10
+  ): Promise<any[]> {
     try {
       // Handle undefined/null customerId - use general recommendations endpoint
       // The correct endpoint is /api/intelligence/products/recommendations (not /api/intelligence/recommendations)
-      const endpoint = customerId 
+      const endpoint = customerId
         ? `/api/intelligence/recommendations/${customerId}`
         : `/api/intelligence/products/recommendations`;
-      const response = await this.client.get<ApiResponse<any[] | { recommendations: any[]; total: number }>>(
-        endpoint,
-        { params: { limit, ...(customerId ? {} : { customer_id: undefined }) } }
-      );
-      const data = normalizeApiResponse<any[] | { recommendations: any[]; total: number }>(response.data);
+      const response = await this.client.get<
+        ApiResponse<any[] | { recommendations: any[]; total: number }>
+      >(endpoint, {
+        params: { limit, ...(customerId ? {} : { customer_id: undefined }) },
+      });
+      const data = normalizeApiResponse<
+        any[] | { recommendations: any[]; total: number }
+      >(response.data);
       // Handle both array and object with recommendations property
       if (Array.isArray(data)) {
         return data;
       }
-      if (data && typeof data === 'object' && 'recommendations' in data) {
+      if (data && typeof data === "object" && "recommendations" in data) {
         const typedData = data as { recommendations: any[]; total?: number };
-        return Array.isArray(typedData.recommendations) ? typedData.recommendations : [];
+        return Array.isArray(typedData.recommendations)
+          ? typedData.recommendations
+          : [];
       }
       return [];
     } catch (error: any) {
@@ -1544,41 +1859,43 @@ class APIGatewayClient {
   }
 
   // Dashboard data methods with date range support
-  async getDashboardData(dateParams?: { start_date: string; end_date: string }): Promise<any> {
+  async getDashboardData(dateParams?: {
+    start_date: string;
+    end_date: string;
+  }): Promise<any> {
     try {
       const params: any = { type: "dashboard" };
       if (dateParams) {
         params.start_date = dateParams.start_date;
         params.end_date = dateParams.end_date;
       }
-      
-      console.log("[APIGateway] Fetching dashboard data", { 
-        endpoint: "/api/v1/analytics", 
+
+      console.log("[APIGateway] Fetching dashboard data", {
+        endpoint: "/api/v1/analytics",
         params,
-        hasToken: !!this.accessToken 
+        hasToken: !!this.accessToken,
       });
-      
-      const response = await this.client.get<import("@/types/api").ApiResponse<any>>(
-        "/api/v1/analytics",
-        { params }
-      );
-      
+
+      const response = await this.client.get<
+        import("@/types/api").ApiResponse<any>
+      >("/api/v1/analytics", { params });
+
       const normalizedData = normalizeApiResponse(response.data);
-      
+
       if (normalizedData) {
         console.log("[APIGateway] Dashboard data fetched successfully", {
           hasAnalytics: !!(normalizedData as any)?.analytics,
           hasDashboard: !!(normalizedData as any)?.dashboard,
-          dataKeys: Object.keys(normalizedData || {})
+          dataKeys: Object.keys(normalizedData || {}),
         });
         return normalizedData;
       }
-      
+
       console.warn("[APIGateway] Dashboard data response is empty or invalid", {
         responseStatus: response.status,
-        responseData: response.data
+        responseData: response.data,
       });
-      
+
       throw new APIServiceError(
         response.status || 500,
         "Failed to fetch dashboard data - invalid response format"
@@ -1592,7 +1909,7 @@ class APIGatewayClient {
         console.error("[APIGateway] Dashboard data fetch error", {
           errorType: error.constructor.name,
           message: error.message,
-          statusCode: (error as any).statusCode
+          statusCode: (error as any).statusCode,
         });
         throw error;
       }
@@ -1600,7 +1917,7 @@ class APIGatewayClient {
       console.error("[APIGateway] Dashboard data fetch error (normalized)", {
         statusCode: normalizedError.statusCode,
         message: normalizedError.message,
-        originalError: error
+        originalError: error,
       });
       throw new APIServiceError(
         normalizedError.statusCode,
@@ -1610,34 +1927,42 @@ class APIGatewayClient {
     }
   }
 
-  async getExecutiveDashboardData(dateParams?: { start_date: string; end_date: string }): Promise<any> {
+  async getExecutiveDashboardData(dateParams?: {
+    start_date: string;
+    end_date: string;
+  }): Promise<any> {
     try {
       const params: any = {};
       if (dateParams) {
         params.start_date = dateParams.start_date;
         params.end_date = dateParams.end_date;
       }
-      
+
       console.log("[APIGateway] Fetching executive dashboard data", {
         endpoint: "/api/v1/analytics/dashboard/executive",
         params,
-        hasToken: !!this.accessToken
+        hasToken: !!this.accessToken,
       });
-      
-      const response = await this.client.get<import("@/types/api").ApiResponse<any>>(
+
+      const response = await this.client.get<
+        import("@/types/api").ApiResponse<any>
+      >(
         "/api/v1/analytics/dashboard/executive",
         params ? { params } : undefined
       );
-      
+
       const normalizedData = normalizeApiResponse(response.data);
-      
-      console.log("[APIGateway] Executive dashboard data fetched successfully", {
-        hasData: !!normalizedData,
-        dataKeys: normalizedData ? Object.keys(normalizedData) : [],
-        hasBankingKPIs: !!(normalizedData as any)?.banking_kpis,
-        hasRevenueMetrics: !!(normalizedData as any)?.revenue_metrics
-      });
-      
+
+      console.log(
+        "[APIGateway] Executive dashboard data fetched successfully",
+        {
+          hasData: !!normalizedData,
+          dataKeys: normalizedData ? Object.keys(normalizedData) : [],
+          hasBankingKPIs: !!(normalizedData as any)?.banking_kpis,
+          hasRevenueMetrics: !!(normalizedData as any)?.revenue_metrics,
+        }
+      );
+
       return normalizedData;
     } catch (error: any) {
       if (
@@ -1648,16 +1973,19 @@ class APIGatewayClient {
         console.error("[APIGateway] Executive dashboard data fetch error", {
           errorType: error.constructor.name,
           message: error.message,
-          statusCode: (error as any).statusCode
+          statusCode: (error as any).statusCode,
         });
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
-      console.error("[APIGateway] Executive dashboard data fetch error (normalized)", {
-        statusCode: normalizedError.statusCode,
-        message: normalizedError.message,
-        originalError: error
-      });
+      console.error(
+        "[APIGateway] Executive dashboard data fetch error (normalized)",
+        {
+          statusCode: normalizedError.statusCode,
+          message: normalizedError.message,
+          originalError: error,
+        }
+      );
       throw new APIServiceError(
         normalizedError.statusCode,
         normalizedError.message || "Failed to fetch executive dashboard data",
@@ -1666,7 +1994,10 @@ class APIGatewayClient {
     }
   }
 
-  async getCustomerStats(dateParams?: { start_date: string; end_date: string }): Promise<import("@/types/customer-intelligence").CustomerStats> {
+  async getCustomerStats(dateParams?: {
+    start_date: string;
+    end_date: string;
+  }): Promise<import("@/types/customer-intelligence").CustomerStats> {
     try {
       const params: any = {};
       if (dateParams) {
@@ -1686,49 +2017,77 @@ class APIGatewayClient {
       if (response.data?.overview) {
         return response.data.overview;
       }
-      throw new APIServiceError(response.status || 500, "Failed to fetch customer statistics");
+      throw new APIServiceError(
+        response.status || 500,
+        "Failed to fetch customer statistics"
+      );
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
-      throw new APIServiceError(500, error.message || "Failed to fetch customer statistics");
+      throw new APIServiceError(
+        500,
+        error.message || "Failed to fetch customer statistics"
+      );
     }
   }
 
-  async getRecommendationStats(dateParams?: { start_date: string; end_date: string }): Promise<import("@/types/product-intelligence").RecommendationStatistics> {
+  async getRecommendationStats(dateParams?: {
+    start_date: string;
+    end_date: string;
+  }): Promise<import("@/types/product-intelligence").RecommendationStatistics> {
     try {
       const params: any = {};
       if (dateParams) {
         params.start_date = dateParams.start_date;
         params.end_date = dateParams.end_date;
       }
-      const response = await this.client.get<ApiResponse<import("@/types/product-intelligence").RecommendationStatistics>>(
+      const response = await this.client.get<
+        ApiResponse<
+          import("@/types/product-intelligence").RecommendationStatistics
+        >
+      >(
         "/api/intelligence/recommendations/statistics",
         params ? { params } : undefined
       );
-      
+
       // Handle different response formats
       const responseData = normalizeApiResponse<any>(response.data);
-      
+
       // If response has success: true and data field, extract data
       if (responseData?.success && responseData.data) {
         return responseData.data;
       }
-      
+
       // If response has success: true and fields directly, return the object (excluding success field)
       if (responseData?.success && typeof responseData === "object") {
         const { success, message, ...stats } = responseData;
         return stats as any;
       }
-      
+
       // If response is the stats object directly
-      if (responseData && typeof responseData === "object" && "total_recommendations" in responseData) {
+      if (
+        responseData &&
+        typeof responseData === "object" &&
+        "total_recommendations" in responseData
+      ) {
         return responseData as any;
       }
-      
-      throw new APIServiceError(response.status || 500, "Failed to fetch recommendation statistics - invalid response format");
+
+      throw new APIServiceError(
+        response.status || 500,
+        "Failed to fetch recommendation statistics - invalid response format"
+      );
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -1743,13 +2102,17 @@ class APIGatewayClient {
   // ML Operations methods
   async getModelPerformance(modelName?: string): Promise<any> {
     try {
-      const endpoint = modelName 
+      const endpoint = modelName
         ? `/api/ml/model/${modelName}/performance`
         : "/api/ml/model/ensemble/performance";
       const response = await this.client.get<ApiResponse<any>>(endpoint);
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -1763,10 +2126,16 @@ class APIGatewayClient {
 
   async getModelComparison(): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/ml/model/comparison");
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/ml/model/comparison"
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -1783,7 +2152,11 @@ class APIGatewayClient {
       const response = await this.client.get<ApiResponse<any>>("/api/ml/drift");
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -1795,16 +2168,26 @@ class APIGatewayClient {
     }
   }
 
-  async getFeatureImportance(modelName?: string, topN: number = 20): Promise<any> {
+  async getFeatureImportance(
+    modelName?: string,
+    topN: number = 20
+  ): Promise<any> {
     try {
       const params: any = { top_n: topN };
       if (modelName) {
         params.model_name = modelName;
       }
-      const response = await this.client.get<ApiResponse<any>>("/api/ml/features/importance", { params });
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/ml/features/importance",
+        { params }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -1816,14 +2199,24 @@ class APIGatewayClient {
     }
   }
 
-  async getPerformanceTrends(timeRange: string = "30d", groupBy: string = "day"): Promise<any> {
+  async getPerformanceTrends(
+    timeRange: string = "30d",
+    groupBy: string = "day"
+  ): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/ml/performance/trends", {
-        params: { timeRange, groupBy }
-      });
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/ml/performance/trends",
+        {
+          params: { timeRange, groupBy },
+        }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -1838,13 +2231,20 @@ class APIGatewayClient {
   // Real-time scoring methods
   async getRealtimeScoring(limit: number = 20): Promise<any[]> {
     try {
-      const response = await this.client.get<ApiResponse<any[]>>("/api/scoring/realtime", {
-        params: { limit }
-      });
+      const response = await this.client.get<ApiResponse<any[]>>(
+        "/api/scoring/realtime",
+        {
+          params: { limit },
+        }
+      );
       const data = normalizeApiResponse<any[]>(response.data);
       return Array.isArray(data) ? data : [];
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       // Return empty array on error for realtime feed
@@ -1854,10 +2254,16 @@ class APIGatewayClient {
 
   async getRealtimeScoringMetrics(): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/scoring/realtime/metrics");
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/scoring/realtime/metrics"
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       // Return default structure on error
@@ -1866,21 +2272,31 @@ class APIGatewayClient {
         average_score: 0,
         scores_per_minute: 0,
         active_customers: 0,
-        score_trend: []
+        score_trend: [],
       };
     }
   }
 
   // Customer intelligence methods
-  async getTopCustomers(limit: number = 10, sortBy: "credit_score" | "revenue" | "loan_amount" = "credit_score"): Promise<any[]> {
+  async getTopCustomers(
+    limit: number = 10,
+    sortBy: "credit_score" | "revenue" | "loan_amount" = "credit_score"
+  ): Promise<any[]> {
     try {
-      const response = await this.client.get<ApiResponse<any[]>>("/api/v1/customers/top", {
-        params: { limit, sort_by: sortBy }
-      });
+      const response = await this.client.get<ApiResponse<any[]>>(
+        "/api/v1/customers/top",
+        {
+          params: { limit, sort_by: sortBy },
+        }
+      );
       const data = normalizeApiResponse<any[]>(response.data);
       return Array.isArray(data) ? data : [];
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       // Return empty array on error
@@ -1890,12 +2306,19 @@ class APIGatewayClient {
 
   async getWatchlist(limit: number = 50, offset: number = 0): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/risk/watchlist", {
-        params: { limit, offset }
-      });
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/risk/watchlist",
+        {
+          params: { limit, offset },
+        }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -1907,18 +2330,30 @@ class APIGatewayClient {
     }
   }
 
-  async getRiskAlerts(filters?: { severity?: string; status?: string; limit?: number; offset?: number }): Promise<any> {
+  async getRiskAlerts(filters?: {
+    severity?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<any> {
     try {
       const params: any = {};
       if (filters?.severity) params.severity = filters.severity;
       if (filters?.status) params.status = filters.status;
       if (filters?.limit) params.limit = filters.limit;
       if (filters?.offset) params.offset = filters.offset;
-      
-      const response = await this.client.get<ApiResponse<any>>("/api/risk/alerts", { params });
+
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/risk/alerts",
+        { params }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -1938,11 +2373,18 @@ class APIGatewayClient {
       if (filters?.product_type) params.product_type = filters.product_type;
       if (filters?.risk_band) params.risk_band = filters.risk_band;
       if (filters?.channel) params.channel = filters.channel;
-      
-      const response = await this.client.get<ApiResponse<any>>("/api/intelligence/journey/insights", { params });
+
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/intelligence/journey/insights",
+        { params }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -1954,13 +2396,16 @@ class APIGatewayClient {
     }
   }
 
-  async getCustomerJourneyTimeline(customerId: string, filters?: any): Promise<any[]> {
+  async getCustomerJourneyTimeline(
+    customerId: string,
+    filters?: any
+  ): Promise<any[]> {
     try {
       const params: any = {};
       if (filters?.from_date) params.from_date = filters.from_date;
       if (filters?.to_date) params.to_date = filters.to_date;
       if (filters?.limit) params.limit = filters.limit;
-      
+
       // Try the journey endpoint first: /api/v1/customer-journey/{customer_id}/timeline
       try {
         const response = await this.client.get<ApiResponse<any[]>>(
@@ -1968,7 +2413,7 @@ class APIGatewayClient {
           { params }
         );
         const data = normalizeApiResponse<any>(response.data);
-        
+
         // Handle different response formats
         if (Array.isArray(data)) {
           return data;
@@ -1982,7 +2427,7 @@ class APIGatewayClient {
         if (data?.data && Array.isArray(data.data)) {
           return data.data;
         }
-        
+
         return [];
       } catch (journeyError: any) {
         // Fallback: Try Customer 360 endpoint with include=journey
@@ -1991,7 +2436,7 @@ class APIGatewayClient {
           { params: { include: "journey", ...params } }
         );
         const data = normalizeApiResponse<any>(response.data);
-        
+
         // Extract timeline from journey data
         if (data?.journey?.timeline && Array.isArray(data.journey.timeline)) {
           return data.journey.timeline;
@@ -2002,11 +2447,15 @@ class APIGatewayClient {
         if (data?.events && Array.isArray(data.events)) {
           return data.events;
         }
-        
+
         return [];
       }
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       // Return empty array on error (don't throw to allow graceful fallback)
@@ -2017,10 +2466,16 @@ class APIGatewayClient {
 
   async getMarketRiskAnalysis(): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/risk/market-analysis");
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/risk/market-analysis"
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2034,14 +2489,20 @@ class APIGatewayClient {
 
   async getLifeEvents(customerId?: string, limit: number = 20): Promise<any> {
     try {
-      const endpoint = customerId 
+      const endpoint = customerId
         ? `/api/intelligence/life-events/${customerId}`
         : "/api/intelligence/life-events/statistics";
       const params = customerId ? { limit } : {};
-      const response = await this.client.get<ApiResponse<any>>(endpoint, { params });
+      const response = await this.client.get<ApiResponse<any>>(endpoint, {
+        params,
+      });
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2057,18 +2518,25 @@ class APIGatewayClient {
    * Apply Recommendation
    * Marks a recommendation as applied
    */
-  async applyRecommendation(recommendationId: string | number, customerId: string): Promise<any> {
+  async applyRecommendation(
+    recommendationId: string | number,
+    customerId: string
+  ): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>(
         `/api/intelligence/recommendations/${recommendationId}/apply`,
         {
           customer_id: customerId,
-          applied_at: new Date().toISOString()
+          applied_at: new Date().toISOString(),
         }
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2095,12 +2563,16 @@ class APIGatewayClient {
         {
           customer_id: customerId,
           dismissed_at: new Date().toISOString(),
-          reason: reason
+          reason: reason,
         }
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2127,7 +2599,8 @@ class APIGatewayClient {
     try {
       const queryParams: any = {};
       if (params?.page !== undefined) queryParams.page = params.page;
-      if (params?.page_size !== undefined) queryParams.page_size = params.page_size;
+      if (params?.page_size !== undefined)
+        queryParams.page_size = params.page_size;
       if (params?.action) queryParams.action = params.action;
 
       const response = await this.client.get<ApiResponse<any>>(
@@ -2136,7 +2609,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2164,12 +2641,16 @@ class APIGatewayClient {
         `/api/intelligence/recommendations/${recommendationId}/feedback`,
         {
           feedback: feedback.feedback,
-          rating: feedback.rating
+          rating: feedback.rating,
         }
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2183,18 +2664,26 @@ class APIGatewayClient {
 
   async getMarketRiskHistorical(days: number = 30): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/risk/market/historical", {
-        params: { days }
-      });
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/risk/market/historical",
+        {
+          params: { days },
+        }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
       throw new APIServiceError(
         normalizedError.statusCode,
-        normalizedError.message || "Failed to fetch market risk historical data",
+        normalizedError.message ||
+          "Failed to fetch market risk historical data",
         normalizedError.correlationId
       );
     }
@@ -2202,10 +2691,16 @@ class APIGatewayClient {
 
   async getMarketRiskSectors(): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/risk/market/sectors");
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/risk/market/sectors"
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2219,10 +2714,16 @@ class APIGatewayClient {
 
   async getBenchmarks(): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/analytics/benchmarks");
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/analytics/benchmarks"
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2236,10 +2737,16 @@ class APIGatewayClient {
 
   async getEnsembleWeights(): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/ml/ensemble/weights");
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/ml/ensemble/weights"
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2253,10 +2760,16 @@ class APIGatewayClient {
 
   async getEnsembleAgreement(): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/ml/ensemble/agreement");
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/ml/ensemble/agreement"
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2285,15 +2798,15 @@ class APIGatewayClient {
         }
       );
       const duration = Date.now() - startTime;
-      
-      if (process.env.NODE_ENV === 'development') {
+
+      if (process.env.NODE_ENV === "development") {
         console.log(`[ML API] getModelVersions success (${duration}ms)`, {
           correlationId,
           modelId,
           status: response.status,
         });
       }
-      
+
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
       const errorDetails = {
@@ -2305,10 +2818,14 @@ class APIGatewayClient {
         statusCode: error.response?.status || error.statusCode,
         responseData: error.response?.data,
       };
-      
+
       console.error("[ML API] getModelVersions failed:", errorDetails);
-      
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2324,7 +2841,11 @@ class APIGatewayClient {
    * Compare Model Versions
    * Compares two versions of a model
    */
-  async compareModelVersions(modelId: string, versionId1: string, versionId2: string): Promise<any> {
+  async compareModelVersions(
+    modelId: string,
+    versionId1: string,
+    versionId2: string
+  ): Promise<any> {
     const correlationId = getOrCreateCorrelationId();
     try {
       const startTime = Date.now();
@@ -2338,8 +2859,8 @@ class APIGatewayClient {
         }
       );
       const duration = Date.now() - startTime;
-      
-      if (process.env.NODE_ENV === 'development') {
+
+      if (process.env.NODE_ENV === "development") {
         console.log(`[ML API] compareModelVersions success (${duration}ms)`, {
           correlationId,
           modelId,
@@ -2348,7 +2869,7 @@ class APIGatewayClient {
           status: response.status,
         });
       }
-      
+
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
       const errorDetails = {
@@ -2362,10 +2883,14 @@ class APIGatewayClient {
         statusCode: error.response?.status || error.statusCode,
         responseData: error.response?.data,
       };
-      
+
       console.error("[ML API] compareModelVersions failed:", errorDetails);
-      
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2395,8 +2920,8 @@ class APIGatewayClient {
         }
       );
       const duration = Date.now() - startTime;
-      
-      if (process.env.NODE_ENV === 'development') {
+
+      if (process.env.NODE_ENV === "development") {
         console.log(`[ML API] rollbackModelVersion success (${duration}ms)`, {
           correlationId,
           modelId,
@@ -2404,7 +2929,7 @@ class APIGatewayClient {
           status: response.status,
         });
       }
-      
+
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
       const errorDetails = {
@@ -2417,10 +2942,14 @@ class APIGatewayClient {
         statusCode: error.response?.status || error.statusCode,
         responseData: error.response?.data,
       };
-      
+
       console.error("[ML API] rollbackModelVersion failed:", errorDetails);
-      
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2449,15 +2978,15 @@ class APIGatewayClient {
         }
       );
       const duration = Date.now() - startTime;
-      
-      if (process.env.NODE_ENV === 'development') {
+
+      if (process.env.NODE_ENV === "development") {
         console.log(`[ML API] getFeatureImportance success (${duration}ms)`, {
           correlationId,
           modelId,
           status: response.status,
         });
       }
-      
+
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
       const errorDetails = {
@@ -2469,10 +2998,14 @@ class APIGatewayClient {
         statusCode: error.response?.status || error.statusCode,
         responseData: error.response?.data,
       };
-      
+
       console.error("[ML API] getFeatureImportance failed:", errorDetails);
-      
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2501,15 +3034,15 @@ class APIGatewayClient {
         }
       );
       const duration = Date.now() - startTime;
-      
-      if (process.env.NODE_ENV === 'development') {
+
+      if (process.env.NODE_ENV === "development") {
         console.log(`[ML API] getFeatureCorrelation success (${duration}ms)`, {
           correlationId,
           modelId,
           status: response.status,
         });
       }
-      
+
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
       const errorDetails = {
@@ -2521,10 +3054,14 @@ class APIGatewayClient {
         statusCode: error.response?.status || error.statusCode,
         responseData: error.response?.data,
       };
-      
+
       console.error("[ML API] getFeatureCorrelation failed:", errorDetails);
-      
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2553,15 +3090,15 @@ class APIGatewayClient {
         }
       );
       const duration = Date.now() - startTime;
-      
-      if (process.env.NODE_ENV === 'development') {
+
+      if (process.env.NODE_ENV === "development") {
         console.log(`[ML API] getFeatureDrift success (${duration}ms)`, {
           correlationId,
           modelId,
           status: response.status,
         });
       }
-      
+
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
       const errorDetails = {
@@ -2573,10 +3110,14 @@ class APIGatewayClient {
         statusCode: error.response?.status || error.statusCode,
         responseData: error.response?.data,
       };
-      
+
       console.error("[ML API] getFeatureDrift failed:", errorDetails);
-      
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2596,21 +3137,24 @@ class APIGatewayClient {
     const correlationId = getOrCreateCorrelationId();
     try {
       const startTime = Date.now();
-      const response = await this.client.get<ApiResponse<any>>("/api/ml/dashboard", {
-        headers: {
-          "X-Correlation-ID": correlationId,
-        },
-      });
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/ml/dashboard",
+        {
+          headers: {
+            "X-Correlation-ID": correlationId,
+          },
+        }
+      );
       const duration = Date.now() - startTime;
-      
+
       // Log successful request
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         console.log(`[ML API] getMLDashboard success (${duration}ms)`, {
           correlationId,
           status: response.status,
         });
       }
-      
+
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
       // Enhanced error logging
@@ -2621,12 +3165,16 @@ class APIGatewayClient {
         error: error.message,
         statusCode: error.response?.status || error.statusCode,
         responseData: error.response?.data,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
       };
-      
+
       console.error("[ML API] getMLDashboard failed:", errorDetails);
-      
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2637,7 +3185,6 @@ class APIGatewayClient {
       );
     }
   }
-
 
   /**
    * Start Model Training
@@ -2657,16 +3204,16 @@ class APIGatewayClient {
         }
       );
       const duration = Date.now() - startTime;
-      
+
       // Log successful request
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         console.log(`[ML API] startModelTraining success (${duration}ms)`, {
           correlationId,
           modelName,
           status: response.status,
         });
       }
-      
+
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
       // Enhanced error logging
@@ -2679,12 +3226,16 @@ class APIGatewayClient {
         error: error.message,
         statusCode: error.response?.status || error.statusCode,
         responseData: error.response?.data,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
       };
-      
+
       console.error("[ML API] startModelTraining failed:", errorDetails);
-      
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2700,7 +3251,11 @@ class APIGatewayClient {
    * Get Data Drift Metrics
    * Fetches data drift monitoring metrics
    */
-  async getDataDrift(modelName?: string, days: number = 30, threshold: number = 0.1): Promise<any> {
+  async getDataDrift(
+    modelName?: string,
+    days: number = 30,
+    threshold: number = 0.1
+  ): Promise<any> {
     const correlationId = getOrCreateCorrelationId();
     try {
       // Use v1 endpoint for drift detection
@@ -2708,18 +3263,21 @@ class APIGatewayClient {
       if (modelName) {
         params.model_name = modelName;
       }
-      
+
       const startTime = Date.now();
-      const response = await this.client.get<ApiResponse<any>>("/api/v1/mlops/monitoring/drift", {
-        params,
-        headers: {
-          "X-Correlation-ID": correlationId,
-        },
-      });
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/v1/mlops/monitoring/drift",
+        {
+          params,
+          headers: {
+            "X-Correlation-ID": correlationId,
+          },
+        }
+      );
       const duration = Date.now() - startTime;
-      
+
       // Log successful request
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         console.log(`[ML API] getDataDrift success (${duration}ms)`, {
           correlationId,
           modelName,
@@ -2728,7 +3286,7 @@ class APIGatewayClient {
           status: response.status,
         });
       }
-      
+
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
       // Enhanced error logging
@@ -2742,12 +3300,16 @@ class APIGatewayClient {
         error: error.message,
         statusCode: error.response?.status || error.statusCode,
         responseData: error.response?.data,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
       };
-      
+
       console.error("[ML API] getDataDrift failed:", errorDetails);
-      
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2765,10 +3327,16 @@ class APIGatewayClient {
    */
   async getModelFeatures(modelName: string): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>(`/api/ml/model/${modelName}/features`);
+      const response = await this.client.get<ApiResponse<any>>(
+        `/api/ml/model/${modelName}/features`
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2798,16 +3366,16 @@ class APIGatewayClient {
         }
       );
       const duration = Date.now() - startTime;
-      
+
       // Log successful request
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         console.log(`[ML API] cancelTrainingJob success (${duration}ms)`, {
           correlationId,
           jobId,
           status: response.status,
         });
       }
-      
+
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
       // Enhanced error logging
@@ -2819,12 +3387,16 @@ class APIGatewayClient {
         error: error.message,
         statusCode: error.response?.status || error.statusCode,
         responseData: error.response?.data,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
       };
-      
+
       console.error("[ML API] cancelTrainingJob failed:", errorDetails);
-      
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2861,9 +3433,9 @@ class APIGatewayClient {
         }
       );
       const duration = Date.now() - startTime;
-      
+
       // Log successful request
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         console.log(`[ML API] deployModel success (${duration}ms)`, {
           correlationId,
           modelId,
@@ -2871,7 +3443,7 @@ class APIGatewayClient {
           status: response.status,
         });
       }
-      
+
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
       // Enhanced error logging
@@ -2884,12 +3456,16 @@ class APIGatewayClient {
         error: error.message,
         statusCode: error.response?.status || error.statusCode,
         responseData: error.response?.data,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
       };
-      
+
       console.error("[ML API] deployModel failed:", errorDetails);
-      
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2912,10 +3488,17 @@ class APIGatewayClient {
     offset?: number;
   }): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/ml/training-jobs", { params });
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/ml/training-jobs",
+        { params }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2933,10 +3516,16 @@ class APIGatewayClient {
    */
   async getTrainingJob(jobId: string): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>(`/api/ml/training-jobs/${jobId}`);
+      const response = await this.client.get<ApiResponse<any>>(
+        `/api/ml/training-jobs/${jobId}`
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2954,10 +3543,16 @@ class APIGatewayClient {
    */
   async getComplianceDashboard(): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/compliance/dashboard");
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/compliance/dashboard"
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -2974,7 +3569,11 @@ class APIGatewayClient {
    * Reviews a compliance violation with action and optional notes
    * Backend expects action and notes as query parameters
    */
-  async reviewViolation(violationId: string, action: string, notes?: string): Promise<any> {
+  async reviewViolation(
+    violationId: string,
+    action: string,
+    notes?: string
+  ): Promise<any> {
     try {
       const params = new URLSearchParams();
       params.append("action", action);
@@ -2987,7 +3586,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3004,28 +3607,40 @@ class APIGatewayClient {
    * Fetches all dashboard data in a single request to reduce connection pool usage
    * This replaces multiple separate API calls with one optimized call
    */
-  async getAggregatedDashboardData(sections: string = "customers,analytics,revenue,portfolio,risk"): Promise<any> {
+  async getAggregatedDashboardData(
+    sections: string = "customers,analytics,revenue,portfolio,risk"
+  ): Promise<any> {
     try {
-      if (typeof window !== 'undefined') {
-        console.log('[getAggregatedDashboardData] Request (Phase 5 - OPTIMIZED):', { sections });
+      if (typeof window !== "undefined") {
+        console.log(
+          "[getAggregatedDashboardData] Request (Phase 5 - OPTIMIZED):",
+          { sections }
+        );
       }
-      
-      const response = await this.client.get<ApiResponse<any>>("/api/v1/dashboard/aggregated", { 
-        params: { sections } 
-      });
+
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/v1/dashboard/aggregated",
+        {
+          params: { sections },
+        }
+      );
       const normalized = normalizeApiResponse<any>(response.data);
-      
-      if (typeof window !== 'undefined') {
-        console.log('[getAggregatedDashboardData] Response (Phase 5):', {
+
+      if (typeof window !== "undefined") {
+        console.log("[getAggregatedDashboardData] Response (Phase 5):", {
           hasData: !!normalized,
           sections: normalized?.sections_loaded || [],
-          dataKeys: normalized?.data ? Object.keys(normalized.data) : []
+          dataKeys: normalized?.data ? Object.keys(normalized.data) : [],
         });
       }
-      
+
       return normalized;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3041,12 +3656,15 @@ class APIGatewayClient {
    * Get Analytics Data
    * Fetches analytics data for a specific type (dashboard, portfolio, risk, scoring, etc.)
    */
-  async getAnalyticsData(type: string = "dashboard", params?: {
-    customer_id?: string;
-    time_range?: string;
-    group_by?: string;
-    format?: string;
-  }): Promise<any> {
+  async getAnalyticsData(
+    type: string = "dashboard",
+    params?: {
+      customer_id?: string;
+      time_range?: string;
+      group_by?: string;
+      format?: string;
+    }
+  ): Promise<any> {
     try {
       const queryParams: any = { type };
       if (params) {
@@ -3055,39 +3673,54 @@ class APIGatewayClient {
         if (params.group_by) queryParams.group_by = params.group_by;
         if (params.format) queryParams.format = params.format;
       }
-      
+
       // Safe logging for SSR
-      if (typeof window !== 'undefined') {
-        console.log('[getAnalyticsData] Request:', { type, queryParams });
+      if (typeof window !== "undefined") {
+        console.log("[getAnalyticsData] Request:", { type, queryParams });
       }
-      
-      const response = await this.client.get<ApiResponse<any>>("/api/v1/analytics", { params: queryParams });
+
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/v1/analytics",
+        { params: queryParams }
+      );
       const normalized = normalizeApiResponse<any>(response.data);
-      
+
       // Safe logging for SSR - avoid deep object inspection during SSR
-      if (typeof window !== 'undefined') {
-        console.log('[getAnalyticsData] Response:', {
+      if (typeof window !== "undefined") {
+        console.log("[getAnalyticsData] Response:", {
           hasData: !!normalized,
           hasAnalytics: !!normalized?.analytics,
-          analyticsKeys: normalized?.analytics ? Object.keys(normalized.analytics) : [],
-          portfolio: normalized?.analytics?.portfolio ? {
-            hasCustomers: !!normalized.analytics.portfolio.customers,
-            customersCount: normalized.analytics.portfolio.customers?.length || 0,
-            hasTrends: !!normalized.analytics.portfolio.trends,
-            trendsCount: normalized.analytics.portfolio.trends?.length || 0,
-          } : null,
-          risk: normalized?.analytics?.risk ? {
-            hasCategories: !!normalized.analytics.risk.categories,
-            categoriesCount: normalized.analytics.risk.categories?.length || 0,
-            hasTrends: !!normalized.analytics.risk.trends,
-            trendsCount: normalized.analytics.risk.trends?.length || 0,
-          } : null,
+          analyticsKeys: normalized?.analytics
+            ? Object.keys(normalized.analytics)
+            : [],
+          portfolio: normalized?.analytics?.portfolio
+            ? {
+                hasCustomers: !!normalized.analytics.portfolio.customers,
+                customersCount:
+                  normalized.analytics.portfolio.customers?.length || 0,
+                hasTrends: !!normalized.analytics.portfolio.trends,
+                trendsCount: normalized.analytics.portfolio.trends?.length || 0,
+              }
+            : null,
+          risk: normalized?.analytics?.risk
+            ? {
+                hasCategories: !!normalized.analytics.risk.categories,
+                categoriesCount:
+                  normalized.analytics.risk.categories?.length || 0,
+                hasTrends: !!normalized.analytics.risk.trends,
+                trendsCount: normalized.analytics.risk.trends?.length || 0,
+              }
+            : null,
         });
       }
-      
+
       return normalized;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3105,12 +3738,19 @@ class APIGatewayClient {
    */
   async getRiskDistribution(): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/v1/analytics", { 
-        params: { type: "risk" } 
-      });
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/v1/analytics",
+        {
+          params: { type: "risk" },
+        }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3126,15 +3766,29 @@ class APIGatewayClient {
    * Get Approval Rates
    * Fetches approval rates analytics for a specific timeframe
    */
-  async getApprovalRates(timeframe: "daily" | "weekly" | "monthly" = "monthly"): Promise<any> {
+  async getApprovalRates(
+    timeframe: "daily" | "weekly" | "monthly" = "monthly"
+  ): Promise<any> {
     try {
-      const groupBy = timeframe === "daily" ? "day" : timeframe === "weekly" ? "week" : "month";
-      const response = await this.client.get<ApiResponse<any>>("/api/v1/analytics", { 
-        params: { type: "scoring", group_by: groupBy } 
-      });
+      const groupBy =
+        timeframe === "daily"
+          ? "day"
+          : timeframe === "weekly"
+            ? "week"
+            : "month";
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/v1/analytics",
+        {
+          params: { type: "scoring", group_by: groupBy },
+        }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3152,12 +3806,19 @@ class APIGatewayClient {
    */
   async getPortfolioMetrics(): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/v1/analytics", { 
-        params: { type: "portfolio" } 
-      });
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/v1/analytics",
+        {
+          params: { type: "portfolio" },
+        }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3184,14 +3845,21 @@ class APIGatewayClient {
         params.start_date = dateParams.start_date;
         params.end_date = dateParams.end_date;
       }
-      const response = await this.client.get<ApiResponse<any>>("/api/v1/analytics/revenue/breakdown", { 
-        params 
-      });
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/v1/analytics/revenue/breakdown",
+        {
+          params,
+        }
+      );
       const data = normalizeApiResponse<any>(response.data);
       // Return the data array directly
       return data?.data || data || [];
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3213,13 +3881,20 @@ class APIGatewayClient {
       const params: any = { period: timeframe };
       if (startDate) params.from_date = startDate;
       if (endDate) params.to_date = endDate;
-      
-      const response = await this.client.get<ApiResponse<any>>("/api/v1/analytics/revenue/trends", { 
-        params 
-      });
+
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/v1/analytics/revenue/trends",
+        {
+          params,
+        }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3237,10 +3912,16 @@ class APIGatewayClient {
    */
   async getBankingRatiosTargets(): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/v1/analytics/banking-ratios/targets");
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/v1/analytics/banking-ratios/targets"
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3264,21 +3945,31 @@ class APIGatewayClient {
   ): Promise<any> {
     try {
       const params: any = { scenario, economic_downturn: economicDownturn };
-      if (defaultRateIncrease !== undefined) params.default_rate_increase = defaultRateIncrease;
-      if (interestRateShock !== undefined) params.interest_rate_shock = interestRateShock;
-      
-      const response = await this.client.get<ApiResponse<any>>("/api/v1/analytics/banking-ratios/stress-scenario", {
-        params
-      });
+      if (defaultRateIncrease !== undefined)
+        params.default_rate_increase = defaultRateIncrease;
+      if (interestRateShock !== undefined)
+        params.interest_rate_shock = interestRateShock;
+
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/v1/analytics/banking-ratios/stress-scenario",
+        {
+          params,
+        }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
       throw new APIServiceError(
         normalizedError.statusCode,
-        normalizedError.message || "Failed to fetch banking ratios stress scenario",
+        normalizedError.message ||
+          "Failed to fetch banking ratios stress scenario",
         normalizedError.correlationId
       );
     }
@@ -3290,12 +3981,19 @@ class APIGatewayClient {
    */
   async getPreviousPeriodAnalytics(time_range: string = "30d"): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/analytics/previous-period", {
-        params: { time_range }
-      });
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/analytics/previous-period",
+        {
+          params: { time_range },
+        }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3313,10 +4011,16 @@ class APIGatewayClient {
    */
   async getSystemStatus(): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/v1/system/status");
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/v1/system/status"
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3345,7 +4049,8 @@ class APIGatewayClient {
       const queryParams: any = {};
       if (params) {
         if (params.page !== undefined) queryParams.page = params.page;
-        if (params.page_size !== undefined) queryParams.page_size = params.page_size;
+        if (params.page_size !== undefined)
+          queryParams.page_size = params.page_size;
         if (params.start_date) queryParams.start_date = params.start_date;
         if (params.end_date) queryParams.end_date = params.end_date;
       }
@@ -3355,7 +4060,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3373,10 +4082,16 @@ class APIGatewayClient {
    */
   async getSettings(): Promise<any> {
     try {
-      const response = await this.client.get<ApiResponse<any>>("/api/v1/admin/settings");
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/v1/admin/settings"
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3394,10 +4109,17 @@ class APIGatewayClient {
    */
   async updateSettings(settings: any): Promise<any> {
     try {
-      const response = await this.client.put<ApiResponse<any>>("/api/v1/admin/settings", settings);
+      const response = await this.client.put<ApiResponse<any>>(
+        "/api/v1/admin/settings",
+        settings
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3415,10 +4137,17 @@ class APIGatewayClient {
    */
   async resetSettings(): Promise<any> {
     try {
-      const response = await this.client.post<ApiResponse<any>>("/api/v1/admin/settings/reset", {});
+      const response = await this.client.post<ApiResponse<any>>(
+        "/api/v1/admin/settings/reset",
+        {}
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3445,7 +4174,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3463,10 +4196,17 @@ class APIGatewayClient {
    */
   async resetSettings(): Promise<any> {
     try {
-      const response = await this.client.post<ApiResponse<any>>("/api/v1/admin/settings/reset", {});
+      const response = await this.client.post<ApiResponse<any>>(
+        "/api/v1/admin/settings/reset",
+        {}
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3491,19 +4231,23 @@ class APIGatewayClient {
       const queryParams: any = {};
       if (params) {
         if (params.page !== undefined) queryParams.page = params.page;
-        if (params.page_size !== undefined) queryParams.page_size = params.page_size;
+        if (params.page_size !== undefined)
+          queryParams.page_size = params.page_size;
         if (params.search) queryParams.search = params.search;
       }
-      const response = await this.client.get<ApiResponse<any>>("/api/v1/admin/users", { params: queryParams });
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/v1/admin/users",
+        { params: queryParams }
+      );
       const data = normalizeApiResponse<any>(response.data);
-      
+
       // Backend returns {users: [...], total: ..., page: ..., page_size: ...}
       // Frontend expects {items: [...], total: ..., page: ..., page_size: ..., has_more: ...}
       // Backend roles format: [{role_name: "...", role_id: ..., assigned_at: ...}]
       // Frontend expects: ["role1", "role2", ...]
       if (data && typeof data === "object") {
         let usersArray: any[] = [];
-        
+
         // Extract users array
         if (Array.isArray(data.users)) {
           usersArray = data.users;
@@ -3512,60 +4256,75 @@ class APIGatewayClient {
         } else if (Array.isArray(data)) {
           usersArray = data;
         }
-        
+
         // Transform roles from objects to string array
         const transformedUsers = usersArray.map((user: any) => {
           if (user && user.roles && Array.isArray(user.roles)) {
             // Check if roles are objects or strings
-            const transformedRoles = user.roles.map((role: any) => {
-              if (typeof role === "string") {
-                return role;
-              } else if (role && typeof role === "object" && role.role_name) {
-                return role.role_name;
-              }
-              return null;
-            }).filter((role: any) => role !== null);
-            
+            const transformedRoles = user.roles
+              .map((role: any) => {
+                if (typeof role === "string") {
+                  return role;
+                } else if (role && typeof role === "object" && role.role_name) {
+                  return role.role_name;
+                }
+                return null;
+              })
+              .filter((role: any) => role !== null);
+
             return {
               ...user,
-              roles: transformedRoles
+              roles: transformedRoles,
             };
           }
           // Ensure roles is always an array
           return {
             ...user,
-            roles: user.roles || []
+            roles: user.roles || [],
           };
         });
-        
+
         // Return in expected paginated format
-        if (usersArray.length > 0 || Array.isArray(data.users) || Array.isArray(data.items)) {
-          const total = data.total !== undefined ? data.total : transformedUsers.length;
-          const page = data.page !== undefined ? data.page : (params?.page || 1);
-          const page_size = data.page_size !== undefined ? data.page_size : (params?.page_size || 20);
-          
+        if (
+          usersArray.length > 0 ||
+          Array.isArray(data.users) ||
+          Array.isArray(data.items)
+        ) {
+          const total =
+            data.total !== undefined ? data.total : transformedUsers.length;
+          const page = data.page !== undefined ? data.page : params?.page || 1;
+          const page_size =
+            data.page_size !== undefined
+              ? data.page_size
+              : params?.page_size || 20;
+
           return {
             items: transformedUsers,
             total: total,
             page: page,
             page_size: page_size,
-            has_more: data.has_more !== undefined 
-              ? data.has_more 
-              : (page * page_size) < total
+            has_more:
+              data.has_more !== undefined
+                ? data.has_more
+                : page * page_size < total,
           };
         }
       }
-      
+
       // Fallback: return empty response
       return {
         items: [],
         total: 0,
         page: params?.page || 1,
         page_size: params?.page_size || 20,
-        has_more: false
+        has_more: false,
       };
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3583,10 +4342,17 @@ class APIGatewayClient {
    */
   async bulkActivateUsers(userIds: string[]): Promise<any> {
     try {
-      const response = await this.client.post<ApiResponse<any>>("/api/v1/admin/users/bulk/activate", { user_ids: userIds });
+      const response = await this.client.post<ApiResponse<any>>(
+        "/api/v1/admin/users/bulk/activate",
+        { user_ids: userIds }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3604,10 +4370,17 @@ class APIGatewayClient {
    */
   async bulkDeactivateUsers(userIds: string[]): Promise<any> {
     try {
-      const response = await this.client.post<ApiResponse<any>>("/api/v1/admin/users/bulk/deactivate", { user_ids: userIds });
+      const response = await this.client.post<ApiResponse<any>>(
+        "/api/v1/admin/users/bulk/deactivate",
+        { user_ids: userIds }
+      );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3641,8 +4414,11 @@ class APIGatewayClient {
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
       // Log error for debugging
-      console.warn(`[API Gateway] Failed to fetch customer notes for ${customerId}:`, error);
-      
+      console.warn(
+        `[API Gateway] Failed to fetch customer notes for ${customerId}:`,
+        error
+      );
+
       if (
         error instanceof APIServiceError ||
         error instanceof APITimeoutError ||
@@ -3650,7 +4426,7 @@ class APIGatewayClient {
       ) {
         throw error;
       }
-      
+
       const normalizedError = normalizeErrorResponse(error);
       throw new APIServiceError(
         normalizedError.statusCode,
@@ -3690,7 +4466,7 @@ class APIGatewayClient {
       ) {
         throw error;
       }
-      
+
       const normalizedError = normalizeErrorResponse(error);
       throw new APIServiceError(
         normalizedError.statusCode,
@@ -3730,7 +4506,7 @@ class APIGatewayClient {
       ) {
         throw error;
       }
-      
+
       const normalizedError = normalizeErrorResponse(error);
       throw new APIServiceError(
         normalizedError.statusCode,
@@ -3762,7 +4538,7 @@ class APIGatewayClient {
       ) {
         throw error;
       }
-      
+
       const normalizedError = normalizeErrorResponse(error);
       throw new APIServiceError(
         normalizedError.statusCode,
@@ -3784,17 +4560,20 @@ class APIGatewayClient {
       const response = await this.client.get<ApiResponse<any>>(
         `/api/v1/customers/${customerId}/trends`,
         {
-          params: { time_range: timeRange }
+          params: { time_range: timeRange },
         }
       );
-      
+
       const data = normalizeApiResponse<any>(response.data);
-      
+
       return data;
     } catch (error: any) {
       // Log error for debugging
-      console.warn(`[API Gateway] Failed to fetch customer trends for ${customerId}:`, error);
-      
+      console.warn(
+        `[API Gateway] Failed to fetch customer trends for ${customerId}:`,
+        error
+      );
+
       if (
         error instanceof APIServiceError ||
         error instanceof APITimeoutError ||
@@ -3802,7 +4581,7 @@ class APIGatewayClient {
       ) {
         throw error;
       }
-      
+
       const normalizedError = normalizeErrorResponse(error);
       throw new APIServiceError(
         normalizedError.statusCode,
@@ -3815,7 +4594,10 @@ class APIGatewayClient {
   /**
    * Get Customer Activity Log
    */
-  async getCustomerActivityLog(customerId: string, filters?: any): Promise<any> {
+  async getCustomerActivityLog(
+    customerId: string,
+    filters?: any
+  ): Promise<any> {
     try {
       const response = await this.client.get<ApiResponse<any>>(
         `/api/v1/customers/${customerId}/activity`,
@@ -3883,14 +4665,20 @@ class APIGatewayClient {
   async uploadCustomerDocument(
     customerId: string,
     file: File,
-    metadata?: { category?: string; document_type?: string; description?: string }
+    metadata?: {
+      category?: string;
+      document_type?: string;
+      description?: string;
+    }
   ): Promise<any> {
     try {
       const formData = new FormData();
       formData.append("file", file);
       if (metadata?.category) formData.append("category", metadata.category);
-      if (metadata?.document_type) formData.append("document_type", metadata.document_type);
-      if (metadata?.description) formData.append("description", metadata.description);
+      if (metadata?.document_type)
+        formData.append("document_type", metadata.document_type);
+      if (metadata?.description)
+        formData.append("description", metadata.description);
 
       const response = await this.client.post<ApiResponse<any>>(
         `/api/v1/customers/${customerId}/documents`,
@@ -3903,7 +4691,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3918,14 +4710,21 @@ class APIGatewayClient {
   /**
    * Delete Customer Document
    */
-  async deleteCustomerDocument(customerId: string, documentId: string): Promise<any> {
+  async deleteCustomerDocument(
+    customerId: string,
+    documentId: string
+  ): Promise<any> {
     try {
       const response = await this.client.delete<ApiResponse<any>>(
         `/api/v1/customers/${customerId}/documents/${documentId}`
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -3940,7 +4739,10 @@ class APIGatewayClient {
   /**
    * Get Customer Communications
    */
-  async getCustomerCommunications(customerId: string, filters?: any): Promise<any> {
+  async getCustomerCommunications(
+    customerId: string,
+    filters?: any
+  ): Promise<any> {
     try {
       const response = await this.client.get<ApiResponse<any>>(
         `/api/v1/customers/${customerId}/communications`,
@@ -3990,7 +4792,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4008,9 +4814,12 @@ class APIGatewayClient {
   async getCommunicationTemplates(type?: "email" | "sms"): Promise<any> {
     try {
       const params = type ? { type } : {};
-      const response = await this.client.get<ApiResponse<any>>("/api/communications/templates", {
-        params,
-      });
+      const response = await this.client.get<ApiResponse<any>>(
+        "/api/communications/templates",
+        {
+          params,
+        }
+      );
       const data = normalizeApiResponse<any>(response.data);
       if (Array.isArray(data)) {
         return data;
@@ -4055,7 +4864,6 @@ class APIGatewayClient {
     };
   }
 
-
   /**
    * Get Batch Scoring Job Status
    * Fetches status and progress of a batch scoring job
@@ -4067,7 +4875,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4094,7 +4906,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4118,7 +4934,7 @@ class APIGatewayClient {
       const params: any = {};
       if (options?.validateOnly) params.validate_only = true;
       if (options?.overwrite) params.overwrite = true;
-      
+
       const response = await this.client.post<ApiResponse<any>>(
         "/api/v1/admin/settings/import",
         settings,
@@ -4126,7 +4942,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4158,7 +4978,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4185,7 +5009,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4200,7 +5028,10 @@ class APIGatewayClient {
   /**
    * Get Loan Application
    */
-  async getLoanApplicationStatusHistory(applicationId: number, limit: number = 100): Promise<any> {
+  async getLoanApplicationStatusHistory(
+    applicationId: number,
+    limit: number = 100
+  ): Promise<any> {
     try {
       console.log("[APIGateway] getLoanApplicationStatusHistory request:", {
         applicationId,
@@ -4210,10 +5041,16 @@ class APIGatewayClient {
         `/api/v1/loans/applications/${applicationId}/status-history`,
         { limit }
       );
-      console.log("[APIGateway] getLoanApplicationStatusHistory response:", response);
+      console.log(
+        "[APIGateway] getLoanApplicationStatusHistory response:",
+        response
+      );
       return response;
     } catch (error: any) {
-      console.error("[APIGateway] getLoanApplicationStatusHistory error:", error);
+      console.error(
+        "[APIGateway] getLoanApplicationStatusHistory error:",
+        error
+      );
       throw error;
     }
   }
@@ -4224,28 +5061,36 @@ class APIGatewayClient {
         applicationId,
         url: `/api/v1/loans/applications/${applicationId}`,
       });
-      
+
       const response = await this.client.get<ApiResponse<any>>(
         `/api/v1/loans/applications/${applicationId}`
       );
-      
-      const responseDataString = response.data ? JSON.stringify(response.data, null, 2) : 'null';
+
+      const responseDataString = response.data
+        ? JSON.stringify(response.data, null, 2)
+        : "null";
       console.log("[APIGateway] getLoanApplication raw response:", {
         status: response.status,
         hasData: !!response.data,
         dataKeys: response.data ? Object.keys(response.data) : [],
-        dataStructure: responseDataString ? responseDataString.substring(0, 1000) : 'null',
+        dataStructure: responseDataString
+          ? responseDataString.substring(0, 1000)
+          : "null",
       });
-      
+
       const normalized = normalizeApiResponse<any>(response.data);
-      
-      const normalizedString = normalized ? JSON.stringify(normalized, null, 2) : 'null';
+
+      const normalizedString = normalized
+        ? JSON.stringify(normalized, null, 2)
+        : "null";
       console.log("[APIGateway] getLoanApplication normalized:", {
         hasNormalized: !!normalized,
         normalizedKeys: normalized ? Object.keys(normalized) : [],
-        normalizedStructure: normalizedString ? normalizedString.substring(0, 1000) : 'null',
+        normalizedStructure: normalizedString
+          ? normalizedString.substring(0, 1000)
+          : "null",
       });
-      
+
       return normalized;
     } catch (error: any) {
       console.error("[APIGateway] getLoanApplication error:", {
@@ -4254,8 +5099,12 @@ class APIGatewayClient {
         statusCode: error.response?.status,
         responseData: error.response?.data,
       });
-      
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4295,48 +5144,68 @@ class APIGatewayClient {
         if (params.status) queryParams.status_filter = params.status;
         if (params.loan_type) queryParams.loan_type = params.loan_type;
         if (params.customer_id) queryParams.customer_id = params.customer_id;
-        if (params.customer_name) queryParams.customer_name = params.customer_name;
-        if (params.application_number) queryParams.application_number = params.application_number;
+        if (params.customer_name)
+          queryParams.customer_name = params.customer_name;
+        if (params.application_number)
+          queryParams.application_number = params.application_number;
         if (params.date_from) queryParams.date_from = params.date_from;
         if (params.date_to) queryParams.date_to = params.date_to;
-        if (params.approval_date_from) queryParams.approval_date_from = params.approval_date_from;
-        if (params.approval_date_to) queryParams.approval_date_to = params.approval_date_to;
-        if (params.min_amount !== undefined) queryParams.min_amount = params.min_amount;
-        if (params.max_amount !== undefined) queryParams.max_amount = params.max_amount;
-        if (params.min_credit_score !== undefined) queryParams.min_credit_score = params.min_credit_score;
-        if (params.max_credit_score !== undefined) queryParams.max_credit_score = params.max_credit_score;
+        if (params.approval_date_from)
+          queryParams.approval_date_from = params.approval_date_from;
+        if (params.approval_date_to)
+          queryParams.approval_date_to = params.approval_date_to;
+        if (params.min_amount !== undefined)
+          queryParams.min_amount = params.min_amount;
+        if (params.max_amount !== undefined)
+          queryParams.max_amount = params.max_amount;
+        if (params.min_credit_score !== undefined)
+          queryParams.min_credit_score = params.min_credit_score;
+        if (params.max_credit_score !== undefined)
+          queryParams.max_credit_score = params.max_credit_score;
       }
       console.log("[APIGateway] listLoanApplications request:", {
         url: "/api/v1/loans/applications",
         params: queryParams,
       });
-      
+
       const response = await this.client.get<ApiResponse<any>>(
         "/api/v1/loans/applications",
         { params: queryParams }
       );
-      
-      const responseDataString = response.data ? JSON.stringify(response.data, null, 2) : 'null';
+
+      const responseDataString = response.data
+        ? JSON.stringify(response.data, null, 2)
+        : "null";
       console.log("[APIGateway] listLoanApplications raw response:", {
         status: response.status,
         hasData: !!response.data,
         dataKeys: response.data ? Object.keys(response.data) : [],
-        dataStructure: responseDataString ? responseDataString.substring(0, 1000) : 'null',
+        dataStructure: responseDataString
+          ? responseDataString.substring(0, 1000)
+          : "null",
       });
-      
+
       const normalized = normalizeApiResponse<any>(response.data);
-      
-      const normalizedString = normalized ? JSON.stringify(normalized, null, 2) : 'null';
+
+      const normalizedString = normalized
+        ? JSON.stringify(normalized, null, 2)
+        : "null";
       console.log("[APIGateway] listLoanApplications normalized:", {
         hasNormalized: !!normalized,
         normalizedKeys: normalized ? Object.keys(normalized) : [],
-        normalizedStructure: normalizedString ? normalizedString.substring(0, 1000) : 'null',
+        normalizedStructure: normalizedString
+          ? normalizedString.substring(0, 1000)
+          : "null",
       });
-      
+
       return normalized;
     } catch (error: any) {
       console.error("[APIGateway] listLoanApplications error:", error);
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4359,7 +5228,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4374,7 +5247,10 @@ class APIGatewayClient {
   /**
    * Validate NBE Compliance
    */
-  async validateNBECompliance(applicationId: number, validationData: any): Promise<any> {
+  async validateNBECompliance(
+    applicationId: number,
+    validationData: any
+  ): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>(
         `/api/v1/loans/applications/${applicationId}/validate-nbe`,
@@ -4382,7 +5258,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4409,7 +5289,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4436,7 +5320,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4470,7 +5358,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4493,7 +5385,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4508,7 +5404,10 @@ class APIGatewayClient {
   /**
    * Approve Loan Application
    */
-  async approveLoanApplication(workflowId: string, decisionData: any): Promise<any> {
+  async approveLoanApplication(
+    workflowId: string,
+    decisionData: any
+  ): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>(
         `/api/v1/loans/approval/${workflowId}/approve`,
@@ -4519,15 +5418,21 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
-      
+
       // Handle timeout errors specifically
       if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
-        throw new APITimeoutError("Approval process timed out - this may be due to complex processing. Please check the approval status and try again if needed.");
+        throw new APITimeoutError(
+          "Approval process timed out - this may be due to complex processing. Please check the approval status and try again if needed."
+        );
       }
-      
+
       const normalizedError = normalizeErrorResponse(error);
       throw new APIServiceError(
         normalizedError.statusCode,
@@ -4540,7 +5445,10 @@ class APIGatewayClient {
   /**
    * Reject Loan Application
    */
-  async rejectLoanApplication(workflowId: string, decisionData: any): Promise<any> {
+  async rejectLoanApplication(
+    workflowId: string,
+    decisionData: any
+  ): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>(
         `/api/v1/loans/approval/${workflowId}/reject`,
@@ -4551,15 +5459,21 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
-      
+
       // Handle timeout errors specifically
       if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
-        throw new APITimeoutError("Rejection process timed out - this may be due to complex processing. Please check the approval status and try again if needed.");
+        throw new APITimeoutError(
+          "Rejection process timed out - this may be due to complex processing. Please check the approval status and try again if needed."
+        );
       }
-      
+
       const normalizedError = normalizeErrorResponse(error);
       throw new APIServiceError(
         normalizedError.statusCode,
@@ -4588,7 +5502,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4603,13 +5521,16 @@ class APIGatewayClient {
   /**
    * Add conditional approval requirements
    */
-  async addConditionalApproval(workflowId: string, conditions: Array<{
-    id?: string;
-    type: string;
-    value: string;
-    description: string;
-    met?: boolean;
-  }>): Promise<any> {
+  async addConditionalApproval(
+    workflowId: string,
+    conditions: Array<{
+      id?: string;
+      type: string;
+      value: string;
+      description: string;
+      met?: boolean;
+    }>
+  ): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>(
         `/api/v1/loans/approval/${workflowId}/conditional-approval`,
@@ -4617,7 +5538,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4632,14 +5557,21 @@ class APIGatewayClient {
   /**
    * Mark condition as met
    */
-  async markConditionMet(workflowId: string, conditionId: string): Promise<any> {
+  async markConditionMet(
+    workflowId: string,
+    conditionId: string
+  ): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>(
         `/api/v1/loans/approval/${workflowId}/conditions/${conditionId}/met`
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4670,7 +5602,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4698,32 +5634,33 @@ class APIGatewayClient {
       if (params.date_to) queryParams.date_to = params.date_to;
       if (params.stage) queryParams.stage = params.stage;
       if (params.status) queryParams.status = params.status;
-      
-      const response = await this.client.get(
-        "/api/v1/loans/approval/export",
-        { 
-          params: queryParams,
-          responseType: params.format === "csv" ? "blob" : "json"
-        }
-      );
-      
+
+      const response = await this.client.get("/api/v1/loans/approval/export", {
+        params: queryParams,
+        responseType: params.format === "csv" ? "blob" : "json",
+      });
+
       if (params.format === "csv") {
         // Handle CSV download
         const blob = new Blob([response.data], { type: "text/csv" });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `approval_export_${new Date().toISOString().split('T')[0]}.csv`;
+        link.download = `approval_export_${new Date().toISOString().split("T")[0]}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
         return { success: true };
       }
-      
+
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4746,7 +5683,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4769,7 +5710,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4798,7 +5743,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4821,7 +5770,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4843,7 +5796,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4869,7 +5826,8 @@ class APIGatewayClient {
     try {
       const params = new URLSearchParams();
       if (filters?.status) params.append("status", filters.status);
-      if (filters?.payment_method) params.append("payment_method", filters.payment_method);
+      if (filters?.payment_method)
+        params.append("payment_method", filters.payment_method);
       if (filters?.date_from) params.append("date_from", filters.date_from);
       if (filters?.date_to) params.append("date_to", filters.date_to);
       if (filters?.limit) params.append("limit", filters.limit.toString());
@@ -4881,7 +5839,11 @@ class APIGatewayClient {
       const response = await this.client.get<ApiResponse<any>>(url);
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4903,7 +5865,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4918,10 +5884,13 @@ class APIGatewayClient {
   /**
    * Confirm Disbursement
    */
-  async confirmDisbursement(disbursementId: string, confirmationData: {
-    confirmation_code?: string;
-    notes?: string;
-  }): Promise<any> {
+  async confirmDisbursement(
+    disbursementId: string,
+    confirmationData: {
+      confirmation_code?: string;
+      notes?: string;
+    }
+  ): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>(
         `/api/v1/loans/disbursements/${disbursementId}/confirm`,
@@ -4929,7 +5898,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4951,7 +5924,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4966,7 +5943,10 @@ class APIGatewayClient {
   /**
    * Cancel Disbursement
    */
-  async cancelDisbursement(disbursementId: string, reason: string): Promise<any> {
+  async cancelDisbursement(
+    disbursementId: string,
+    reason: string
+  ): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>(
         `/api/v1/loans/disbursements/${disbursementId}/cancel`,
@@ -4974,7 +5954,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -4997,7 +5981,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5019,7 +6007,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5034,7 +6026,10 @@ class APIGatewayClient {
   /**
    * Modify Repayment Schedule
    */
-  async modifyRepaymentSchedule(scheduleId: string, modifications: any): Promise<any> {
+  async modifyRepaymentSchedule(
+    scheduleId: string,
+    modifications: any
+  ): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>(
         `/api/v1/loans/repayments/schedules/${scheduleId}/modify`,
@@ -5042,7 +6037,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5065,7 +6064,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5087,7 +6090,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5110,7 +6117,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5133,7 +6144,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5155,7 +6170,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5179,8 +6198,10 @@ class APIGatewayClient {
     try {
       const queryParams: any = {};
       if (params) {
-        if (params.days_overdue_min !== undefined) queryParams.days_overdue_min = params.days_overdue_min;
-        if (params.days_overdue_max !== undefined) queryParams.days_overdue_max = params.days_overdue_max;
+        if (params.days_overdue_min !== undefined)
+          queryParams.days_overdue_min = params.days_overdue_min;
+        if (params.days_overdue_max !== undefined)
+          queryParams.days_overdue_max = params.days_overdue_max;
         if (params.limit !== undefined) queryParams.limit = params.limit;
         if (params.offset !== undefined) queryParams.offset = params.offset;
       }
@@ -5190,7 +6211,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5223,7 +6248,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5256,7 +6285,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5278,16 +6311,20 @@ class APIGatewayClient {
     try {
       const response = await this.client.get<ApiResponse<any>>(
         "/api/v1/loans/portfolio/nbe-compliance-report",
-        { 
+        {
           params: {
             period_start: params.period_start,
             period_end: params.period_end,
-          }
+          },
         }
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5332,7 +6369,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5354,14 +6395,18 @@ class APIGatewayClient {
     try {
       const queryParams: any = {};
       if (documentType) queryParams.document_type = documentType;
-      
+
       const response = await this.client.get<ApiResponse<any>>(
         `/api/v1/loans/documents/${loanApplicationId}`,
         { params: queryParams }
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5383,7 +6428,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5398,7 +6447,10 @@ class APIGatewayClient {
   /**
    * Verify Document
    */
-  async verifyDocument(documentId: string, verificationNotes: string): Promise<any> {
+  async verifyDocument(
+    documentId: string,
+    verificationNotes: string
+  ): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>(
         `/api/v1/loans/documents/${documentId}/verify`,
@@ -5406,7 +6458,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5424,15 +6480,20 @@ class APIGatewayClient {
   async getDocumentExpiryAlerts(loanApplicationId?: number): Promise<any> {
     try {
       const queryParams: any = {};
-      if (loanApplicationId) queryParams.loan_application_id = loanApplicationId;
-      
+      if (loanApplicationId)
+        queryParams.loan_application_id = loanApplicationId;
+
       const response = await this.client.get<ApiResponse<any>>(
         "/api/v1/loans/documents/expiry/alerts",
         { params: queryParams }
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5459,12 +6520,16 @@ class APIGatewayClient {
           params: {
             days_overdue: daysOverdue,
             overdue_amount: overdueAmount,
-          }
+          },
         }
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5495,7 +6560,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5514,14 +6583,18 @@ class APIGatewayClient {
     try {
       const queryParams: any = {};
       if (assignedTo) queryParams.assigned_to = assignedTo;
-      
+
       const response = await this.client.get<ApiResponse<any>>(
         "/api/v1/loans/collections/workload",
         { params: queryParams }
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5550,7 +6623,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5580,7 +6657,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5595,14 +6676,20 @@ class APIGatewayClient {
   /**
    * Get Approval Workflow for Loan Application
    */
-  async getApprovalWorkflowByLoanApplicationId(loanApplicationId: number): Promise<any> {
+  async getApprovalWorkflowByLoanApplicationId(
+    loanApplicationId: number
+  ): Promise<any> {
     try {
       const response = await this.client.get<ApiResponse<any>>(
         `/api/v1/loans/applications/${loanApplicationId}/approval-workflow`
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5624,7 +6711,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5646,7 +6737,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5661,7 +6756,10 @@ class APIGatewayClient {
   /**
    * Get Credit Score History for Loan Application
    */
-  async getCreditScoreHistory(loanApplicationId: number, limit: number = 50): Promise<any> {
+  async getCreditScoreHistory(
+    loanApplicationId: number,
+    limit: number = 50
+  ): Promise<any> {
     try {
       const response = await this.client.get<ApiResponse<any>>(
         `/api/v1/loans/applications/${loanApplicationId}/credit-score-history`,
@@ -5671,7 +6769,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5703,7 +6805,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5735,7 +6841,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5765,7 +6875,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5790,7 +6904,8 @@ class APIGatewayClient {
       const queryParams: any = {};
       if (params?.date_from) queryParams.date_from = params.date_from;
       if (params?.date_to) queryParams.date_to = params.date_to;
-      if (params?.violation_type) queryParams.violation_type = params.violation_type;
+      if (params?.violation_type)
+        queryParams.violation_type = params.violation_type;
       if (params?.severity) queryParams.severity = params.severity;
 
       const response = await this.client.get<ApiResponse<any>>(
@@ -5799,13 +6914,18 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
       throw new APIServiceError(
         normalizedError.statusCode,
-        normalizedError.message || "Failed to get compliance violations tracking",
+        normalizedError.message ||
+          "Failed to get compliance violations tracking",
         normalizedError.correlationId
       );
     }
@@ -5829,7 +6949,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5850,7 +6974,8 @@ class APIGatewayClient {
   }): Promise<any> {
     try {
       const queryParams: any = {};
-      if (params?.period_months) queryParams.period_months = params.period_months;
+      if (params?.period_months)
+        queryParams.period_months = params.period_months;
       if (params?.loan_type) queryParams.loan_type = params.loan_type;
 
       const response = await this.client.get<ApiResponse<any>>(
@@ -5859,7 +6984,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5887,7 +7016,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5915,21 +7048,27 @@ class APIGatewayClient {
       const queryParams: any = {};
       if (filters) {
         if (filters.status) queryParams.status = filters.status;
-        if (filters.loan_application_id) queryParams.loan_application_id = filters.loan_application_id;
+        if (filters.loan_application_id)
+          queryParams.loan_application_id = filters.loan_application_id;
         if (filters.date_from) queryParams.date_from = filters.date_from;
         if (filters.date_to) queryParams.date_to = filters.date_to;
-        if (filters.overdue_only !== undefined) queryParams.overdue_only = filters.overdue_only;
+        if (filters.overdue_only !== undefined)
+          queryParams.overdue_only = filters.overdue_only;
         if (filters.limit !== undefined) queryParams.limit = filters.limit;
         if (filters.offset !== undefined) queryParams.offset = filters.offset;
       }
-      
+
       const response = await this.client.get<ApiResponse<any>>(
         "/api/v1/loans/repayments",
         { params: queryParams }
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5952,7 +7091,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -5967,18 +7110,25 @@ class APIGatewayClient {
   /**
    * Calculate Late Fees
    */
-  async calculateLateFees(loanApplicationId: number, daysOverdue: number): Promise<any> {
+  async calculateLateFees(
+    loanApplicationId: number,
+    daysOverdue: number
+  ): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>(
         "/api/v1/loans/repayments/late-fees",
-        { 
+        {
           loan_application_id: loanApplicationId,
-          days_overdue: daysOverdue
+          days_overdue: daysOverdue,
         }
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -6008,21 +7158,27 @@ class APIGatewayClient {
       if (filters) {
         if (filters.status) queryParams.status = filters.status;
         if (filters.stage) queryParams.stage = filters.stage;
-        if (filters.loan_application_id) queryParams.loan_application_id = filters.loan_application_id;
-        if (filters.assigned_collector) queryParams.assigned_collector = filters.assigned_collector;
+        if (filters.loan_application_id)
+          queryParams.loan_application_id = filters.loan_application_id;
+        if (filters.assigned_collector)
+          queryParams.assigned_collector = filters.assigned_collector;
         if (filters.date_from) queryParams.date_from = filters.date_from;
         if (filters.date_to) queryParams.date_to = filters.date_to;
         if (filters.limit !== undefined) queryParams.limit = filters.limit;
         if (filters.offset !== undefined) queryParams.offset = filters.offset;
       }
-      
+
       const response = await this.client.get<ApiResponse<any>>(
         "/api/v1/loans/collections",
         { params: queryParams }
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -6037,12 +7193,15 @@ class APIGatewayClient {
   /**
    * Escalate Collection
    */
-  async escalateCollection(collectionId: string, escalationData: {
-    new_stage: string;
-    reason: string;
-    assigned_collector?: string;
-    notes?: string;
-  }): Promise<any> {
+  async escalateCollection(
+    collectionId: string,
+    escalationData: {
+      new_stage: string;
+      reason: string;
+      assigned_collector?: string;
+      notes?: string;
+    }
+  ): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>(
         `/api/v1/loans/collections/${collectionId}/escalate`,
@@ -6050,7 +7209,11 @@ class APIGatewayClient {
       );
       return normalizeApiResponse<any>(response.data);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       const normalizedError = normalizeErrorResponse(error);
@@ -6062,7 +7225,7 @@ class APIGatewayClient {
     }
   }
 
-// Export singleton instance
+  // Export singleton instance
 }
 
 export const apiGatewayClient = new APIGatewayClient();

@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { Badge } from "@/components/ui/badge";
-import { ApiStatusIndicator } from "@/components/common/ApiStatusIndicator";
+import { ApiStatusIndicator } from "@/components/api-status-indicator";
 import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Pagination } from "@/components/common/Pagination";
