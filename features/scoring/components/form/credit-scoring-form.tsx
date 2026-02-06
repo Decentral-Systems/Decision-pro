@@ -1,5 +1,3 @@
-"use client";
-
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -16,14 +14,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSubmitCreditScore } from "@/lib/api/hooks/useCreditScore";
 import { CreditScoreResponse } from "@/types/credit";
 import { useState, useEffect, useMemo } from "react";
 import { transformFormDataTo168Features } from "@/lib/utils/transformCreditScore";
-import { CustomerSearchFilter } from "./CustomerSearchFilter";
+import { CustomerSearchFilter } from "../../../../components/forms/CustomerSearchFilter";
 import { CustomerAutocomplete } from "@/components/common/CustomerAutocomplete";
 import { CreditScoreResponseDisplay } from "@/components/credit/CreditScoreResponseDisplay";
 import { useCustomer360 } from "@/lib/api/hooks/useCustomers";
@@ -34,16 +38,27 @@ import { useAuditLogger } from "@/lib/utils/audit-logger";
 import { SupervisorOverrideDialog } from "@/components/common/SupervisorOverrideDialog";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useDebounce } from "@/lib/utils/debouncedValidation";
-import { InlineValidation, ValidatedField } from "@/components/common/ValidationIndicator";
+import {
+  InlineValidation,
+  ValidatedField,
+} from "@/components/common/ValidationIndicator";
 import { ComplianceSummaryCard } from "@/components/common/ComplianceSummaryCard";
-import { ethiopianPhoneValidator, ethiopianIdValidator } from "@/lib/utils/ethiopianValidators";
+import {
+  ethiopianPhoneValidator,
+  ethiopianIdValidator,
+} from "@/lib/utils/ethiopianValidators";
 import { AffordabilityIndicator } from "@/components/credit/AffordabilityIndicator";
 import { useFormPersistence, saveFormData } from "@/lib/utils/formPersistence";
 import { useToast } from "@/hooks/use-toast";
-import { RecentCustomersList, useRecentCustomers } from "@/components/common/RecentCustomersList";
+import {
+  RecentCustomersList,
+  useRecentCustomers,
+} from "@/components/common/RecentCustomersList";
 import { AutoFilledFieldWrapper } from "@/components/common/AutoFilledFieldWrapper";
 import { DataSourceDisplay } from "@/components/common/DataSourceDisplay";
 import { HistoricalScoreSummary } from "@/components/credit/HistoricalScoreSummary";
+import { useAutoFilledFields } from "@/lib/hooks/useAutoFilledFields";
+import { OfflineModeIndicator } from "@/components/common/OfflineModeIndicator";
 
 interface CreditScoringFormProps {
   onResult?: (result: CreditScoreResponse) => void;
@@ -63,11 +78,27 @@ export function CreditScoringForm({
   const [showOverrideDialog, setShowOverrideDialog] = useState(false);
   const [overrideApproved, setOverrideApproved] = useState(false);
   const submitMutation = useSubmitCreditScore();
-  const { logComplianceViolation, logCreditScoreCalculation, logDataAccess, generateCorrelationId, setCorrelationId, setUserId } = useAuditLogger();
+  const {
+    logComplianceViolation,
+    logCreditScoreCalculation,
+    logDataAccess,
+    generateCorrelationId,
+    setCorrelationId,
+    setUserId,
+  } = useAuditLogger();
   const { user } = useAuth();
   const { toast } = useToast();
   const { addToRecent } = useRecentCustomers();
-  
+  const {
+    markAsAutoFilled,
+    isAutoFilled,
+    getFieldInfo,
+    getAllDataSources,
+    getOverallConfidence,
+    getLastUpdated,
+    markAsManuallyEdited,
+  } = useAutoFilledFields();
+
   // Set user ID for audit logging
   useEffect(() => {
     if (user?.id) {
@@ -93,7 +124,9 @@ export function CreditScoringForm({
   useEffect(() => {
     if (customerError) {
       console.error("Customer 360 fetch error:", customerError);
-      setSubmitError(`Failed to load customer data: ${customerError.message || "Unknown error"}`);
+      setSubmitError(
+        `Failed to load customer data: ${customerError.message || "Unknown error"}`
+      );
     }
   }, [customerError]);
 
@@ -146,7 +179,11 @@ export function CreditScoringForm({
 
   // Calculate NBE compliance with debounced values
   const nbeCompliance = useMemo(() => {
-    if (debouncedLoanAmount && debouncedMonthlyIncome && debouncedLoanTermMonths) {
+    if (
+      debouncedLoanAmount &&
+      debouncedMonthlyIncome &&
+      debouncedLoanTermMonths
+    ) {
       return nbeComplianceValidator.validateLoanCompliance(
         debouncedLoanAmount,
         debouncedMonthlyIncome,
@@ -167,10 +204,10 @@ export function CreditScoringForm({
       return { valid: true, isValidating: false };
     } catch (error: any) {
       setPhoneValidating(false);
-      return { 
-        valid: false, 
+      return {
+        valid: false,
         isValidating: false,
-        error: error.errors?.[0]?.message || "Invalid phone number" 
+        error: error.errors?.[0]?.message || "Invalid phone number",
       };
     }
   }, [debouncedPhoneNumber]);
@@ -186,10 +223,10 @@ export function CreditScoringForm({
       return { valid: true, isValidating: false };
     } catch (error: any) {
       setIdValidating(false);
-      return { 
-        valid: false, 
+      return {
+        valid: false,
         isValidating: false,
-        error: error.errors?.[0]?.message || "Invalid ID number" 
+        error: error.errors?.[0]?.message || "Invalid ID number",
       };
     }
   }, [debouncedIdNumber]);
@@ -203,7 +240,10 @@ export function CreditScoringForm({
 
   // Populate form when customer data is loaded
   useEffect(() => {
-    console.log("Customer data effect triggered:", { customerData, selectedCustomerId });
+    console.log("Customer data effect triggered:", {
+      customerData,
+      selectedCustomerId,
+    });
     if (customerData && selectedCustomerId) {
       console.log("Populating form with customer data:", customerData);
       const customer = customerData.customer || customerData;
@@ -236,10 +276,7 @@ export function CreditScoringForm({
           customerData.checking ||
           0,
         total_debt:
-          customer.total_debt ||
-          profile?.total_debt ||
-          customerData.debt ||
-          0,
+          customer.total_debt || profile?.total_debt || customerData.debt || 0,
         // Map credit history
         credit_history_length:
           customer.credit_history_length ||
@@ -330,9 +367,15 @@ export function CreditScoringForm({
           let source: "crm" | "credit_bureau" | "bank" | "calculated" = "crm";
           if (fieldName.includes("credit") || fieldName.includes("payment")) {
             source = "credit_bureau";
-          } else if (fieldName.includes("balance") || fieldName.includes("debt")) {
+          } else if (
+            fieldName.includes("balance") ||
+            fieldName.includes("debt")
+          ) {
             source = "bank";
-          } else if (fieldName.includes("ratio") || fieldName.includes("score")) {
+          } else if (
+            fieldName.includes("ratio") ||
+            fieldName.includes("score")
+          ) {
             source = "calculated";
           }
 
@@ -360,7 +403,7 @@ export function CreditScoringForm({
           data.loan_amount,
           data.monthly_income
         );
-        
+
         // Show override dialog
         setShowOverrideDialog(true);
         return;
@@ -368,25 +411,29 @@ export function CreditScoringForm({
 
       // Generate correlation ID for request tracking
       const correlationId = generateCorrelationId();
-      
+
       // Log customer data access
       if (selectedCustomerId) {
-        await logDataAccess(selectedCustomerId, "Customer 360", "Credit scoring");
+        await logDataAccess(
+          selectedCustomerId,
+          "Customer 360",
+          "Credit scoring"
+        );
       }
-      
+
       // Transform form data to 168-feature format
       const transformedData = transformFormDataTo168Features(data);
       console.log("Transformed to 168 features:", transformedData);
-      
+
       // Submit the transformed data
       const response = await submitMutation.mutateAsync(transformedData as any);
       console.log("Credit score response:", response);
-      
+
       // Set correlation ID from response if available
       if (response.correlation_id) {
         setCorrelationId(response.correlation_id);
       }
-      
+
       // Log credit score calculation
       await logCreditScoreCalculation(
         data.customer_id,
@@ -400,25 +447,29 @@ export function CreditScoringForm({
           correlation_id: response.correlation_id || correlationId,
         }
       );
-      
+
       // Add to recent customers
       addToRecent({
         customer_id: data.customer_id,
         full_name: undefined, // Could be fetched from customer data
         last_score: response.credit_score,
       });
-      
+
       setResult(response);
       onResult?.(response);
-      
+
       // Reset override approval after successful submission
       setOverrideApproved(false);
-      
+
       // Clear saved form data on successful submission
       clearData();
     } catch (error: any) {
       console.error("Credit scoring error:", error);
-      const errorMessage = error?.message || error?.detail || error?.response?.data?.detail || "Failed to calculate credit score. Please try again.";
+      const errorMessage =
+        error?.message ||
+        error?.detail ||
+        error?.response?.data?.detail ||
+        "Failed to calculate credit score. Please try again.";
       setSubmitError(errorMessage);
     }
   };
@@ -426,7 +477,7 @@ export function CreditScoringForm({
   const handleOverride = async (reason: string) => {
     setOverrideApproved(true);
     setShowOverrideDialog(false);
-    
+
     // Re-submit form after override
     const formData = watch();
     await onSubmit(formData as CreditScoringFormData);
@@ -456,7 +507,7 @@ export function CreditScoringForm({
     <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
       {/* Customer Selection for Existing Customers */}
       {customerType === "existing" && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Card className="md:col-span-2">
             <CardHeader>
               <CardTitle>Customer Selection</CardTitle>
@@ -474,39 +525,39 @@ export function CreditScoringForm({
                 }}
                 selectedCustomerId={selectedCustomerId}
               />
-            {isLoadingCustomer && (
-              <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading customer data...
-              </div>
-            )}
-            {customerError && (
-              <Alert variant="destructive" className="mt-4">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  Failed to load customer data. Please try selecting again.
-                </AlertDescription>
-              </Alert>
-            )}
-            {selectedCustomerId && customerData && (
-              <Alert className="mt-4">
-                <AlertDescription>
-                  Customer data loaded. You can modify any values in the form below before
-                  submitting.
-                </AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-        </Card>
-        <RecentCustomersList
-          onSelectCustomer={(customerId) => {
-            setResult(null);
-            setSubmitError(null);
-            onCustomerSelect?.(customerId);
-          }}
-          maxItems={5}
-        />
-      </div>
+              {isLoadingCustomer && (
+                <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading customer data...
+                </div>
+              )}
+              {customerError && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Failed to load customer data. Please try selecting again.
+                  </AlertDescription>
+                </Alert>
+              )}
+              {selectedCustomerId && customerData && (
+                <Alert className="mt-4">
+                  <AlertDescription>
+                    Customer data loaded. You can modify any values in the form
+                    below before submitting.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+          <RecentCustomersList
+            onSelectCustomer={(customerId) => {
+              setResult(null);
+              setSubmitError(null);
+              onCustomerSelect?.(customerId);
+            }}
+            maxItems={5}
+          />
+        </div>
       )}
 
       {/* Offline Mode Indicator */}
@@ -528,15 +579,22 @@ export function CreditScoringForm({
 
       {/* Critical NBE Compliance Warning Banner */}
       {nbeCompliance && !nbeCompliance.compliant && (
-        <Alert variant="destructive" className="border-2 border-red-500 bg-red-50 dark:bg-red-950">
+        <Alert
+          variant="destructive"
+          className="border-2 border-red-500 bg-red-50 dark:bg-red-950"
+        >
           <AlertTriangle className="h-5 w-5 text-red-600" />
           <AlertDescription className="font-semibold text-red-900 dark:text-red-100">
             <div className="space-y-2">
-              <div className="text-lg">⚠️ CRITICAL: NBE Compliance Violations Detected</div>
-              <div className="text-sm font-normal">
-                This loan application violates NBE regulatory requirements. Submission is blocked until violations are resolved or supervisor override is approved.
+              <div className="text-lg">
+                ⚠️ CRITICAL: NBE Compliance Violations Detected
               </div>
-              <ul className="list-disc list-inside text-sm font-normal space-y-1 mt-2">
+              <div className="text-sm font-normal">
+                This loan application violates NBE regulatory requirements.
+                Submission is blocked until violations are resolved or
+                supervisor override is approved.
+              </div>
+              <ul className="mt-2 list-inside list-disc space-y-1 text-sm font-normal">
                 {nbeCompliance.violations.map((violation, index) => (
                   <li key={index}>
                     <strong>{violation.rule}:</strong> {violation.description}
@@ -549,19 +607,15 @@ export function CreditScoringForm({
       )}
 
       {/* Compliance Summary Card - Real-time */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {nbeCompliance && (
-          <ComplianceSummaryCard compliance={nbeCompliance} />
-        )}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {nbeCompliance && <ComplianceSummaryCard compliance={nbeCompliance} />}
         {/* NBE Compliance Display */}
-        {nbeCompliance && (
-          <NBEComplianceDisplay compliance={nbeCompliance} />
-        )}
+        {nbeCompliance && <NBEComplianceDisplay compliance={nbeCompliance} />}
       </div>
 
       {/* Data Source Display */}
       {selectedCustomerId && Object.keys(getAllDataSources()).length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <DataSourceDisplay
             sources={getAllDataSources()}
             overallConfidence={getOverallConfidence()}
@@ -589,12 +643,22 @@ export function CreditScoringForm({
       )}
 
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 h-auto flex-wrap md:flex-nowrap">
-          <TabsTrigger value="basic" className="text-xs md:text-sm">Basic Info</TabsTrigger>
-          <TabsTrigger value="financial" className="text-xs md:text-sm">Financial</TabsTrigger>
-          <TabsTrigger value="credit" className="text-xs md:text-sm">Credit History</TabsTrigger>
-          <TabsTrigger value="employment" className="text-xs md:text-sm">Employment</TabsTrigger>
-          <TabsTrigger value="personal" className="text-xs md:text-sm">Personal</TabsTrigger>
+        <TabsList className="grid h-auto w-full grid-cols-5 flex-wrap md:flex-nowrap">
+          <TabsTrigger value="basic" className="text-xs md:text-sm">
+            Basic Info
+          </TabsTrigger>
+          <TabsTrigger value="financial" className="text-xs md:text-sm">
+            Financial
+          </TabsTrigger>
+          <TabsTrigger value="credit" className="text-xs md:text-sm">
+            Credit History
+          </TabsTrigger>
+          <TabsTrigger value="employment" className="text-xs md:text-sm">
+            Employment
+          </TabsTrigger>
+          <TabsTrigger value="personal" className="text-xs md:text-sm">
+            Personal
+          </TabsTrigger>
         </TabsList>
 
         {/* Basic Info Tab */}
@@ -605,7 +669,7 @@ export function CreditScoringForm({
               <CardDescription>Customer and loan details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="customer_id">Customer ID *</Label>
                   {customerType === "new" ? (
@@ -613,7 +677,9 @@ export function CreditScoringForm({
                       value={watch("customer_id") || selectedCustomerId}
                       onSelect={(customerId) => {
                         if (customerId) {
-                          setValue("customer_id", customerId, { shouldValidate: true });
+                          setValue("customer_id", customerId, {
+                            shouldValidate: true,
+                          });
                         }
                       }}
                       placeholder="Search or enter customer ID..."
@@ -694,7 +760,7 @@ export function CreditScoringForm({
               <CardDescription>Income, expenses, and balances</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="monthly_income">Monthly Income (ETB) *</Label>
                   <AutoFilledFieldWrapper
@@ -718,7 +784,9 @@ export function CreditScoringForm({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="monthly_expenses">Monthly Expenses (ETB) *</Label>
+                  <Label htmlFor="monthly_expenses">
+                    Monthly Expenses (ETB) *
+                  </Label>
                   <Input
                     id="monthly_expenses"
                     type="number"
@@ -733,7 +801,9 @@ export function CreditScoringForm({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="savings_balance">Savings Balance (ETB) *</Label>
+                  <Label htmlFor="savings_balance">
+                    Savings Balance (ETB) *
+                  </Label>
                   <Input
                     id="savings_balance"
                     type="number"
@@ -743,7 +813,9 @@ export function CreditScoringForm({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="checking_balance">Checking Balance (ETB) *</Label>
+                  <Label htmlFor="checking_balance">
+                    Checking Balance (ETB) *
+                  </Label>
                   <Input
                     id="checking_balance"
                     type="number"
@@ -778,7 +850,9 @@ export function CreditScoringForm({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="collateral_value">Collateral Value (ETB)</Label>
+                  <Label htmlFor="collateral_value">
+                    Collateral Value (ETB)
+                  </Label>
                   <Input
                     id="collateral_value"
                     type="number"
@@ -796,10 +870,12 @@ export function CreditScoringForm({
           <Card>
             <CardHeader>
               <CardTitle>Credit History</CardTitle>
-              <CardDescription>Credit accounts and payment history</CardDescription>
+              <CardDescription>
+                Credit accounts and payment history
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="credit_history_length">
                     Credit History Length (Years) *
@@ -807,7 +883,9 @@ export function CreditScoringForm({
                   <Input
                     id="credit_history_length"
                     type="number"
-                    {...register("credit_history_length", { valueAsNumber: true })}
+                    {...register("credit_history_length", {
+                      valueAsNumber: true,
+                    })}
                     placeholder="5"
                   />
                 </div>
@@ -833,7 +911,9 @@ export function CreditScoringForm({
                   <Input
                     id="payment_history_score"
                     type="number"
-                    {...register("payment_history_score", { valueAsNumber: true })}
+                    {...register("payment_history_score", {
+                      valueAsNumber: true,
+                    })}
                     placeholder="85"
                   />
                 </div>
@@ -876,7 +956,7 @@ export function CreditScoringForm({
               <CardDescription>Employment status and details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="employment_status">Employment Status *</Label>
                   <Controller
@@ -892,7 +972,9 @@ export function CreditScoringForm({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="employed">Employed</SelectItem>
-                          <SelectItem value="self_employed">Self Employed</SelectItem>
+                          <SelectItem value="self_employed">
+                            Self Employed
+                          </SelectItem>
                           <SelectItem value="unemployed">Unemployed</SelectItem>
                           <SelectItem value="retired">Retired</SelectItem>
                         </SelectContent>
@@ -933,7 +1015,7 @@ export function CreditScoringForm({
               <CardDescription>Demographics and location</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="age">Age *</Label>
                   <Input
@@ -948,28 +1030,41 @@ export function CreditScoringForm({
                   <Label htmlFor="phone_number">Phone Number</Label>
                   <ValidatedField
                     status={
-                      !phoneNumber ? "idle" :
-                      phoneValidation.isValidating ? "validating" :
-                      phoneValidation.valid ? "valid" : "invalid"
+                      !phoneNumber
+                        ? "idle"
+                        : phoneValidation.isValidating
+                          ? "validating"
+                          : phoneValidation.valid
+                            ? "valid"
+                            : "invalid"
                     }
                   >
                     <Input
                       id="phone_number"
                       {...register("phone_number")}
                       placeholder="+251912345678"
-                      className={phoneValidation.valid && phoneNumber ? "border-green-500" : ""}
+                      className={
+                        phoneValidation.valid && phoneNumber
+                          ? "border-green-500"
+                          : ""
+                      }
                     />
                   </ValidatedField>
                   {phoneNumber && (
                     <InlineValidation
                       status={
-                        phoneValidation.isValidating ? "validating" :
-                        phoneValidation.valid ? "valid" : "invalid"
+                        phoneValidation.isValidating
+                          ? "validating"
+                          : phoneValidation.valid
+                            ? "valid"
+                            : "invalid"
                       }
                       message={
-                        phoneValidation.isValidating ? "Validating..." :
-                        phoneValidation.valid ? "Valid Ethiopian phone number" :
-                        phoneValidation.error || "Invalid format"
+                        phoneValidation.isValidating
+                          ? "Validating..."
+                          : phoneValidation.valid
+                            ? "Valid Ethiopian phone number"
+                            : phoneValidation.error || "Invalid format"
                       }
                     />
                   )}
@@ -984,9 +1079,13 @@ export function CreditScoringForm({
                   <Label htmlFor="id_number">ID Number</Label>
                   <ValidatedField
                     status={
-                      !idNumber ? "idle" :
-                      idValidation.isValidating ? "validating" :
-                      idValidation.valid ? "valid" : "invalid"
+                      !idNumber
+                        ? "idle"
+                        : idValidation.isValidating
+                          ? "validating"
+                          : idValidation.valid
+                            ? "valid"
+                            : "invalid"
                     }
                   >
                     <Input
@@ -994,19 +1093,26 @@ export function CreditScoringForm({
                       {...register("id_number")}
                       placeholder="1234567890"
                       maxLength={10}
-                      className={idValidation.valid && idNumber ? "border-green-500" : ""}
+                      className={
+                        idValidation.valid && idNumber ? "border-green-500" : ""
+                      }
                     />
                   </ValidatedField>
                   {idNumber && (
                     <InlineValidation
                       status={
-                        idValidation.isValidating ? "validating" :
-                        idValidation.valid ? "valid" : "invalid"
+                        idValidation.isValidating
+                          ? "validating"
+                          : idValidation.valid
+                            ? "valid"
+                            : "invalid"
                       }
                       message={
-                        idValidation.isValidating ? "Validating..." :
-                        idValidation.valid ? "Valid Ethiopian ID number" :
-                        idValidation.error || "Must be exactly 10 digits"
+                        idValidation.isValidating
+                          ? "Validating..."
+                          : idValidation.valid
+                            ? "Valid Ethiopian ID number"
+                            : idValidation.error || "Must be exactly 10 digits"
                       }
                     />
                   )}
@@ -1066,7 +1172,9 @@ export function CreditScoringForm({
                     control={control}
                     render={({ field }) => (
                       <Select
-                        onValueChange={(value) => field.onChange(value === "true")}
+                        onValueChange={(value) =>
+                          field.onChange(value === "true")
+                        }
                         value={field.value?.toString()}
                       >
                         <SelectTrigger>
@@ -1087,12 +1195,14 @@ export function CreditScoringForm({
       </Tabs>
 
       <div className="flex justify-end gap-4">
-        <Button 
-          type="button" 
-          variant="outline" 
+        <Button
+          type="button"
+          variant="outline"
           onClick={() => {
             const currentData = getValues();
-            saveFormData(currentData, { formId: `credit_scoring_${selectedCustomerId || "new"}` });
+            saveFormData(currentData, {
+              formId: `credit_scoring_${selectedCustomerId || "new"}`,
+            });
             toast({
               title: "Draft Saved",
               description: "Form data has been saved as draft",
@@ -1104,12 +1214,14 @@ export function CreditScoringForm({
         <Button type="button" variant="outline" onClick={handleReset}>
           Reset
         </Button>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           disabled={submitMutation.isPending || isLoadingCustomer || !canSubmit}
-          title={!canSubmit && nbeCompliance && !nbeCompliance.compliant 
-            ? "NBE compliance violations must be resolved or supervisor override required" 
-            : undefined}
+          title={
+            !canSubmit && nbeCompliance && !nbeCompliance.compliant
+              ? "NBE compliance violations must be resolved or supervisor override required"
+              : undefined
+          }
         >
           {submitMutation.isPending ? (
             <>
@@ -1125,7 +1237,7 @@ export function CreditScoringForm({
       {/* Advanced Response Display */}
       {result && (
         <div className="mt-6">
-          <CreditScoreResponseDisplay 
+          <CreditScoreResponseDisplay
             response={result}
             formData={{
               loan_amount: loanAmount,
@@ -1150,4 +1262,3 @@ export function CreditScoringForm({
     </form>
   );
 }
-

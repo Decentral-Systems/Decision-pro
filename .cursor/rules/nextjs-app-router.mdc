@@ -17,9 +17,10 @@ This app is **front-end only**. The backend lives elsewhere. The client never ca
 
 ## Server vs Client Components
 
-- **Default is Server**: Layouts and pages are Server Components unless they need client behavior. Do not add `"use client"` at the top of every file.
-- **Use Client (`"use client"`) only when you need**: `useState`, `useEffect`, event handlers, browser APIs, or TanStack Query / hooks that use the feature services.
-- **Push the client boundary down**: Use Server for static shell where possible; use Client Components for any UI that loads data (via hooks) or is interactive.
+- **Pages are Server Components**: Every route page (`page.tsx`) in this codebase must remain a Server Component. The page should stay thin: import and render a feature view or component; put client logic in a `"use client"` component inside the feature (or shared), not in the page file.
+- **Do not convert pages without explicit request**: Do not change an existing page from Client to Server (or from Server to Client) unless the user explicitly asks you to. When migrating to feature-based architecture, introduce a feature view component and make the page a thin server wrapper that renders it.
+- **Use Client (`"use client"`) only when you need**: `useState`, `useEffect`, event handlers, browser APIs, or TanStack Query / hooks that use the feature services. Put that in a component under `features/<name>/` (or `shared/`), not in `app/**/page.tsx`.
+- **Push the client boundary down**: Use Server for the page shell; use Client Components for any UI that loads data (via hooks) or is interactive.
 - **Props from Server → Client**: Must be serializable (plain data). No functions or non-serializable values.
 
 ## App Router file conventions

@@ -17,22 +17,23 @@ interface ApiStatusIndicatorProps {
    * If provided, will check this endpoint instead of /health
    */
   endpoint?: string;
-  
+
   /**
    * Custom label (default: "Live" or "Offline")
    */
+
   label?: string;
-  
+
   /**
    * Show response time (default: false)
    */
   showResponseTime?: boolean;
-  
+
   /**
    * Custom className
    */
   className?: string;
-  
+
   /**
    * Refetch interval in milliseconds (default: 30000 = 30 seconds)
    */
@@ -47,9 +48,13 @@ export function ApiStatusIndicator({
   refetchInterval = 30000,
 }: ApiStatusIndicatorProps) {
   // Always call both hooks to avoid conditional hook calls (disable one based on endpoint)
-  const endpointHealth = useEndpointHealth(endpoint || "", !!endpoint, refetchInterval);
+  const endpointHealth = useEndpointHealth(
+    endpoint || "",
+    !!endpoint,
+    refetchInterval
+  );
   const generalHealth = useApiHealth(!endpoint, refetchInterval);
-  
+
   // Use endpoint-specific health check if endpoint is provided, otherwise use general health
   const health = endpoint ? endpointHealth : generalHealth;
 
@@ -89,13 +94,15 @@ export function ApiStatusIndicator({
   const Icon = status.icon;
 
   return (
-    <div 
-      className="inline-block [&]:!transform-none [&]:!animate-none [&]:!rotate-0" 
-      style={{ 
-        transform: 'none !important', 
-        animation: 'none !important',
-        rotate: '0deg !important'
-      } as React.CSSProperties}
+    <div
+      className="inline-block [&]:!rotate-0 [&]:!transform-none [&]:!animate-none"
+      style={
+        {
+          transform: "none !important",
+          animation: "none !important",
+          rotate: "0deg !important",
+        } as React.CSSProperties
+      }
     >
       <Badge
         variant={status.variant}
@@ -104,32 +111,35 @@ export function ApiStatusIndicator({
           status.badgeClassName,
           className,
           // Strong CSS overrides to prevent rotation - multiple layers
-          "[&]:!transform-none [&]:!animate-none [&]:!rotate-0",
-          "[&_*]:!transform-none [&_*]:!animate-none [&_*]:!rotate-0"
+          "[&]:!rotate-0 [&]:!transform-none [&]:!animate-none",
+          "[&_*]:!rotate-0 [&_*]:!transform-none [&_*]:!animate-none"
         )}
-        style={{ 
-          transform: 'none !important',
-          animation: 'none !important',
-          rotate: '0deg !important',
-          // Additional CSS properties to prevent any animation
-          willChange: 'auto',
-          backfaceVisibility: 'visible'
-        } as React.CSSProperties}
+        style={
+          {
+            transform: "none !important",
+            animation: "none !important",
+            rotate: "0deg !important",
+            // Additional CSS properties to prevent any animation
+            willChange: "auto",
+            backfaceVisibility: "visible",
+          } as React.CSSProperties
+        }
       >
-        <Icon 
+        <Icon
           className={cn(
             "h-3 w-3",
             status.iconClassName,
             // Ensure only the icon can animate, not the badge
             isChecking && "animate-spin"
-          )} 
+          )}
         />
         <span>{status.text}</span>
-        {showResponseTime && responseTime !== null && isOnline && !isChecking && (
-          <span className="text-xs opacity-90 ml-1">
-            ({responseTime}ms)
-          </span>
-        )}
+        {showResponseTime &&
+          responseTime !== null &&
+          isOnline &&
+          !isChecking && (
+            <span className="ml-1 text-xs opacity-90">({responseTime}ms)</span>
+          )}
       </Badge>
     </div>
   );
@@ -143,9 +153,13 @@ export function ApiStatusIndicatorCompact({
   refetchInterval = 30000,
 }: Omit<ApiStatusIndicatorProps, "label" | "showResponseTime">) {
   // Always call both hooks to avoid conditional hook calls (disable one based on endpoint)
-  const endpointHealth = useEndpointHealth(endpoint || "", !!endpoint, refetchInterval);
+  const endpointHealth = useEndpointHealth(
+    endpoint || "",
+    !!endpoint,
+    refetchInterval
+  );
   const generalHealth = useApiHealth(!endpoint, refetchInterval);
-  
+
   // Use endpoint-specific health check if endpoint is provided, otherwise use general health
   const health = endpoint ? endpointHealth : generalHealth;
 
@@ -153,24 +167,28 @@ export function ApiStatusIndicatorCompact({
 
   if (isChecking) {
     return (
-      <div 
-        className="inline-block [&]:!transform-none [&]:!animate-none [&]:!rotate-0"
-        style={{ 
-          transform: 'none !important',
-          animation: 'none !important',
-          rotate: '0deg !important'
-        } as React.CSSProperties}
+      <div
+        className="inline-block [&]:!rotate-0 [&]:!transform-none [&]:!animate-none"
+        style={
+          {
+            transform: "none !important",
+            animation: "none !important",
+            rotate: "0deg !important",
+          } as React.CSSProperties
+        }
       >
-        <Badge 
-          variant="secondary" 
-          className="flex items-center gap-1 px-2 py-0.5 [&]:!transform-none [&]:!animate-none [&]:!rotate-0 [&_*]:!transform-none [&_*]:!animate-none [&_*]:!rotate-0"
-          style={{ 
-            transform: 'none !important',
-            animation: 'none !important',
-            rotate: '0deg !important',
-            willChange: 'auto',
-            backfaceVisibility: 'visible'
-          } as React.CSSProperties}
+        <Badge
+          variant="secondary"
+          className="flex items-center gap-1 px-2 py-0.5 [&]:!rotate-0 [&]:!transform-none [&]:!animate-none [&_*]:!rotate-0 [&_*]:!transform-none [&_*]:!animate-none"
+          style={
+            {
+              transform: "none !important",
+              animation: "none !important",
+              rotate: "0deg !important",
+              willChange: "auto",
+              backfaceVisibility: "visible",
+            } as React.CSSProperties
+          }
         >
           <Loader2 className="h-3 w-3 animate-spin" />
           <span className="text-xs">Checking...</span>
@@ -181,23 +199,27 @@ export function ApiStatusIndicatorCompact({
 
   if (isOnline) {
     return (
-      <div 
-        className="inline-block [&]:!transform-none [&]:!animate-none [&]:!rotate-0"
-        style={{ 
-          transform: 'none !important',
-          animation: 'none !important',
-          rotate: '0deg !important'
-        } as React.CSSProperties}
+      <div
+        className="inline-block [&]:!rotate-0 [&]:!transform-none [&]:!animate-none"
+        style={
+          {
+            transform: "none !important",
+            animation: "none !important",
+            rotate: "0deg !important",
+          } as React.CSSProperties
+        }
       >
-        <Badge 
-          className="flex items-center gap-1 px-2 py-0.5 bg-green-500 hover:bg-green-600 text-white [&]:!transform-none [&]:!animate-none [&]:!rotate-0 [&_*]:!transform-none [&_*]:!animate-none [&_*]:!rotate-0"
-          style={{ 
-            transform: 'none !important',
-            animation: 'none !important',
-            rotate: '0deg !important',
-            willChange: 'auto',
-            backfaceVisibility: 'visible'
-          } as React.CSSProperties}
+        <Badge
+          className="flex items-center gap-1 bg-green-500 px-2 py-0.5 text-white hover:bg-green-600 [&]:!rotate-0 [&]:!transform-none [&]:!animate-none [&_*]:!rotate-0 [&_*]:!transform-none [&_*]:!animate-none"
+          style={
+            {
+              transform: "none !important",
+              animation: "none !important",
+              rotate: "0deg !important",
+              willChange: "auto",
+              backfaceVisibility: "visible",
+            } as React.CSSProperties
+          }
         >
           <Wifi className="h-3 w-3" />
           <span className="text-xs">Online</span>
@@ -207,24 +229,28 @@ export function ApiStatusIndicatorCompact({
   }
 
   return (
-    <div 
-      className="inline-block [&]:!transform-none [&]:!animate-none [&]:!rotate-0"
-      style={{ 
-        transform: 'none !important',
-        animation: 'none !important',
-        rotate: '0deg !important'
-      } as React.CSSProperties}
+    <div
+      className="inline-block [&]:!rotate-0 [&]:!transform-none [&]:!animate-none"
+      style={
+        {
+          transform: "none !important",
+          animation: "none !important",
+          rotate: "0deg !important",
+        } as React.CSSProperties
+      }
     >
-      <Badge 
-        variant="destructive" 
-        className="flex items-center gap-1 px-2 py-0.5 bg-red-500 hover:bg-red-600 text-white [&]:!transform-none [&]:!animate-none [&]:!rotate-0 [&_*]:!transform-none [&_*]:!animate-none [&_*]:!rotate-0"
-        style={{ 
-          transform: 'none !important',
-          animation: 'none !important',
-          rotate: '0deg !important',
-          willChange: 'auto',
-          backfaceVisibility: 'visible'
-        } as React.CSSProperties}
+      <Badge
+        variant="destructive"
+        className="flex items-center gap-1 bg-red-500 px-2 py-0.5 text-white hover:bg-red-600 [&]:!rotate-0 [&]:!transform-none [&]:!animate-none [&_*]:!rotate-0 [&_*]:!transform-none [&_*]:!animate-none"
+        style={
+          {
+            transform: "none !important",
+            animation: "none !important",
+            rotate: "0deg !important",
+            willChange: "auto",
+            backfaceVisibility: "visible",
+          } as React.CSSProperties
+        }
       >
         <WifiOff className="h-3 w-3" />
         <span className="text-xs">Offline</span>
@@ -232,5 +258,3 @@ export function ApiStatusIndicatorCompact({
     </div>
   );
 }
-
-
