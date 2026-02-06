@@ -4,7 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SessionTimeoutWarning } from "@/components/auth/SessionTimeoutWarning";
 import { PageTransition } from "@/components/common/PageTransition";
 import { SkipLink } from "@/components/common/SkipLink";
-import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { AppBreadcrumb } from "@/components/app-breadcrumb.tsx";
 import { Header } from "@/components/layout/Header";
 import { KeyboardShortcutsProvider } from "@/components/layout/KeyboardShortcutsProvider";
 import {
@@ -28,10 +28,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           {isCollapsed && (
             <>
               <SidebarTrigger />
-              <div
-                className="h-6 w-px shrink-0 bg-border"
-                aria-hidden
-              />
+              <div className="h-6 w-px shrink-0 bg-border" aria-hidden />
             </>
           )}
           <div className="min-w-0 flex-1">
@@ -39,7 +36,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <main id="main-content" className="flex-1 p-6" tabIndex={-1}>
-          <Breadcrumbs />
+          <AppBreadcrumb />
           <PageTransition>{children}</PageTransition>
         </main>
       </div>

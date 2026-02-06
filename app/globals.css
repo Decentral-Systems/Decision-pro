@@ -54,7 +54,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 197.89 89.11% 48.04%;
-    --sidebar-background: 240 5.9% 10%;
+    --sidebar-background: 222.2 84% 6%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -69,26 +69,28 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
   }
-  
+
   /* Custom scrollbar */
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-track {
     @apply bg-transparent;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-colors;
+    @apply rounded-full bg-primary/20 transition-colors hover:bg-primary/40;
   }
-  
+
   /* Focus styles */
   *:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
@@ -98,62 +100,67 @@
 @layer components {
   /* Glassmorphism effect */
   .glass {
-    @apply bg-background/80 backdrop-blur-md border border-border/50;
+    @apply border border-border/50 bg-background/80 backdrop-blur-md;
   }
-  
+
   .glass-card {
-    @apply bg-card/80 backdrop-blur-md border border-border/50 shadow-lg;
+    @apply border border-border/50 bg-card/80 shadow-lg backdrop-blur-md;
   }
-  
+
   /* Gradient text */
   .gradient-text {
     @apply bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent;
   }
-  
+
   /* Animated gradient background */
   .gradient-bg {
     @apply bg-gradient-to-br from-primary/10 via-background to-primary/5;
     background-size: 200% 200%;
     animation: gradient 15s ease infinite;
   }
-  
+
   @keyframes gradient {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
   }
-  
+
   /* Card hover effect */
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1;
+    @apply transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl;
   }
-  
+
   /* Shimmer loading effect */
   .shimmer {
     @apply relative overflow-hidden;
   }
-  
+
   .shimmer::before {
-    content: '';
-    @apply absolute inset-0 bg-shimmer animate-shimmer;
+    content: "";
+    @apply absolute inset-0 animate-shimmer bg-shimmer;
   }
-  
+
   /* Status indicators */
   .status-dot {
-    @apply inline-block w-2 h-2 rounded-full;
+    @apply inline-block h-2 w-2 rounded-full;
   }
-  
+
   .status-active {
-    @apply bg-success animate-pulse-slow;
+    @apply animate-pulse-slow bg-success;
   }
-  
+
   .status-inactive {
     @apply bg-muted-foreground;
   }
-  
+
   .status-error {
-    @apply bg-danger animate-pulse;
+    @apply animate-pulse bg-danger;
   }
-  
+
   /* Badge enhancements */
   .badge-glow {
     @apply shadow-glow-sm;
@@ -193,7 +200,7 @@
 
   /* Skip link for accessibility */
   .skip-link {
-    @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md;
+    @apply sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground;
   }
 }
 
@@ -202,31 +209,29 @@
   .text-balance {
     text-wrap: balance;
   }
-  
+
   /* Animation delays */
   .delay-100 {
     animation-delay: 100ms;
   }
-  
+
   .delay-200 {
     animation-delay: 200ms;
   }
-  
+
   .delay-300 {
     animation-delay: 300ms;
   }
-  
+
   /* Responsive grid utilities */
   .grid-auto-fit {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
-  
+
   .grid-auto-fill {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
 }
-
-
 
 @layer base {
   * {
@@ -236,4 +241,3 @@
     @apply bg-background text-foreground;
   }
 }
-
