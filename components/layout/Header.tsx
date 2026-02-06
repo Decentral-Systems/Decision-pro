@@ -5,12 +5,13 @@ import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
-import { navigateTo } from "@/lib/utils/navigation";
 import { Activity, Bell, HelpCircle, Moon, Sun } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { UserMenu } from "../user-menu";
 
 export function Header() {
+  const router = useRouter();
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
 
@@ -47,7 +48,7 @@ export function Header() {
             variant="ghost"
             size="icon"
             className="group relative"
-            onClick={() => navigateTo("/system-status")}
+            onClick={() => router.push("/system-status")}
             title="System Status"
           >
             <Activity className="h-5 w-5" />
@@ -82,7 +83,7 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigateTo("/help")}
+            onClick={() => router.push("/help")}
             title="Help"
           >
             <HelpCircle className="h-5 w-5" />

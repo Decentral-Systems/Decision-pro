@@ -104,7 +104,7 @@ export function NavMain() {
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <SidebarMenuSub>
+                      <SidebarMenuSub className="gap-1.5">
                         {item.items?.map((subItem) => {
                           const SubIcon = subItem.icon;
                           const isSubActive = isPathActive(
@@ -118,21 +118,24 @@ export function NavMain() {
                                 asChild
                                 isActive={isSubActive}
                                 className={cn(
-                                  "gap-2 text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
+                                  "gap-4 text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
                                   "data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:[&>svg]:!text-white",
-                                  "[&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground"
+                                  "[&>svg]:size-[18px] [&>svg]:shrink-0 [&>svg]:text-muted-foreground"
                                 )}
                               >
                                 <Link href={subItem.url}>
                                   {SubIcon && (
                                     <SubIcon
                                       className={cn(
-                                        "size-4 shrink-0",
-                                        isSubActive && "!text-white"
+                                        "size-5 shrink-0",
+                                        isSubActive && "!text-white",
+                                        "group-data-[collapsible=icon]:!size-5"
                                       )}
                                     />
                                   )}
-                                  <span>{subItem.title}</span>
+                                  <span className="text-sm">
+                                    {subItem.title}
+                                  </span>
                                 </Link>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>

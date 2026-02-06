@@ -46,7 +46,7 @@ const SCORING_ITEMS: SidebarItem[] = [
 
 const LOAN_ITEMS: SidebarItem[] = [
   {
-    label: "Loan Applications",
+    label: "Applications",
     url: "/loans/applications",
     icon: IconFileCheck,
   },
