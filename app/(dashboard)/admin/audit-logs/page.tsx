@@ -209,8 +209,6 @@ export default function AuditLogsPage() {
         includeSignature: true,
         version: "1.0.0",
         filterSummary: filterSummary,
-        requesterIdentity: requesterIdentity,
-        correlationId: correlationId,
       }
     );
 
