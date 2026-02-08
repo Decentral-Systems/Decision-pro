@@ -9,7 +9,7 @@
  * 6. Fallback defaults (last resort)
  */
 
-import { getFieldMapping } from '@/lib/config/fieldMapping';
+import { getFieldMapping } from "../config/field-mapping";
 
 export interface SmartDefaultOptions {
   formData: Record<string, any>;
@@ -26,33 +26,37 @@ export function calculateSmartDefault(
   options: SmartDefaultOptions
 ): { value: any; source: string; warning?: string } {
   const mapping = getFieldMapping(fieldName);
-  
+
   if (!mapping) {
     // No mapping found, return undefined
-    return { value: undefined, source: 'none' };
+    return { value: undefined, source: "none" };
   }
 
   const { formData, customerData, systemData, autoFetchedData } = options;
 
   // Priority 1: User input (if already in form data)
-  if (formData[fieldName] !== undefined && formData[fieldName] !== null && formData[fieldName] !== '') {
-    return { value: formData[fieldName], source: 'user_input' };
+  if (
+    formData[fieldName] !== undefined &&
+    formData[fieldName] !== null &&
+    formData[fieldName] !== ""
+  ) {
+    return { value: formData[fieldName], source: "user_input" };
   }
 
   // Priority 2: Customer 360 data
-  if (mapping.source === 'customer_360' && customerData) {
+  if (mapping.source === "customer_360" && customerData) {
     const value = extractNestedValue(customerData, mapping.apiPath);
     if (value !== undefined && value !== null) {
-      return { value, source: 'customer_360' };
+      return { value, source: "customer_360" };
     }
   }
 
   // Priority 3: Calculated values
-  if (mapping.source === 'calculated' && mapping.calculation) {
+  if (mapping.source === "calculated" && mapping.calculation) {
     try {
       const value = mapping.calculation(formData, customerData);
       if (value !== undefined && value !== null) {
-        return { value, source: 'calculated' };
+        return { value, source: "calculated" };
       }
     } catch (error) {
       console.warn(`Calculation failed for ${fieldName}:`, error);
@@ -60,18 +64,18 @@ export function calculateSmartDefault(
   }
 
   // Priority 4: System-provided values
-  if (mapping.source === 'system' && systemData) {
+  if (mapping.source === "system" && systemData) {
     const value = systemData[fieldName];
     if (value !== undefined && value !== null) {
-      return { value, source: 'system' };
+      return { value, source: "system" };
     }
-    
+
     // Try calculation if available
     if (mapping.calculation) {
       try {
         const value = mapping.calculation(formData, customerData);
         if (value !== undefined && value !== null) {
-          return { value, source: 'system_calculated' };
+          return { value, source: "system_calculated" };
         }
       } catch (error) {
         console.warn(`System calculation failed for ${fieldName}:`, error);
@@ -80,23 +84,23 @@ export function calculateSmartDefault(
   }
 
   // Priority 5: Auto-fetched values
-  if (mapping.source === 'auto_fetched' && autoFetchedData) {
+  if (mapping.source === "auto_fetched" && autoFetchedData) {
     const value = autoFetchedData[fieldName];
     if (value !== undefined && value !== null) {
-      return { value, source: 'auto_fetched' };
+      return { value, source: "auto_fetched" };
     }
   }
 
   // Priority 6: Fallback default
   if (mapping.defaultValue !== undefined) {
-    const warning = mapping.required 
+    const warning = mapping.required
       ? `Required field ${fieldName} using fallback default value`
       : undefined;
-    return { value: mapping.defaultValue, source: 'fallback_default', warning };
+    return { value: mapping.defaultValue, source: "fallback_default", warning };
   }
 
   // No value found
-  return { value: undefined, source: 'none' };
+  return { value: undefined, source: "none" };
 }
 
 /**
@@ -105,14 +109,17 @@ export function calculateSmartDefault(
 export function calculateAllSmartDefaults(
   options: SmartDefaultOptions
 ): Record<string, { value: any; source: string; warning?: string }> {
-  const results: Record<string, { value: any; source: string; warning?: string }> = {};
-  
+  const results: Record<
+    string,
+    { value: any; source: string; warning?: string }
+  > = {};
+
   // Get all unique form fields from mappings
   const allFields = new Set<string>();
-  Object.keys(options.formData).forEach(field => allFields.add(field));
-  
+  Object.keys(options.formData).forEach((field) => allFields.add(field));
+
   // Calculate defaults for all mapped fields
-  allFields.forEach(field => {
+  allFields.forEach((field) => {
     results[field] = calculateSmartDefault(field, options);
   });
 
@@ -124,7 +131,7 @@ export function calculateAllSmartDefaults(
  */
 function extractNestedValue(obj: any, path: string[]): any {
   if (!obj || !path || path.length === 0) return undefined;
-  
+
   let current = obj;
   for (const key of path) {
     if (current === null || current === undefined) return undefined;
@@ -141,9 +148,9 @@ export function getSmartDefaults(
 ): Record<string, any> {
   const allDefaults = calculateAllSmartDefaults(options);
   const result: Record<string, any> = {};
-  
+
   Object.entries(allDefaults).forEach(([field, { value, source }]) => {
-    if (value !== undefined && source !== 'none') {
+    if (value !== undefined && source !== "none") {
       result[field] = value;
     }
   });
@@ -159,17 +166,16 @@ export function logFallbackDefaults(
 ): Array<{ field: string; warning: string }> {
   const allDefaults = calculateAllSmartDefaults(options);
   const warnings: Array<{ field: string; warning: string }> = [];
-  
+
   Object.entries(allDefaults).forEach(([field, { source, warning }]) => {
-    if (source === 'fallback_default' && warning) {
+    if (source === "fallback_default" && warning) {
       warnings.push({ field, warning });
     }
   });
 
   if (warnings.length > 0) {
-    console.warn('Fields using fallback defaults:', warnings);
+    console.warn("Fields using fallback defaults:", warnings);
   }
 
   return warnings;
 }
-

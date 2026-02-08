@@ -24,26 +24,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // Persist cache periodically
   useEffect(() => {
     const interval = setInterval(() => {
-      // Persist cache every 30 seconds
-      if (typeof window !== "undefined") {
-        try {
-          const cache = queryClient.getQueryCache().getAll();
-          const serialized = JSON.stringify(
-            cache.map((query) => ({
-              queryKey: query.queryKey,
-              data: query.state.data,
-              dataUpdatedAt: query.state.dataUpdatedAt,
-            }))
-          );
-          localStorage.setItem("react-query-cache", serialized);
-        } catch (error) {
-          console.warn("[Providers] Failed to persist cache:", error);
-        }
-      }
+      cacheManager.persistNow();
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [queryClient]);
+  }, []);
 
   // Periodic query health check to prevent stuck queries
   useEffect(() => {

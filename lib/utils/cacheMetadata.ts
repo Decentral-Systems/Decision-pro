@@ -1,19 +1,11 @@
-/**
- * Cache Metadata Utilities
- * Manages cache metadata including last-updated timestamps
- */
-
 export interface CacheMetadata {
   lastUpdated: Date;
   correlationId?: string;
   responseTime?: number;
 }
 
-/**
- * Get cache metadata from storage
- */
 export function getCacheMetadata(key: string): CacheMetadata | null {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return null;
   }
 
@@ -31,14 +23,11 @@ export function getCacheMetadata(key: string): CacheMetadata | null {
   }
 }
 
-/**
- * Set cache metadata in storage
- */
 export function setCacheMetadata(
   key: string,
-  metadata: Omit<CacheMetadata, 'lastUpdated'> & { lastUpdated?: Date }
+  metadata: Omit<CacheMetadata, "lastUpdated"> & { lastUpdated?: Date }
 ): void {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return;
   }
 
@@ -51,13 +40,10 @@ export function setCacheMetadata(
 
     localStorage.setItem(`cache_metadata_${key}`, JSON.stringify(data));
   } catch (error) {
-    console.warn('[CacheMetadata] Failed to store metadata:', error);
+    console.warn("[CacheMetadata] Failed to store metadata:", error);
   }
 }
 
-/**
- * Format last updated timestamp for display
- */
 export function formatLastUpdated(date: Date): string {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -80,4 +66,3 @@ export function formatLastUpdated(date: Date): string {
   const diffDays = Math.floor(diffHours / 24);
   return `${diffDays}d ago`;
 }
-
