@@ -2,7 +2,10 @@
  * React Query hooks for Dashboard data
  */
 import { useQuery } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { DashboardData, KPIMetric } from "@/types/dashboard";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -10,7 +13,10 @@ import { setCacheMetadata, getCacheMetadata } from "@/lib/utils/cacheMetadata";
 import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
 import { shouldEnableQuery } from "./useQueryEnabled";
 
-export function useDashboardData(dateParams?: { start_date: string; end_date: string }) {
+export function useDashboardData(dateParams?: {
+  start_date: string;
+  end_date: string;
+}) {
   const { isAuthenticated, tokenSynced, session } = useAuth();
 
   // Allow query to run if authenticated OR if API key is available (for fallback auth)
@@ -24,18 +30,21 @@ export function useDashboardData(dateParams?: { start_date: string; end_date: st
       try {
         const startTime = Date.now();
         const correlationId = getOrCreateCorrelationId();
-        
-        console.log("[useDashboardData] Fetching dashboard data", { dateParams, correlationId });
-        
+
+        console.log("[useDashboardData] Fetching dashboard data", {
+          dateParams,
+          correlationId,
+        });
+
         // Fetch dashboard data from analytics endpoint
         const data = await apiGatewayClient.getDashboardData(dateParams);
-        
-        console.log("[useDashboardData] Dashboard data received", { 
-          hasData: !!data, 
+
+        console.log("[useDashboardData] Dashboard data received", {
+          hasData: !!data,
           dataKeys: data ? Object.keys(data) : [],
-          responseTime: Date.now() - startTime 
+          responseTime: Date.now() - startTime,
         });
-        
+
         // Store cache metadata
         const responseTime = Date.now() - startTime;
         setCacheMetadata("dashboard", {
@@ -46,15 +55,19 @@ export function useDashboardData(dateParams?: { start_date: string; end_date: st
         // Handle different response structures from analytics endpoint
         // The endpoint may return analytics object or direct metrics
         const analytics = (data as any)?.analytics || data;
-        const dashboardMetrics = (analytics as any)?.dashboard || analytics || {};
+        const dashboardMetrics =
+          (analytics as any)?.dashboard || analytics || {};
 
         // If we truly have no metrics object, treat as no data instead of zeros
         if (!dashboardMetrics || typeof dashboardMetrics !== "object") {
-          console.warn("[useDashboardData] Dashboard metrics missing or invalid, returning null", {
-            data,
-            analytics,
-            dashboardMetrics
-          });
+          console.warn(
+            "[useDashboardData] Dashboard metrics missing or invalid, returning null",
+            {
+              data,
+              analytics,
+              dashboardMetrics,
+            }
+          );
           return null;
         }
 
@@ -152,17 +165,21 @@ export function useDashboardData(dateParams?: { start_date: string; end_date: st
         return mapped;
       } catch (error: any) {
         // Enhanced error logging
-        const statusCode = error?.statusCode || error?.response?.status || error?.status;
+        const statusCode =
+          error?.statusCode || error?.response?.status || error?.status;
         console.error("[useDashboardData] Error fetching dashboard data", {
           statusCode,
           message: error?.message,
           errorType: error?.constructor?.name,
-          dateParams
+          dateParams,
         });
-        
+
         // Return null for 401/404 errors to allow fallback data to be used
         if (statusCode === 401 || statusCode === 404) {
-          console.warn("[useDashboardData] Dashboard data not available, using fallback:", statusCode);
+          console.warn(
+            "[useDashboardData] Dashboard data not available, using fallback:",
+            statusCode
+          );
           return null;
         }
         throw error;
@@ -181,8 +198,7 @@ export function useDashboardData(dateParams?: { start_date: string; end_date: st
  * Get cache metadata for dashboard data
  */
 export function useDashboardCacheMetadata() {
-  const metadata = typeof window !== 'undefined' ? getCacheMetadata("dashboard") : null;
+  const metadata =
+    typeof window !== "undefined" ? getCacheMetadata("dashboard") : null;
   return metadata;
 }
-
-

@@ -2,7 +2,10 @@
  * React Query hooks for User Management
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { User, CreateUserRequest, UpdateUserRequest } from "@/types/admin";
 import { PaginatedResponse } from "@/types/api";
@@ -23,7 +26,9 @@ export function useUsers(params?: {
       } catch (error: any) {
         // Handle 401/404 errors gracefully - return null to show empty state (no fallback data)
         if (error?.statusCode === 401 || error?.statusCode === 404) {
-          console.warn("Users API unavailable, returning null to show empty state");
+          console.warn(
+            "Users API unavailable, returning null to show empty state"
+          );
           return null;
         }
         // For other errors, let React Query handle them
@@ -42,10 +47,13 @@ export function useUser(userId: string) {
   return useQuery<User>({
     queryKey: ["user", userId],
     queryFn: async () => {
-      const data = await apiGatewayClient.get<User>(`/api/v1/admin/users/${userId}`);
+      const data = await apiGatewayClient.get<User>(
+        `/api/v1/admin/users/${userId}`
+      );
       return data;
     },
-    enabled: isAuthenticated && tokenSynced && !!session?.accessToken && !!userId,
+    enabled:
+      isAuthenticated && tokenSynced && !!session?.accessToken && !!userId,
     staleTime: 2 * 60 * 1000,
   });
 }
@@ -54,7 +62,10 @@ export function useCreateUser() {
   const queryClient = useQueryClient();
   return useMutation<User, Error, CreateUserRequest>({
     mutationFn: async (userData) => {
-      const data = await apiGatewayClient.post<User>("/api/v1/admin/users", userData);
+      const data = await apiGatewayClient.post<User>(
+        "/api/v1/admin/users",
+        userData
+      );
       return data;
     },
     onSuccess: () => {
@@ -67,7 +78,10 @@ export function useUpdateUser() {
   const queryClient = useQueryClient();
   return useMutation<User, Error, { userId: string; data: UpdateUserRequest }>({
     mutationFn: async ({ userId, data }) => {
-      const response = await apiGatewayClient.put<User>(`/api/v1/admin/users/${userId}`, data);
+      const response = await apiGatewayClient.put<User>(
+        `/api/v1/admin/users/${userId}`,
+        data
+      );
       return response;
     },
     onSuccess: (_, variables) => {
@@ -93,7 +107,10 @@ export function useUpdateUserRoles() {
   const queryClient = useQueryClient();
   return useMutation<User, Error, { userId: string; roles: string[] }>({
     mutationFn: async ({ userId, roles }) => {
-      const data = await apiGatewayClient.post<User>(`/api/v1/admin/users/${userId}/roles`, { roles });
+      const data = await apiGatewayClient.post<User>(
+        `/api/v1/admin/users/${userId}/roles`,
+        { roles }
+      );
       return data;
     },
     onSuccess: (_, variables) => {
@@ -113,7 +130,9 @@ export function useUserActivity(
   }
 ) {
   const { isAuthenticated, tokenSynced } = useAuth();
-  return useQuery<PaginatedResponse<import("@/types/admin").AuditLogEntry> | null>({
+  return useQuery<PaginatedResponse<
+    import("@/types/admin").AuditLogEntry
+  > | null>({
     queryKey: ["user-activity", userId, params],
     queryFn: async () => {
       if (!userId) return null;
@@ -161,4 +180,3 @@ export function useBulkDeactivateUsers() {
     },
   });
 }
-

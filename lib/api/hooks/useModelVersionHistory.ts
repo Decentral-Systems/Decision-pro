@@ -4,7 +4,10 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { retryWithBackoff } from "@/lib/utils/retry";
 import { executeWithCircuitBreaker } from "@/lib/utils/circuitBreaker";
@@ -45,7 +48,10 @@ export interface VersionComparison {
 /**
  * Hook to fetch model version history
  */
-export function useModelVersionHistory(modelId: string, enabled: boolean = true) {
+export function useModelVersionHistory(
+  modelId: string,
+  enabled: boolean = true
+) {
   return useQuery<ModelVersion[]>({
     queryKey: ["model-version-history", modelId],
     queryFn: async () => {
@@ -53,30 +59,33 @@ export function useModelVersionHistory(modelId: string, enabled: boolean = true)
       try {
         const data = await executeWithCircuitBreaker(
           `/api/ml/model/${modelId}/versions`,
-          () => retryWithBackoff(
-            () => apiGatewayClient.getModelVersions(modelId),
-            {
+          () =>
+            retryWithBackoff(() => apiGatewayClient.getModelVersions(modelId), {
               maxRetries: 3,
               initialDelay: 1000,
               retryableErrors: [500, 502, 503, 504, 408, 429],
-            }
-          )
+            })
         );
-        
+
         const duration = Date.now() - startTime;
         trackAPICall(`/api/ml/model/${modelId}/versions`, duration, 200);
-        
+
         return data as ModelVersion[];
       } catch (error: any) {
         const duration = Date.now() - startTime;
         const statusCode = error?.statusCode || error?.response?.status || 500;
-        trackAPICall(`/api/ml/model/${modelId}/versions`, duration, statusCode, error);
+        trackAPICall(
+          `/api/ml/model/${modelId}/versions`,
+          duration,
+          statusCode,
+          error
+        );
         logError(error, "useModelVersionHistory");
-        
+
         if (error?.statusCode === 404 || error?.response?.status === 404) {
           return [];
         }
-        
+
         const errorDetails = getErrorDetails(error);
         const enhancedError = new Error(errorDetails.userMessage);
         (enhancedError as any).errorDetails = errorDetails;
@@ -106,26 +115,41 @@ export function useVersionComparison(
       try {
         const data = await executeWithCircuitBreaker(
           `/api/ml/model/${modelId}/versions/${versionId1}/compare`,
-          () => retryWithBackoff(
-            () => apiGatewayClient.compareModelVersions(modelId, versionId1, versionId2),
-            {
-              maxRetries: 3,
-              initialDelay: 1000,
-              retryableErrors: [500, 502, 503, 504, 408, 429],
-            }
-          )
+          () =>
+            retryWithBackoff(
+              () =>
+                apiGatewayClient.compareModelVersions(
+                  modelId,
+                  versionId1,
+                  versionId2
+                ),
+              {
+                maxRetries: 3,
+                initialDelay: 1000,
+                retryableErrors: [500, 502, 503, 504, 408, 429],
+              }
+            )
         );
-        
+
         const duration = Date.now() - startTime;
-        trackAPICall(`/api/ml/model/${modelId}/versions/${versionId1}/compare`, duration, 200);
-        
+        trackAPICall(
+          `/api/ml/model/${modelId}/versions/${versionId1}/compare`,
+          duration,
+          200
+        );
+
         return data as VersionComparison;
       } catch (error: any) {
         const duration = Date.now() - startTime;
         const statusCode = error?.statusCode || error?.response?.status || 500;
-        trackAPICall(`/api/ml/model/${modelId}/versions/${versionId1}/compare`, duration, statusCode, error);
+        trackAPICall(
+          `/api/ml/model/${modelId}/versions/${versionId1}/compare`,
+          duration,
+          statusCode,
+          error
+        );
         logError(error, "useVersionComparison");
-        
+
         const errorDetails = getErrorDetails(error);
         const enhancedError = new Error(errorDetails.userMessage);
         (enhancedError as any).errorDetails = errorDetails;
@@ -146,39 +170,56 @@ export function useVersionRollback() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ modelId, versionId }: { modelId: string; versionId: string }) => {
+    mutationFn: async ({
+      modelId,
+      versionId,
+    }: {
+      modelId: string;
+      versionId: string;
+    }) => {
       const startTime = Date.now();
       try {
         const result = await executeWithCircuitBreaker(
           `/api/ml/model/${modelId}/versions/${versionId}/rollback`,
-          () => retryWithBackoff(
-            () => apiGatewayClient.rollbackModelVersion(modelId, versionId),
-            {
-              maxRetries: 2,
-              initialDelay: 1000,
-              retryableErrors: [500, 502, 503, 504],
-            }
-          )
+          () =>
+            retryWithBackoff(
+              () => apiGatewayClient.rollbackModelVersion(modelId, versionId),
+              {
+                maxRetries: 2,
+                initialDelay: 1000,
+                retryableErrors: [500, 502, 503, 504],
+              }
+            )
         );
-        
+
         const duration = Date.now() - startTime;
-        trackAPICall(`/api/ml/model/${modelId}/versions/${versionId}/rollback`, duration, 200);
-        
+        trackAPICall(
+          `/api/ml/model/${modelId}/versions/${versionId}/rollback`,
+          duration,
+          200
+        );
+
         return result;
       } catch (error: any) {
         const duration = Date.now() - startTime;
         const statusCode = error?.statusCode || error?.response?.status || 500;
-        trackAPICall(`/api/ml/model/${modelId}/versions/${versionId}/rollback`, duration, statusCode, error);
+        trackAPICall(
+          `/api/ml/model/${modelId}/versions/${versionId}/rollback`,
+          duration,
+          statusCode,
+          error
+        );
         logError(error, "useVersionRollback");
         throw error;
       }
     },
     onSuccess: (_, variables) => {
       // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ["model-version-history", variables.modelId] });
+      queryClient.invalidateQueries({
+        queryKey: ["model-version-history", variables.modelId],
+      });
       queryClient.invalidateQueries({ queryKey: ["ml-center"] });
       queryClient.invalidateQueries({ queryKey: ["model", variables.modelId] });
     },
   });
 }
-

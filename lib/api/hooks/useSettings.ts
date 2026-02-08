@@ -2,7 +2,10 @@
  * React Query hooks for Settings
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { SettingsData } from "@/types/settings";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -36,7 +39,7 @@ export function useSettings() {
 
 export function useUpdateSettings() {
   const queryClient = useQueryClient();
-  
+
   return useMutation<SettingsData, Error, Partial<SettingsData>>({
     mutationFn: async (settings) => {
       const data = await apiGatewayClient.updateSettings(settings);
@@ -52,7 +55,7 @@ export function useUpdateSettings() {
 
 export function useResetSettings() {
   const queryClient = useQueryClient();
-  
+
   return useMutation<SettingsData, Error, void>({
     mutationFn: async () => {
       const data = await apiGatewayClient.resetSettings();
@@ -65,15 +68,17 @@ export function useResetSettings() {
   });
 }
 
-
-
 /**
  * Hook to import settings with validation
  */
 export function useImportSettings() {
   const { isAuthenticated } = useAuth();
 
-  return useMutation<any, Error, { settings: any; options?: { validateOnly?: boolean; overwrite?: boolean } }>({
+  return useMutation<
+    any,
+    Error,
+    { settings: any; options?: { validateOnly?: boolean; overwrite?: boolean } }
+  >({
     mutationFn: async ({ settings, options }) => {
       return await apiGatewayClient.importSettings(settings, options);
     },
@@ -86,7 +91,10 @@ export function useImportSettings() {
 /**
  * Hook to fetch settings history
  */
-export function useSettingsHistory(params?: { limit?: number; offset?: number }) {
+export function useSettingsHistory(params?: {
+  limit?: number;
+  offset?: number;
+}) {
   const { isAuthenticated } = useAuth();
 
   return useQuery<any | null>({

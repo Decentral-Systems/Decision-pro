@@ -2,25 +2,29 @@
  * React Query hooks for Audit Logs
  */
 import { useQuery } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { AuditLogEntry, AuditLogFilters } from "@/types/admin";
 import { PaginatedResponse } from "@/types/api";
 import { useAuth } from "@/lib/auth/auth-context";
 
-export function useAuditLogs(filters?: AuditLogFilters & {
-  page?: number;
-  page_size?: number;
-}) {
+export function useAuditLogs(
+  filters?: AuditLogFilters & {
+    page?: number;
+    page_size?: number;
+  }
+) {
   const { isAuthenticated, tokenSynced } = useAuth();
   return useQuery<PaginatedResponse<AuditLogEntry> | null>({
     queryKey: ["audit-logs", filters],
     queryFn: async () => {
       try {
-        const data = await apiGatewayClient.get<PaginatedResponse<AuditLogEntry>>(
-          "/api/v1/audit/logs",
-          filters
-        );
+        const data = await apiGatewayClient.get<
+          PaginatedResponse<AuditLogEntry>
+        >("/api/v1/audit/logs", filters);
         return data;
       } catch (error: any) {
         // Handle 401/404 errors gracefully - return null to allow fallback UI
@@ -44,12 +48,12 @@ export function useAuditLog(logId: string) {
   return useQuery<AuditLogEntry>({
     queryKey: ["audit-log", logId],
     queryFn: async () => {
-      const data = await apiGatewayClient.get<AuditLogEntry>(`/api/v1/audit/logs/${logId}`);
+      const data = await apiGatewayClient.get<AuditLogEntry>(
+        `/api/v1/audit/logs/${logId}`
+      );
       return data;
     },
     enabled: isAuthenticated && !!logId,
     staleTime: 5 * 60 * 1000,
   });
 }
-
-

@@ -5,7 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import { creditScoringClient } from "../clients/credit-scoring";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { useAuth } from "@/lib/auth/auth-context";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 
 export interface RealtimeScoreEntry {
   customer_id: string;
@@ -24,7 +27,7 @@ export interface RealtimeMetrics {
 }
 
 export function useRealtimeDashboard(customerId?: string) {
-  const { isAuthenticated, tokenSynced, session } = useAuth();
+  const { isAuthenticated, accessToken } = useAuth();
   return useQuery<any>({
     queryKey: ["realtime-scoring", "dashboard", customerId],
     queryFn: async () => {
@@ -34,7 +37,7 @@ export function useRealtimeDashboard(customerId?: string) {
       // Return general dashboard data
       return {};
     },
-    enabled: isAuthenticated && tokenSynced && !!session?.accessToken,
+    enabled: isAuthenticated && !!accessToken,
     refetchInterval: 3000, // Refetch every 3 seconds for real-time updates (optimized)
     staleTime: 0, // Always consider data stale for real-time
   });
@@ -42,7 +45,7 @@ export function useRealtimeDashboard(customerId?: string) {
 
 export function useRealtimeScoringFeed(limit: number = 20) {
   const { isAuthenticated, tokenSynced, session } = useAuth();
-  
+
   return useQuery<any[]>({
     queryKey: ["realtime-scoring-feed", limit],
     enabled: isAuthenticated && tokenSynced && !!session?.accessToken,
@@ -74,14 +77,18 @@ export function useRealtimeScoreFeed() {
             customer_id: item.customer_id || item.customerId || "",
             score: item.score || item.credit_score || 0,
             risk_category: item.risk_category || item.riskCategory || "medium",
-            timestamp: item.timestamp || item.created_at || new Date().toISOString(),
+            timestamp:
+              item.timestamp || item.created_at || new Date().toISOString(),
             loan_amount: item.loan_amount || item.loanAmount,
           }));
         }
         return [];
       } catch (error: any) {
         // Return empty array on error, but log it
-        console.warn("[useRealtimeScoreFeed] Failed to fetch score feed:", error);
+        console.warn(
+          "[useRealtimeScoreFeed] Failed to fetch score feed:",
+          error
+        );
         return [];
       }
     },
@@ -94,7 +101,7 @@ export function useRealtimeScoreFeed() {
 }
 
 export function useRealtimeMetrics() {
-  const { isAuthenticated, tokenSynced, session } = useAuth();
+  const { isAuthenticated, accessToken } = useAuth();
   return useQuery<RealtimeMetrics>({
     queryKey: ["realtime-scoring", "metrics"],
     queryFn: async () => {
@@ -118,12 +125,10 @@ export function useRealtimeMetrics() {
         };
       }
     },
-    enabled: isAuthenticated && tokenSynced && !!session?.accessToken,
+    enabled: isAuthenticated && !!accessToken,
     retry: networkAwareRetry,
     retryDelay: networkAwareRetryDelay,
     refetchInterval: 3000, // Refetch every 3 seconds (optimized for real-time)
     staleTime: 0,
   });
 }
-
-

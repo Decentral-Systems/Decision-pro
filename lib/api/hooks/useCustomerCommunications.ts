@@ -2,7 +2,10 @@
  * React Query hooks for Customer Communications
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -55,8 +58,15 @@ export function useCustomerCommunications(
         return [];
       }
       try {
-        const data = await apiGatewayClient.getCustomerCommunications(customerId, filters);
-        return data?.communications || data?.items || (Array.isArray(data) ? data : []);
+        const data = await apiGatewayClient.getCustomerCommunications(
+          customerId,
+          filters
+        );
+        return (
+          data?.communications ||
+          data?.items ||
+          (Array.isArray(data) ? data : [])
+        );
       } catch (error: any) {
         console.error("Failed to fetch customer communications:", error);
         if (error?.statusCode === 404 || error?.response?.status === 404) {
@@ -80,7 +90,9 @@ export function useCommunicationTemplates(type?: "email" | "sms") {
     queryFn: async () => {
       try {
         const data = await apiGatewayClient.getCommunicationTemplates(type);
-        return data?.templates || data?.items || (Array.isArray(data) ? data : []);
+        return (
+          data?.templates || data?.items || (Array.isArray(data) ? data : [])
+        );
       } catch (error: any) {
         console.error("Failed to fetch communication templates:", error);
         if (error?.statusCode === 404 || error?.response?.status === 404) {
@@ -142,4 +154,3 @@ export function useSendCommunication() {
     },
   });
 }
-

@@ -4,7 +4,10 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { retryWithBackoff } from "@/lib/utils/retry";
 import { executeWithCircuitBreaker } from "@/lib/utils/circuitBreaker";
@@ -47,30 +50,40 @@ export function useFeatureImportance(modelId: string, enabled: boolean = true) {
       try {
         const data = await executeWithCircuitBreaker(
           `/api/ml/model/${modelId}/features/importance`,
-          () => retryWithBackoff(
-            () => apiGatewayClient.getFeatureImportance(modelId),
-            {
-              maxRetries: 3,
-              initialDelay: 1000,
-              retryableErrors: [500, 502, 503, 504, 408, 429],
-            }
-          )
+          () =>
+            retryWithBackoff(
+              () => apiGatewayClient.getFeatureImportance(modelId),
+              {
+                maxRetries: 3,
+                initialDelay: 1000,
+                retryableErrors: [500, 502, 503, 504, 408, 429],
+              }
+            )
         );
-        
+
         const duration = Date.now() - startTime;
-        trackAPICall(`/api/ml/model/${modelId}/features/importance`, duration, 200);
-        
+        trackAPICall(
+          `/api/ml/model/${modelId}/features/importance`,
+          duration,
+          200
+        );
+
         return data as FeatureImportance[];
       } catch (error: any) {
         const duration = Date.now() - startTime;
         const statusCode = error?.statusCode || error?.response?.status || 500;
-        trackAPICall(`/api/ml/model/${modelId}/features/importance`, duration, statusCode, error);
+        trackAPICall(
+          `/api/ml/model/${modelId}/features/importance`,
+          duration,
+          statusCode,
+          error
+        );
         logError(error, "useFeatureImportance");
-        
+
         if (error?.statusCode === 404 || error?.response?.status === 404) {
           return [];
         }
-        
+
         const errorDetails = getErrorDetails(error);
         const enhancedError = new Error(errorDetails.userMessage);
         (enhancedError as any).errorDetails = errorDetails;
@@ -87,7 +100,10 @@ export function useFeatureImportance(modelId: string, enabled: boolean = true) {
 /**
  * Hook to fetch feature correlation
  */
-export function useFeatureCorrelation(modelId: string, enabled: boolean = true) {
+export function useFeatureCorrelation(
+  modelId: string,
+  enabled: boolean = true
+) {
   return useQuery<FeatureCorrelation[]>({
     queryKey: ["feature-correlation", modelId],
     queryFn: async () => {
@@ -95,30 +111,40 @@ export function useFeatureCorrelation(modelId: string, enabled: boolean = true) 
       try {
         const data = await executeWithCircuitBreaker(
           `/api/ml/model/${modelId}/features/correlation`,
-          () => retryWithBackoff(
-            () => apiGatewayClient.getFeatureCorrelation(modelId),
-            {
-              maxRetries: 3,
-              initialDelay: 1000,
-              retryableErrors: [500, 502, 503, 504, 408, 429],
-            }
-          )
+          () =>
+            retryWithBackoff(
+              () => apiGatewayClient.getFeatureCorrelation(modelId),
+              {
+                maxRetries: 3,
+                initialDelay: 1000,
+                retryableErrors: [500, 502, 503, 504, 408, 429],
+              }
+            )
         );
-        
+
         const duration = Date.now() - startTime;
-        trackAPICall(`/api/ml/model/${modelId}/features/correlation`, duration, 200);
-        
+        trackAPICall(
+          `/api/ml/model/${modelId}/features/correlation`,
+          duration,
+          200
+        );
+
         return data as FeatureCorrelation[];
       } catch (error: any) {
         const duration = Date.now() - startTime;
         const statusCode = error?.statusCode || error?.response?.status || 500;
-        trackAPICall(`/api/ml/model/${modelId}/features/correlation`, duration, statusCode, error);
+        trackAPICall(
+          `/api/ml/model/${modelId}/features/correlation`,
+          duration,
+          statusCode,
+          error
+        );
         logError(error, "useFeatureCorrelation");
-        
+
         if (error?.statusCode === 404 || error?.response?.status === 404) {
           return [];
         }
-        
+
         const errorDetails = getErrorDetails(error);
         const enhancedError = new Error(errorDetails.userMessage);
         (enhancedError as any).errorDetails = errorDetails;
@@ -143,30 +169,33 @@ export function useFeatureDrift(modelId: string, enabled: boolean = true) {
       try {
         const data = await executeWithCircuitBreaker(
           `/api/ml/model/${modelId}/features/drift`,
-          () => retryWithBackoff(
-            () => apiGatewayClient.getFeatureDrift(modelId),
-            {
+          () =>
+            retryWithBackoff(() => apiGatewayClient.getFeatureDrift(modelId), {
               maxRetries: 3,
               initialDelay: 1000,
               retryableErrors: [500, 502, 503, 504, 408, 429],
-            }
-          )
+            })
         );
-        
+
         const duration = Date.now() - startTime;
         trackAPICall(`/api/ml/model/${modelId}/features/drift`, duration, 200);
-        
+
         return data as FeatureDrift[];
       } catch (error: any) {
         const duration = Date.now() - startTime;
         const statusCode = error?.statusCode || error?.response?.status || 500;
-        trackAPICall(`/api/ml/model/${modelId}/features/drift`, duration, statusCode, error);
+        trackAPICall(
+          `/api/ml/model/${modelId}/features/drift`,
+          duration,
+          statusCode,
+          error
+        );
         logError(error, "useFeatureDrift");
-        
+
         if (error?.statusCode === 404 || error?.response?.status === 404) {
           return [];
         }
-        
+
         const errorDetails = getErrorDetails(error);
         const enhancedError = new Error(errorDetails.userMessage);
         (enhancedError as any).errorDetails = errorDetails;

@@ -1,10 +1,16 @@
 "use client";
 import React, { Component, ReactNode } from "react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, WifiOff, RefreshCw } from "lucide-react";
-import { isNetworkError } from "@/lib/utils/networkAwareRetry";
+import { isNetworkError } from "@/lib/utils/network-aware-retry";
 
 interface Props {
   children: ReactNode;
@@ -33,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("Error caught by boundary:", error, errorInfo);
-    
+
     // If it's a network error, set up network monitoring
     if (isNetworkError(error)) {
       this.startNetworkMonitoring();
@@ -49,7 +55,11 @@ export class ErrorBoundary extends Component<Props, State> {
   startNetworkMonitoring = () => {
     // Check network status periodically
     this.networkCheckInterval = setInterval(() => {
-      if (typeof window !== 'undefined' && navigator.onLine && this.state.isNetworkError) {
+      if (
+        typeof window !== "undefined" &&
+        navigator.onLine &&
+        this.state.isNetworkError
+      ) {
         // Network recovered - allow retry
         console.log("[ErrorBoundary] Network recovered, allowing retry");
       }
@@ -61,14 +71,20 @@ export class ErrorBoundary extends Component<Props, State> {
     // For other errors, reload the page
     if (this.state.isNetworkError) {
       // Check if network is back online
-      if (typeof window !== 'undefined' && navigator.onLine) {
-        this.setState({ hasError: false, error: undefined, isNetworkError: false });
+      if (typeof window !== "undefined" && navigator.onLine) {
+        this.setState({
+          hasError: false,
+          error: undefined,
+          isNetworkError: false,
+        });
         if (this.networkCheckInterval) {
           clearInterval(this.networkCheckInterval);
         }
       } else {
         // Still offline - show message
-        alert("Network is still offline. Please check your connection and try again.");
+        alert(
+          "Network is still offline. Please check your connection and try again."
+        );
       }
     } else {
       // Non-network error - reload page
@@ -83,7 +99,7 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       const isNetworkErr = this.state.isNetworkError;
-      const isOnline = typeof window !== 'undefined' ? navigator.onLine : true;
+      const isOnline = typeof window !== "undefined" ? navigator.onLine : true;
 
       return (
         <div className="flex min-h-screen items-center justify-center p-4">
@@ -108,14 +124,14 @@ export class ErrorBoundary extends Component<Props, State> {
             <CardContent className="space-y-4">
               {this.state.error && (
                 <div className="rounded-md bg-muted p-4">
-                  <p className="text-sm font-mono text-muted-foreground">
+                  <p className="font-mono text-sm text-muted-foreground">
                     {this.state.error.message}
                   </p>
                 </div>
               )}
-              
+
               {isNetworkErr && (
-                <div className="rounded-md bg-muted/50 p-3 border border-border">
+                <div className="rounded-md border border-border bg-muted/50 p-3">
                   <p className="text-xs text-muted-foreground">
                     {isOnline
                       ? "✓ Network connection detected. You can try again."
@@ -152,4 +168,3 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-

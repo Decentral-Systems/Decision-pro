@@ -2,7 +2,10 @@
  * React Query hooks for Credit Scoring History
  */
 import { useQuery } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { useAuth } from "@/lib/auth/auth-context";
 
@@ -39,23 +42,28 @@ export interface CreditScoringHistoryResponse {
   has_more: boolean;
 }
 
-export function useCreditScoringHistory(params: CreditScoringHistoryParams = {}) {
+export function useCreditScoringHistory(
+  params: CreditScoringHistoryParams = {}
+) {
   const { isAuthenticated } = useAuth();
-  
+
   return useQuery<CreditScoringHistoryResponse>({
     queryKey: ["credit-scoring-history", params],
     queryFn: async () => {
       try {
         // Try to fetch from API Gateway endpoint
-        const response = await apiGatewayClient.get<CreditScoringHistoryResponse>(
-          "/api/intelligence/credit-scoring/history",
-          params
-        );
+        const response =
+          await apiGatewayClient.get<CreditScoringHistoryResponse>(
+            "/api/intelligence/credit-scoring/history",
+            params
+          );
         return response;
       } catch (error: any) {
         // If endpoint doesn't exist, return empty response
         if (error?.statusCode === 404 || error?.statusCode === 401) {
-          console.warn("Credit scoring history endpoint not available, returning empty data");
+          console.warn(
+            "Credit scoring history endpoint not available, returning empty data"
+          );
           return {
             items: [],
             total: 0,
@@ -76,17 +84,18 @@ export function useCreditScoringHistory(params: CreditScoringHistoryParams = {})
 
 export function useCreditScoringHistoryByCustomer(customerId: string | null) {
   const { isAuthenticated } = useAuth();
-  
+
   return useQuery<CreditScoringHistoryItem[]>({
     queryKey: ["credit-scoring-history", "customer", customerId],
     queryFn: async () => {
       if (!customerId) return [];
-      
+
       try {
-        const response = await apiGatewayClient.get<CreditScoringHistoryResponse>(
-          "/api/intelligence/credit-scoring/history",
-          { customer_id: customerId, page_size: 100 }
-        );
+        const response =
+          await apiGatewayClient.get<CreditScoringHistoryResponse>(
+            "/api/intelligence/credit-scoring/history",
+            { customer_id: customerId, page_size: 100 }
+          );
         return response.items || [];
       } catch (error: any) {
         if (error?.statusCode === 404 || error?.statusCode === 401) {
@@ -99,9 +108,3 @@ export function useCreditScoringHistoryByCustomer(customerId: string | null) {
     staleTime: 1 * 60 * 1000,
   });
 }
-
-
-
-
-
-

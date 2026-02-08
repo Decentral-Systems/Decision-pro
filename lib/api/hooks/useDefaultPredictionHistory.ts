@@ -2,7 +2,10 @@
  * React Query hooks for Default Prediction History
  */
 import { useQuery } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { useAuth } from "@/lib/auth/auth-context";
 
@@ -40,23 +43,28 @@ export interface DefaultPredictionHistoryResponse {
   has_more: boolean;
 }
 
-export function useDefaultPredictionHistory(params: DefaultPredictionHistoryParams = {}) {
+export function useDefaultPredictionHistory(
+  params: DefaultPredictionHistoryParams = {}
+) {
   const { isAuthenticated } = useAuth();
-  
+
   return useQuery<DefaultPredictionHistoryResponse>({
     queryKey: ["default-prediction-history", params],
     queryFn: async () => {
       try {
         // Try to fetch from API Gateway endpoint
-        const response = await apiGatewayClient.get<DefaultPredictionHistoryResponse>(
-          "/api/intelligence/default-prediction/history",
-          params
-        );
+        const response =
+          await apiGatewayClient.get<DefaultPredictionHistoryResponse>(
+            "/api/intelligence/default-prediction/history",
+            params
+          );
         return response;
       } catch (error: any) {
         // If endpoint doesn't exist, return empty response
         if (error?.statusCode === 404 || error?.statusCode === 401) {
-          console.warn("Default prediction history endpoint not available, returning empty data");
+          console.warn(
+            "Default prediction history endpoint not available, returning empty data"
+          );
           return {
             items: [],
             total: 0,
@@ -75,19 +83,22 @@ export function useDefaultPredictionHistory(params: DefaultPredictionHistoryPara
   });
 }
 
-export function useDefaultPredictionHistoryByCustomer(customerId: string | null) {
+export function useDefaultPredictionHistoryByCustomer(
+  customerId: string | null
+) {
   const { isAuthenticated } = useAuth();
-  
+
   return useQuery<DefaultPredictionHistoryItem[]>({
     queryKey: ["default-prediction-history", "customer", customerId],
     queryFn: async () => {
       if (!customerId) return [];
-      
+
       try {
-        const response = await apiGatewayClient.get<DefaultPredictionHistoryResponse>(
-          "/api/intelligence/default-prediction/history",
-          { customer_id: customerId, page_size: 100 }
-        );
+        const response =
+          await apiGatewayClient.get<DefaultPredictionHistoryResponse>(
+            "/api/intelligence/default-prediction/history",
+            { customer_id: customerId, page_size: 100 }
+          );
         return response.items || [];
       } catch (error: any) {
         if (error?.statusCode === 404 || error?.statusCode === 401) {
@@ -100,9 +111,3 @@ export function useDefaultPredictionHistoryByCustomer(customerId: string | null)
     staleTime: 1 * 60 * 1000,
   });
 }
-
-
-
-
-
-

@@ -3,7 +3,10 @@
  * Provides hooks for fetching various analytics and dashboard data
  */
 import { useQuery } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useQueryEnabled, shouldEnableQuery } from "./useQueryEnabled";
@@ -11,11 +14,11 @@ import { setCacheMetadata } from "@/lib/utils/cacheMetadata";
 import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
 
 export interface AnalyticsParams {
-  type?: string; 
+  type?: string;
   customer_id?: string;
-  time_range?: string; 
-  group_by?: string; 
-  format?: string; 
+  time_range?: string;
+  group_by?: string;
+  format?: string;
   start_date?: string;
   end_date?: string;
 }
@@ -23,7 +26,7 @@ export interface AnalyticsParams {
 type ParamsOrTimeframe = AnalyticsParams | string | undefined;
 
 function getParams(params: ParamsOrTimeframe): AnalyticsParams {
-  if (typeof params === 'string') {
+  if (typeof params === "string") {
     return { time_range: params };
   }
   return params || {};
@@ -57,7 +60,9 @@ export function useCustomerAnalytics(params?: ParamsOrTimeframe) {
  * Fetches all dashboard data in a single request instead of multiple calls
  * This prevents connection pool exhaustion by reducing 8+ API calls to 1
  */
-export function useAggregatedDashboardData(sections: string = "customers,analytics,revenue,portfolio,risk") {
+export function useAggregatedDashboardData(
+  sections: string = "customers,analytics,revenue,portfolio,risk"
+) {
   const { isAuthenticated, tokenSynced, session } = useAuth();
   const isQueryEnabled = useQueryEnabled();
 
@@ -68,9 +73,10 @@ export function useAggregatedDashboardData(sections: string = "customers,analyti
       try {
         const startTime = Date.now();
         const correlationId = getOrCreateCorrelationId();
-        
-        const data = await apiGatewayClient.getAggregatedDashboardData(sections);
-        
+
+        const data =
+          await apiGatewayClient.getAggregatedDashboardData(sections);
+
         // Store cache metadata
         const responseTime = Date.now() - startTime;
         setCacheMetadata("aggregated_dashboard", {
@@ -78,19 +84,22 @@ export function useAggregatedDashboardData(sections: string = "customers,analyti
           responseTime,
           timestamp: new Date().toISOString(),
         });
-        
-        if (typeof window !== 'undefined') {
-          console.log('[useAggregatedDashboardData] Fetched data (Phase 5):', {
+
+        if (typeof window !== "undefined") {
+          console.log("[useAggregatedDashboardData] Fetched data (Phase 5):", {
             hasData: !!data,
             sections: data?.sections_loaded || [],
-            responseTime: responseTime + 'ms'
+            responseTime: responseTime + "ms",
           });
         }
-        
+
         return data;
       } catch (error: any) {
-        console.error("[useAggregatedDashboardData] Failed to fetch aggregated dashboard data:", error);
-        
+        console.error(
+          "[useAggregatedDashboardData] Failed to fetch aggregated dashboard data:",
+          error
+        );
+
         // Return empty structure to allow components to render
         return {
           success: false,
@@ -99,10 +108,10 @@ export function useAggregatedDashboardData(sections: string = "customers,analyti
             analytics: null,
             revenue: null,
             portfolio: null,
-            risk: null
+            risk: null,
           },
           sections_loaded: [],
-          error: error.message
+          error: error.message,
         };
       }
     },
@@ -127,8 +136,11 @@ export function useAnalyticsData(params?: ParamsOrTimeframe) {
       try {
         const startTime = Date.now();
         const correlationId = getOrCreateCorrelationId();
-        const data = await apiGatewayClient.getAnalyticsData(p.type || "dashboard", p);
-        
+        const data = await apiGatewayClient.getAnalyticsData(
+          p.type || "dashboard",
+          p
+        );
+
         // Store cache metadata
         const responseTime = Date.now() - startTime;
         setCacheMetadata("analytics", {
@@ -136,8 +148,8 @@ export function useAnalyticsData(params?: ParamsOrTimeframe) {
           responseTime,
         });
         // Safe logging for SSR
-        if (typeof window !== 'undefined') {
-          console.log('[useAnalyticsData] Fetched data:', {
+        if (typeof window !== "undefined") {
+          console.log("[useAnalyticsData] Fetched data:", {
             hasData: !!data,
             hasAnalytics: !!data?.analytics,
             analyticsKeys: data?.analytics ? Object.keys(data.analytics) : [],
@@ -146,13 +158,21 @@ export function useAnalyticsData(params?: ParamsOrTimeframe) {
         }
         return data;
       } catch (error: any) {
-        console.error("[useAnalyticsData] Failed to fetch analytics data:", error);
+        console.error(
+          "[useAnalyticsData] Failed to fetch analytics data:",
+          error
+        );
         // Return empty structure instead of null to allow components to render
         return {
           analytics: {
             portfolio: { customers: [], trends: [] },
-            risk: { categories: [], trends: [], scoreDistribution: [], regionalData: [] }
-          }
+            risk: {
+              categories: [],
+              trends: [],
+              scoreDistribution: [],
+              regionalData: [],
+            },
+          },
         };
       }
     },
@@ -235,7 +255,11 @@ export function useRevenueBreakdown(
     enabled: isQueryEnabled, // Allow API key fallback
     queryFn: async () => {
       try {
-        const data = await apiGatewayClient.getRevenueBreakdown(timeframe, months, dateParams);
+        const data = await apiGatewayClient.getRevenueBreakdown(
+          timeframe,
+          months,
+          dateParams
+        );
         if (Array.isArray(data)) {
           return data;
         }
@@ -265,7 +289,12 @@ export function useRevenueTrends(
     enabled: shouldEnableQuery(isAuthenticated, session?.accessToken),
     queryFn: async () => {
       try {
-        const data = await apiGatewayClient.getRevenueTrends(timeframe, months, startDate, endDate);
+        const data = await apiGatewayClient.getRevenueTrends(
+          timeframe,
+          months,
+          startDate,
+          endDate
+        );
         return data;
       } catch (error: any) {
         console.error("Failed to fetch revenue trends:", error);
@@ -284,7 +313,8 @@ export function usePreviousPeriodMetrics(time_range: string = "30d") {
     queryKey: ["analytics", "previous-period", time_range],
     queryFn: async () => {
       try {
-        const data = await apiGatewayClient.getPreviousPeriodAnalytics(time_range);
+        const data =
+          await apiGatewayClient.getPreviousPeriodAnalytics(time_range);
         return data?.data || data || null;
       } catch (error: any) {
         console.error("Failed to fetch previous period metrics:", error);
@@ -324,7 +354,13 @@ export function useBankingRatiosStressScenario(
   const { isAuthenticated, tokenSynced, session } = useAuth();
 
   return useQuery<any | null>({
-    queryKey: ["banking-ratios-stress-scenario", scenario, defaultRateIncrease, interestRateShock, economicDownturn],
+    queryKey: [
+      "banking-ratios-stress-scenario",
+      scenario,
+      defaultRateIncrease,
+      interestRateShock,
+      economicDownturn,
+    ],
     enabled: isAuthenticated && tokenSynced && !!session?.accessToken,
     queryFn: async () => {
       try {

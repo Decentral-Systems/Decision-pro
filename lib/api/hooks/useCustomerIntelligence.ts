@@ -2,7 +2,10 @@
  * React Query hooks for Customer Intelligence data
  */
 import { useQuery } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { useAuth } from "@/lib/auth/auth-context";
 
@@ -32,4 +35,3 @@ export function useCustomerIntelligence(customerId: string | undefined | null) {
     retryDelay: networkAwareRetryDelay,
   });
 }
-

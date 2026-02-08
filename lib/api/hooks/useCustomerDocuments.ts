@@ -2,7 +2,10 @@
  * React Query hooks for Customer Documents
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -46,8 +49,13 @@ export function useCustomerDocuments(
         return [];
       }
       try {
-        const data = await apiGatewayClient.getCustomerDocuments(customerId, filters);
-        return data?.documents || data?.items || (Array.isArray(data) ? data : []);
+        const data = await apiGatewayClient.getCustomerDocuments(
+          customerId,
+          filters
+        );
+        return (
+          data?.documents || data?.items || (Array.isArray(data) ? data : [])
+        );
       } catch (error: any) {
         console.error("Failed to fetch customer documents:", error);
         if (error?.statusCode === 404 || error?.response?.status === 404) {
@@ -88,7 +96,9 @@ export function useUploadDocument() {
       });
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["customer-documents", variables.customerId] });
+      queryClient.invalidateQueries({
+        queryKey: ["customer-documents", variables.customerId],
+      });
       toast({
         title: "Document Uploaded",
         description: "Document has been uploaded successfully",
@@ -109,11 +119,22 @@ export function useDeleteDocument() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ customerId, documentId }: { customerId: string; documentId: string }) => {
-      return await apiGatewayClient.deleteCustomerDocument(customerId, documentId);
+    mutationFn: async ({
+      customerId,
+      documentId,
+    }: {
+      customerId: string;
+      documentId: string;
+    }) => {
+      return await apiGatewayClient.deleteCustomerDocument(
+        customerId,
+        documentId
+      );
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["customer-documents", variables.customerId] });
+      queryClient.invalidateQueries({
+        queryKey: ["customer-documents", variables.customerId],
+      });
       toast({
         title: "Document Deleted",
         description: "Document has been deleted successfully",
@@ -128,4 +149,3 @@ export function useDeleteDocument() {
     },
   });
 }
-

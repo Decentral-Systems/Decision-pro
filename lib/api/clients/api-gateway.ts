@@ -12,7 +12,7 @@ import {
 import {
   normalizeApiResponse,
   normalizeErrorResponse,
-} from "@/lib/utils/apiResponseNormalizer";
+} from "@/lib/utils/api-response-normalizer";
 import { creditScoreCache } from "@/lib/utils/creditScoreCache";
 import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
 import {

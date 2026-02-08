@@ -2,7 +2,10 @@
  * React Query hooks for Customer data
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
 import { CustomersListResponse } from "@/types/api";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -26,7 +29,7 @@ export interface CustomersListParams {
 
 export function useCustomer360(customerId: string | null) {
   const { isAuthenticated, tokenSynced, status, session } = useAuth();
-  
+
   return useQuery<any | null>({
     queryKey: ["customer360", customerId],
     queryFn: async () => {
@@ -34,12 +37,18 @@ export function useCustomer360(customerId: string | null) {
         console.warn("[useCustomer360] No customer ID provided");
         return null;
       }
-      
+
       try {
-        console.log("[useCustomer360] Fetching customer 360 data for:", customerId);
+        console.log(
+          "[useCustomer360] Fetching customer 360 data for:",
+          customerId
+        );
         // Use apiGatewayClient since the endpoint is on API Gateway
         const data = await apiGatewayClient.getCustomer360(customerId);
-        console.log("[useCustomer360] Successfully fetched customer 360 data:", !!data);
+        console.log(
+          "[useCustomer360] Successfully fetched customer 360 data:",
+          !!data
+        );
         return data;
       } catch (error: any) {
         // Log error details for debugging
@@ -50,18 +59,21 @@ export function useCustomer360(customerId: string | null) {
           message: error?.message,
           customerId,
         });
-        
+
         // Return null for 401/404 errors to allow graceful fallback UI
         if (statusCode === 401 || statusCode === 404 || statusCode === 403) {
-          console.warn(`[useCustomer360] Returning null for status code: ${statusCode}`);
+          console.warn(
+            `[useCustomer360] Returning null for status code: ${statusCode}`
+          );
           return null;
         }
-        
+
         // Re-throw other errors to let React Query handle them
         throw error;
       }
     },
-    enabled: !!customerId && isAuthenticated && tokenSynced && !!session?.accessToken,
+    enabled:
+      !!customerId && isAuthenticated && tokenSynced && !!session?.accessToken,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: networkAwareRetry,
     retryDelay: networkAwareRetryDelay,
@@ -95,8 +107,17 @@ export function useCustomerSearch(searchTerm: string) {
   const { isAuthenticated, tokenSynced, session } = useAuth();
   return useQuery<CustomersListResponse>({
     queryKey: ["customers", "search", searchTerm],
-    queryFn: () => apiGatewayClient.getCustomers({ search: searchTerm, page: 1, page_size: 20 }),
-    enabled: isAuthenticated && tokenSynced && !!session?.accessToken && searchTerm.length >= 2, // Only search if at least 2 characters
+    queryFn: () =>
+      apiGatewayClient.getCustomers({
+        search: searchTerm,
+        page: 1,
+        page_size: 20,
+      }),
+    enabled:
+      isAuthenticated &&
+      tokenSynced &&
+      !!session?.accessToken &&
+      searchTerm.length >= 2, // Only search if at least 2 characters
     staleTime: 1 * 60 * 1000, // 1 minute
   });
 }
@@ -117,13 +138,19 @@ export function useCustomerSearchAutocomplete(
   const queryEnabled = trimmedQuery.length >= 2;
   // Only enable if base conditions are met AND query is valid
   // If options.enabled is provided, it should already check query length, but we double-check here
-  const enabled = baseEnabled && queryEnabled && (options?.enabled !== undefined ? options.enabled : true);
+  const enabled =
+    baseEnabled &&
+    queryEnabled &&
+    (options?.enabled !== undefined ? options.enabled : true);
 
   return useQuery({
     queryKey: ["customers", "autocomplete", trimmedQuery, limit],
     queryFn: async () => {
       try {
-        console.log("[useCustomerSearchAutocomplete] Searching customers with query:", trimmedQuery);
+        console.log(
+          "[useCustomerSearchAutocomplete] Searching customers with query:",
+          trimmedQuery
+        );
         const result = await apiGatewayClient.searchCustomers({
           query: trimmedQuery,
           limit,
@@ -138,7 +165,10 @@ export function useCustomerSearchAutocomplete(
         });
         return result.results || [];
       } catch (error: any) {
-        console.error("[useCustomerSearchAutocomplete] Customer search autocomplete error:", error);
+        console.error(
+          "[useCustomerSearchAutocomplete] Customer search autocomplete error:",
+          error
+        );
         return [];
       }
     },
@@ -180,7 +210,9 @@ export function useUpdateCustomer() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
-      queryClient.invalidateQueries({ queryKey: ["customer360", variables.customerId] });
+      queryClient.invalidateQueries({
+        queryKey: ["customer360", variables.customerId],
+      });
     },
   });
 }
@@ -232,12 +264,16 @@ export function useBulkExportCustomers() {
 /**
  * Get Customer Notes
  */
-export function useCustomerNotes(customerId: string | null, params?: { page?: number; page_size?: number }) {
+export function useCustomerNotes(
+  customerId: string | null,
+  params?: { page?: number; page_size?: number }
+) {
   const { isAuthenticated } = useAuth();
   return useQuery({
     queryKey: ["customerNotes", customerId, params],
     queryFn: async () => {
-      if (!customerId) return { items: [], total: 0, page: 1, page_size: 50, has_more: false };
+      if (!customerId)
+        return { items: [], total: 0, page: 1, page_size: 50, has_more: false };
       return await apiGatewayClient.getCustomerNotes(customerId, params);
     },
     enabled: !!customerId && isAuthenticated,
@@ -250,12 +286,21 @@ export function useCustomerNotes(customerId: string | null, params?: { page?: nu
  */
 export function useCreateCustomerNote() {
   const queryClient = useQueryClient();
-  return useMutation<any, Error, { customerId: string; note: { content: string; type?: string; tags?: string[] } }>({
+  return useMutation<
+    any,
+    Error,
+    {
+      customerId: string;
+      note: { content: string; type?: string; tags?: string[] };
+    }
+  >({
     mutationFn: async ({ customerId, note }) => {
       return await apiGatewayClient.createCustomerNote(customerId, note);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["customerNotes", variables.customerId] });
+      queryClient.invalidateQueries({
+        queryKey: ["customerNotes", variables.customerId],
+      });
     },
   });
 }
@@ -265,12 +310,26 @@ export function useCreateCustomerNote() {
  */
 export function useUpdateCustomerNote() {
   const queryClient = useQueryClient();
-  return useMutation<any, Error, { customerId: string; noteId: string; note: { content: string; type?: string; tags?: string[] } }>({
+  return useMutation<
+    any,
+    Error,
+    {
+      customerId: string;
+      noteId: string;
+      note: { content: string; type?: string; tags?: string[] };
+    }
+  >({
     mutationFn: async ({ customerId, noteId, note }) => {
-      return await apiGatewayClient.updateCustomerNote(customerId, noteId, note);
+      return await apiGatewayClient.updateCustomerNote(
+        customerId,
+        noteId,
+        note
+      );
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["customerNotes", variables.customerId] });
+      queryClient.invalidateQueries({
+        queryKey: ["customerNotes", variables.customerId],
+      });
     },
   });
 }
@@ -285,7 +344,9 @@ export function useDeleteCustomerNote() {
       return await apiGatewayClient.deleteCustomerNote(customerId, noteId);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["customerNotes", variables.customerId] });
+      queryClient.invalidateQueries({
+        queryKey: ["customerNotes", variables.customerId],
+      });
     },
   });
 }
@@ -293,12 +354,16 @@ export function useDeleteCustomerNote() {
 /**
  * Get Customer Activity Log
  */
-export function useCustomerActivityLog(customerId: string | null, params?: { page?: number; page_size?: number; activity_type?: string }) {
+export function useCustomerActivityLog(
+  customerId: string | null,
+  params?: { page?: number; page_size?: number; activity_type?: string }
+) {
   const { isAuthenticated } = useAuth();
   return useQuery({
     queryKey: ["customerActivityLog", customerId, params],
     queryFn: async () => {
-      if (!customerId) return { items: [], total: 0, page: 1, page_size: 50, has_more: false };
+      if (!customerId)
+        return { items: [], total: 0, page: 1, page_size: 50, has_more: false };
       return await apiGatewayClient.getCustomerActivityLog(customerId, params);
     },
     enabled: !!customerId && isAuthenticated,

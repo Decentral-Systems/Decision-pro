@@ -1,7 +1,7 @@
 /**
  * React Query Configuration
  * Optimized for performance with proper caching and stale times
- * 
+ *
  * FIXED: Comprehensive fixes to prevent data fetching from stopping:
  * - Enabled refetchOnWindowFocus to refresh data when user returns to tab
  * - Reduced staleTime to ensure data is refreshed more frequently
@@ -10,7 +10,10 @@
  */
 
 import { QueryClient } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 
 export const queryClientConfig = {
   defaultOptions: {
@@ -43,7 +46,3 @@ export const queryClientConfig = {
 export function createQueryClient() {
   return new QueryClient(queryClientConfig);
 }
-
-
-
-

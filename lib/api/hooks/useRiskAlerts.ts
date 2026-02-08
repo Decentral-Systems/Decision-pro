@@ -2,18 +2,28 @@
  * React Query hooks for Risk Alerts
  */
 import { useQuery } from "@tanstack/react-query";
-import { networkAwareRetry, networkAwareRetryDelay } from "@/lib/utils/networkAwareRetry";
+import {
+  networkAwareRetry,
+  networkAwareRetryDelay,
+} from "@/lib/utils/network-aware-retry";
 import { apiGatewayClient } from "../clients/api-gateway";
-import { RiskAlertsResponse, WatchlistResponse, MarketRiskAnalysis } from "@/types/risk";
+import {
+  RiskAlertsResponse,
+  WatchlistResponse,
+  MarketRiskAnalysis,
+} from "@/types/risk";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   normalizeResponseFormat,
   validateMarketRiskAnalysis,
 } from "@/lib/utils/responseFormatValidator";
 
-export function useRiskAlerts(filters?: { severity?: string; status?: string }) {
+export function useRiskAlerts(filters?: {
+  severity?: string;
+  status?: string;
+}) {
   const { isAuthenticated, tokenSynced, session } = useAuth();
-  
+
   return useQuery<RiskAlertsResponse | null>({
     queryKey: ["risk-alerts", filters],
     enabled: isAuthenticated && tokenSynced && !!session?.accessToken,
@@ -36,7 +46,7 @@ export function useRiskAlerts(filters?: { severity?: string; status?: string }) 
 
 export function useWatchlist() {
   const { isAuthenticated, tokenSynced, session } = useAuth();
-  
+
   return useQuery<WatchlistResponse | null>({
     queryKey: ["watchlist"],
     enabled: isAuthenticated && tokenSynced && !!session?.accessToken,
@@ -59,7 +69,7 @@ export function useWatchlist() {
 
 export function useMarketRiskAnalysis() {
   const { isAuthenticated, tokenSynced, session } = useAuth();
-  
+
   return useQuery<MarketRiskAnalysis | null>({
     queryKey: ["market-risk-analysis"],
     queryFn: async () => {
@@ -73,23 +83,28 @@ export function useMarketRiskAnalysis() {
         return normalized;
       } catch (error: any) {
         const statusCode = error?.statusCode || error?.response?.status;
-        const correlationId = error?.correlationId || error?.response?.headers?.["x-correlation-id"];
-        
+        const correlationId =
+          error?.correlationId ||
+          error?.response?.headers?.["x-correlation-id"];
+
         // Log error for debugging (only in development)
-        if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+        if (
+          typeof window !== "undefined" &&
+          process.env.NODE_ENV === "development"
+        ) {
           console.error("[MarketRiskAnalysis] API Error:", {
             statusCode,
             correlationId,
             message: error?.message || "Unknown error",
-            error: error
+            error: error,
           });
         }
-        
+
         // Return null for 404 (endpoint not found) to show empty state
         if (statusCode === 404) {
           return null;
         }
-        
+
         // Re-throw other errors to trigger error state
         throw error;
       }
@@ -103,7 +118,7 @@ export function useMarketRiskAnalysis() {
 
 export function useMarketRiskHistorical(days: number = 30) {
   const { isAuthenticated, tokenSynced, session } = useAuth();
-  
+
   return useQuery<any | null>({
     queryKey: ["market-risk-historical", days],
     queryFn: async () => {
@@ -112,24 +127,29 @@ export function useMarketRiskHistorical(days: number = 30) {
         return data?.historical_data || null;
       } catch (error: any) {
         const statusCode = error?.statusCode || error?.response?.status;
-        const correlationId = error?.correlationId || error?.response?.headers?.["x-correlation-id"];
-        
+        const correlationId =
+          error?.correlationId ||
+          error?.response?.headers?.["x-correlation-id"];
+
         // Log error for debugging (only in development)
-        if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+        if (
+          typeof window !== "undefined" &&
+          process.env.NODE_ENV === "development"
+        ) {
           console.error("[MarketRiskHistorical] API Error:", {
             statusCode,
             correlationId,
             message: error?.message || "Unknown error",
             days,
-            error: error
+            error: error,
           });
         }
-        
+
         // Return null for 404 or other errors to allow fallback
         if (statusCode === 404) {
           return null;
         }
-        
+
         // Return null on error to allow fallback (historical data is optional)
         return null;
       }
@@ -143,7 +163,7 @@ export function useMarketRiskHistorical(days: number = 30) {
 
 export function useMarketRiskSectors() {
   const { isAuthenticated, tokenSynced, session } = useAuth();
-  
+
   return useQuery<any | null>({
     queryKey: ["market-risk-sectors"],
     queryFn: async () => {
@@ -152,23 +172,28 @@ export function useMarketRiskSectors() {
         return data?.sectors || null;
       } catch (error: any) {
         const statusCode = error?.statusCode || error?.response?.status;
-        const correlationId = error?.correlationId || error?.response?.headers?.["x-correlation-id"];
-        
+        const correlationId =
+          error?.correlationId ||
+          error?.response?.headers?.["x-correlation-id"];
+
         // Log error for debugging (only in development)
-        if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+        if (
+          typeof window !== "undefined" &&
+          process.env.NODE_ENV === "development"
+        ) {
           console.error("[MarketRiskSectors] API Error:", {
             statusCode,
             correlationId,
             message: error?.message || "Unknown error",
-            error: error
+            error: error,
           });
         }
-        
+
         // Return null for 404 or other errors to allow fallback
         if (statusCode === 404) {
           return null;
         }
-        
+
         // Return null on error to allow fallback (sectors data is optional)
         return null;
       }
@@ -179,10 +204,3 @@ export function useMarketRiskSectors() {
     retryDelay: networkAwareRetryDelay,
   });
 }
-
-
-
-
-
-
-

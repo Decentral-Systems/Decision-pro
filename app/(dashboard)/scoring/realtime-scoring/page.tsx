@@ -56,6 +56,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useGetRealtimeScoringMetrics } from "@/features/scoring/hooks/use-get-realtime-scoring-metrics";
 
 export default function RealtimeScoringPage() {
   const [customerId, setCustomerId] = useState<string>("");
@@ -84,12 +85,16 @@ export default function RealtimeScoringPage() {
     error: feedError,
     refetch: refetchFeed,
   } = useRealtimeScoreFeed();
+
   const {
     data: metricsData,
     isLoading: metricsLoading,
     error: metricsError,
     refetch: refetchMetrics,
   } = useRealtimeMetrics();
+
+  const { data: realtimeScoringMetrics } = useGetRealtimeScoringMetrics();
+  console.log("realtimeScoringMetrics", realtimeScoringMetrics);
 
   // Also use the alternative feed hook that might have different data
   const { data: alternativeFeed } = useRealtimeScoringFeed(50);
