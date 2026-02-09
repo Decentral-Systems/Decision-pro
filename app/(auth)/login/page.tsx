@@ -95,7 +95,7 @@ export default function LoginPage() {
           <div className="flex justify-center">
             <div className="relative h-20 w-20 overflow-hidden rounded-2xl bg-white p-3 shadow-lg">
               <Image
-                src="/logo.png"
+                src="/logos/logo_only.jpeg"
                 alt="Decision PRO"
                 fill
                 className="object-contain"
