@@ -54,7 +54,7 @@ import {
   Activity,
   List,
 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";

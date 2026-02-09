@@ -1,4 +1,5 @@
 import type { TablerIcon } from "@tabler/icons-react";
+
 import {
   IconLayoutDashboard,
   IconCreditCard,
@@ -27,14 +28,15 @@ export interface SidebarItem {
   icon: TablerIcon;
 }
 
-/** A collapsible group in the sidebar with a label and child items */
+export const PERSIST_KEY = "react-query-cache";
+export const METADATA_PREFIX = "cache_metadata_";
+
 export interface SidebarGroupConfig {
   label: string;
   icon: TablerIcon;
   items: SidebarItem[];
 }
 
-/** Top-level nav entry: either a single link or a collapsible group */
 export type SidebarNavEntry =
   | { type: "item"; item: SidebarItem }
   | { type: "group"; group: SidebarGroupConfig };

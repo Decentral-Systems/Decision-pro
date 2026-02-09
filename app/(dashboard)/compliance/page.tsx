@@ -26,7 +26,7 @@ import {
   RefreshCw,
   ClipboardCheck,
 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import {
   Select,
   SelectContent,

@@ -41,7 +41,7 @@ import {
   RefreshCw,
   BarChart3,
 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { safeFormatDate } from "@/lib/utils/format";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

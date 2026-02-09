@@ -72,7 +72,7 @@ import {
   BarChart3,
   PieChart,
 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import { formatCurrency } from "@/lib/utils/format";
 import { Button } from "@/components/ui/button";
 import { ApiStatusIndicator } from "@/components/api-status-indicator";

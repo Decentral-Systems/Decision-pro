@@ -22,7 +22,7 @@ import {
   Server,
   BarChart3,
 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import { Button } from "@/components/ui/button";
 import { ApiStatusIndicator } from "@/components/api-status-indicator";
 import { Switch } from "@/components/ui/switch";

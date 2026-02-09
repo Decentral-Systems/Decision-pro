@@ -7,21 +7,18 @@ import { useState, useEffect } from "react";
 import { createQueryClient } from "@/lib/react-query/config";
 import { Toaster } from "@/components/ui/toaster";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { cacheManager } from "@/lib/utils/cacheManager";
+import { cacheManager } from "@/lib/utils/cache-manager";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { SessionTimeoutWarning } from "@/components/auth/SessionTimeoutWarning";
 import { NetworkRecoveryMonitor } from "@/components/common/NetworkRecoveryMonitor";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  // Create query client once per app lifecycle using optimized config
   const [queryClient] = useState(() => {
     const client = createQueryClient();
-    // Initialize cache manager
     cacheManager.initialize(client);
     return client;
   });
 
-  // Persist cache periodically
   useEffect(() => {
     const interval = setInterval(() => {
       cacheManager.persistNow();
@@ -30,7 +27,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Periodic query health check to prevent stuck queries
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
@@ -73,7 +69,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         }
       },
       2 * 60 * 1000
-    ); // Check every 2 minutes
+    );
 
     return () => clearInterval(healthCheckInterval);
   }, [queryClient]);

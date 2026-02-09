@@ -20,7 +20,7 @@ import {
   Target,
   LineChart,
 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import { ApiStatusIndicator } from "@/components/api-status-indicator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useCustomerStats } from "@/lib/api/hooks/useCustomerStats";

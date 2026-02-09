@@ -25,7 +25,7 @@ import {
   Upload,
   Activity,
 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BatchCreditScoreResponse } from "@/types/credit";
 import {

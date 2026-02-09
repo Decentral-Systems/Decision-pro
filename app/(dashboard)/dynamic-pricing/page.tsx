@@ -27,7 +27,7 @@ import {
   AlertTriangle,
   TrendingUp,
 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 
 export default function DynamicPricingPage() {
   const [result, setResult] = useState<PricingResponse | null>(null);

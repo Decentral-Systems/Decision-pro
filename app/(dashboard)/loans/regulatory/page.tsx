@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState, useMemo, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,17 +34,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   FileText,
   Download,
@@ -55,7 +52,7 @@ import {
   DollarSign,
   Target,
 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -82,7 +79,7 @@ import {
   Area,
 } from "recharts";
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 
 // Quick date range presets
 const DATE_PRESETS = [
@@ -96,7 +93,7 @@ const DATE_PRESETS = [
 
 function RegulatoryReportingPageContent() {
   const { toast } = useToast();
-  
+
   // State management
   const [activeTab, setActiveTab] = useState("overview");
   const [datePreset, setDatePreset] = useState("30d");
@@ -105,7 +102,8 @@ function RegulatoryReportingPageContent() {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [reportPeriodStart, setReportPeriodStart] = useState<string>("");
   const [reportPeriodEnd, setReportPeriodEnd] = useState<string>("");
-  const [selectedViolationType, setSelectedViolationType] = useState<string>("all");
+  const [selectedViolationType, setSelectedViolationType] =
+    useState<string>("all");
   const [alertsEnabled, setAlertsEnabled] = useState(true);
   const [executiveViewMode, setExecutiveViewMode] = useState("summary");
 
@@ -113,7 +111,7 @@ function RegulatoryReportingPageContent() {
   const handleDatePresetChange = useCallback((preset: string) => {
     setDatePreset(preset);
     if (preset !== "custom") {
-      const presetConfig = DATE_PRESETS.find(p => p.value === preset);
+      const presetConfig = DATE_PRESETS.find((p) => p.value === preset);
       if (presetConfig && presetConfig.days > 0) {
         const endDate = new Date();
         const startDate = subDays(endDate, presetConfig.days);
@@ -128,7 +126,7 @@ function RegulatoryReportingPageContent() {
     if (datePreset === "custom") {
       return { dateFrom, dateTo };
     }
-    const presetConfig = DATE_PRESETS.find(p => p.value === datePreset);
+    const presetConfig = DATE_PRESETS.find((p) => p.value === datePreset);
     if (presetConfig && presetConfig.days > 0) {
       const endDate = new Date();
       const startDate = subDays(endDate, presetConfig.days);
@@ -140,7 +138,11 @@ function RegulatoryReportingPageContent() {
     return { dateFrom: "", dateTo: "" };
   }, [datePreset, dateFrom, dateTo]);
 
-  const { data: overview, isLoading: overviewLoading, refetch: refetchOverview } = usePortfolioOverview({
+  const {
+    data: overview,
+    isLoading: overviewLoading,
+    refetch: refetchOverview,
+  } = usePortfolioOverview({
     date_from: effectiveDateRange.dateFrom || undefined,
     date_to: effectiveDateRange.dateTo || undefined,
   });
@@ -152,16 +154,38 @@ function RegulatoryReportingPageContent() {
   // Enhanced compliance metrics calculation
   const complianceMetrics = useMemo(() => {
     const totalLoans = portfolioData.total_loans_count || 0;
-    const compliantLoans = portfolioData.compliant_loans_count || Math.floor(totalLoans * 0.92); // Mock 92% compliance
+    const compliantLoans =
+      portfolioData.compliant_loans_count || Math.floor(totalLoans * 0.92); // Mock 92% compliance
     const nonCompliantLoans = totalLoans - compliantLoans;
-    const complianceRate = totalLoans > 0 ? (compliantLoans / totalLoans * 100) : 0;
-    
+    const complianceRate =
+      totalLoans > 0 ? (compliantLoans / totalLoans) * 100 : 0;
+
     // Mock violation data - in real implementation, this would come from API
     const violations = [
-      { violation_type: "salary_rule", count: Math.floor(nonCompliantLoans * 0.4), severity: "high", description: "1/3 salary rule violations" },
-      { violation_type: "interest_rate", count: Math.floor(nonCompliantLoans * 0.3), severity: "medium", description: "Interest rate outside 12-25% range" },
-      { violation_type: "loan_term", count: Math.floor(nonCompliantLoans * 0.2), severity: "medium", description: "Loan term exceeds 60 months" },
-      { violation_type: "loan_amount", count: Math.floor(nonCompliantLoans * 0.1), severity: "low", description: "Loan amount outside limits" },
+      {
+        violation_type: "salary_rule",
+        count: Math.floor(nonCompliantLoans * 0.4),
+        severity: "high",
+        description: "1/3 salary rule violations",
+      },
+      {
+        violation_type: "interest_rate",
+        count: Math.floor(nonCompliantLoans * 0.3),
+        severity: "medium",
+        description: "Interest rate outside 12-25% range",
+      },
+      {
+        violation_type: "loan_term",
+        count: Math.floor(nonCompliantLoans * 0.2),
+        severity: "medium",
+        description: "Loan term exceeds 60 months",
+      },
+      {
+        violation_type: "loan_amount",
+        count: Math.floor(nonCompliantLoans * 0.1),
+        severity: "low",
+        description: "Loan amount outside limits",
+      },
     ];
 
     return {
@@ -188,12 +212,12 @@ function RegulatoryReportingPageContent() {
         period_start: reportPeriodStart,
         period_end: reportPeriodEnd,
       });
-      
+
       toast({
         title: "Success",
         description: "NBE compliance report generated successfully",
       });
-      
+
       setReportDialogOpen(false);
     } catch (error: any) {
       toast({
@@ -207,7 +231,7 @@ function RegulatoryReportingPageContent() {
   const handleExportReport = (format: "csv" | "excel" | "pdf") => {
     const exportData = [
       {
-        "Period": `${effectiveDateRange.dateFrom} to ${effectiveDateRange.dateTo}`,
+        Period: `${effectiveDateRange.dateFrom} to ${effectiveDateRange.dateTo}`,
         "Total Loans": complianceMetrics.totalLoans,
         "Compliant Loans": complianceMetrics.compliantLoans,
         "Non-Compliant Loans": complianceMetrics.nonCompliantLoans,
@@ -215,16 +239,22 @@ function RegulatoryReportingPageContent() {
       },
       ...complianceMetrics.violations.map((v: any) => ({
         "Violation Type": v.violation_type,
-        "Count": v.count,
-        "Severity": v.severity,
-        "Description": v.description,
+        Count: v.count,
+        Severity: v.severity,
+        Description: v.description,
       })),
     ];
 
     if (format === "csv") {
-      exportToCSV(exportData, `nbe_compliance_report_${format(new Date(), "yyyy-MM-dd")}`);
+      exportToCSV(
+        exportData,
+        `nbe_compliance_report_${format(new Date(), "yyyy-MM-dd")}`
+      );
     } else if (format === "excel") {
-      exportToExcel(exportData, `nbe_compliance_report_${format(new Date(), "yyyy-MM-dd")}`);
+      exportToExcel(
+        exportData,
+        `nbe_compliance_report_${format(new Date(), "yyyy-MM-dd")}`
+      );
     }
 
     toast({
@@ -234,80 +264,111 @@ function RegulatoryReportingPageContent() {
   };
 
   // Filter violations
-  const filteredViolations = selectedViolationType === "all"
-    ? complianceMetrics.violations
-    : complianceMetrics.violations.filter((v: any) => v.violation_type === selectedViolationType);
+  const filteredViolations =
+    selectedViolationType === "all"
+      ? complianceMetrics.violations
+      : complianceMetrics.violations.filter(
+          (v: any) => v.violation_type === selectedViolationType
+        );
 
   // Violation type distribution
-  const violationTypeData = complianceMetrics.violations.map(v => ({
-    name: v.violation_type.replace('_', ' ').toUpperCase(),
+  const violationTypeData = complianceMetrics.violations.map((v) => ({
+    name: v.violation_type.replace("_", " ").toUpperCase(),
     value: v.count,
     severity: v.severity,
   }));
 
   // Compliance trend data (mock - would come from historical data)
-  const complianceTrendData = useMemo(() => [
-    { month: "Jan", rate: 95.2, violations: 12, critical: 2 },
-    { month: "Feb", rate: 94.8, violations: 15, critical: 3 },
-    { month: "Mar", rate: 96.1, violations: 9, critical: 1 },
-    { month: "Apr", rate: 95.5, violations: 11, critical: 2 },
-    { month: "May", rate: 96.8, violations: 7, critical: 1 },
-    { month: "Jun", rate: complianceMetrics.complianceRate, violations: complianceMetrics.nonCompliantLoans, critical: Math.floor(complianceMetrics.nonCompliantLoans * 0.2) },
-  ], [complianceMetrics]);
+  const complianceTrendData = useMemo(
+    () => [
+      { month: "Jan", rate: 95.2, violations: 12, critical: 2 },
+      { month: "Feb", rate: 94.8, violations: 15, critical: 3 },
+      { month: "Mar", rate: 96.1, violations: 9, critical: 1 },
+      { month: "Apr", rate: 95.5, violations: 11, critical: 2 },
+      { month: "May", rate: 96.8, violations: 7, critical: 1 },
+      {
+        month: "Jun",
+        rate: complianceMetrics.complianceRate,
+        violations: complianceMetrics.nonCompliantLoans,
+        critical: Math.floor(complianceMetrics.nonCompliantLoans * 0.2),
+      },
+    ],
+    [complianceMetrics]
+  );
 
   // Generate compliance alerts
   const complianceAlerts = useMemo(() => {
     const alerts = [];
-    
+
     if (complianceMetrics.complianceRate < 90) {
       alerts.push({
         type: "critical",
         title: "Low Compliance Rate",
         message: `Compliance rate is ${complianceMetrics.complianceRate.toFixed(1)}%, below 90% threshold`,
-        action: "Review and address violations immediately"
+        action: "Review and address violations immediately",
       });
     }
-    
-    const salaryViolations = complianceMetrics.violations.find(v => v.violation_type === "salary_rule");
+
+    const salaryViolations = complianceMetrics.violations.find(
+      (v) => v.violation_type === "salary_rule"
+    );
     if (salaryViolations && salaryViolations.count > 5) {
       alerts.push({
         type: "warning",
         title: "High Salary Rule Violations",
         message: `${salaryViolations.count} applications violate the 1/3 salary rule`,
-        action: "Review income verification processes"
+        action: "Review income verification processes",
       });
     }
-    
-    const interestViolations = complianceMetrics.violations.find(v => v.violation_type === "interest_rate");
+
+    const interestViolations = complianceMetrics.violations.find(
+      (v) => v.violation_type === "interest_rate"
+    );
     if (interestViolations && interestViolations.count > 0) {
       alerts.push({
         type: "warning",
         title: "Interest Rate Violations",
         message: `${interestViolations.count} applications have interest rates outside NBE limits`,
-        action: "Adjust pricing models to comply with 12-25% range"
+        action: "Adjust pricing models to comply with 12-25% range",
       });
     }
-    
+
     return alerts;
   }, [complianceMetrics]);
 
   // Executive summary metrics
-  const executiveSummary = useMemo(() => ({
-    totalPortfolioValue: portfolioData.total_portfolio_value || 0,
-    complianceScore: complianceMetrics.complianceRate,
-    riskLevel: complianceMetrics.complianceRate >= 95 ? "Low" : complianceMetrics.complianceRate >= 90 ? "Medium" : "High",
-    criticalViolations: complianceMetrics.violations.filter(v => v.severity === "high").reduce((sum, v) => sum + v.count, 0),
-    monthlyTrend: complianceTrendData.length >= 2 ? 
-      complianceTrendData[complianceTrendData.length - 1].rate - complianceTrendData[complianceTrendData.length - 2].rate : 0,
-  }), [portfolioData, complianceMetrics, complianceTrendData]);
+  const executiveSummary = useMemo(
+    () => ({
+      totalPortfolioValue: portfolioData.total_portfolio_value || 0,
+      complianceScore: complianceMetrics.complianceRate,
+      riskLevel:
+        complianceMetrics.complianceRate >= 95
+          ? "Low"
+          : complianceMetrics.complianceRate >= 90
+            ? "Medium"
+            : "High",
+      criticalViolations: complianceMetrics.violations
+        .filter((v) => v.severity === "high")
+        .reduce((sum, v) => sum + v.count, 0),
+      monthlyTrend:
+        complianceTrendData.length >= 2
+          ? complianceTrendData[complianceTrendData.length - 1].rate -
+            complianceTrendData[complianceTrendData.length - 2].rate
+          : 0,
+    }),
+    [portfolioData, complianceMetrics, complianceTrendData]
+  );
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">NBE Regulatory Compliance Dashboard</h1>
+          <h1 className="text-3xl font-bold">
+            NBE Regulatory Compliance Dashboard
+          </h1>
           <p className="text-muted-foreground">
-            Comprehensive compliance monitoring, violation tracking, and regulatory reporting
+            Comprehensive compliance monitoring, violation tracking, and
+            regulatory reporting
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -333,12 +394,16 @@ function RegulatoryReportingPageContent() {
             <div className="space-y-4">
               {/* Quick Date Presets */}
               <div>
-                <Label className="text-sm font-medium mb-2 block">Quick Date Range</Label>
+                <Label className="mb-2 block text-sm font-medium">
+                  Quick Date Range
+                </Label>
                 <div className="flex flex-wrap gap-2">
                   {DATE_PRESETS.map((preset) => (
                     <Button
                       key={preset.value}
-                      variant={datePreset === preset.value ? "default" : "outline"}
+                      variant={
+                        datePreset === preset.value ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => handleDatePresetChange(preset.value)}
                     >
@@ -350,7 +415,7 @@ function RegulatoryReportingPageContent() {
 
               {/* Custom Date Range */}
               {datePreset === "custom" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/50">
+                <div className="grid grid-cols-1 gap-4 rounded-lg border bg-muted/50 p-4 md:grid-cols-2">
                   <div>
                     <Label>From Date</Label>
                     <Input
@@ -371,17 +436,24 @@ function RegulatoryReportingPageContent() {
               )}
 
               {/* Additional Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
                   <Label>Violation Type</Label>
-                  <Select value={selectedViolationType} onValueChange={setSelectedViolationType}>
+                  <Select
+                    value={selectedViolationType}
+                    onValueChange={setSelectedViolationType}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="salary_rule">1/3 Salary Rule</SelectItem>
-                      <SelectItem value="interest_rate">Interest Rate</SelectItem>
+                      <SelectItem value="salary_rule">
+                        1/3 Salary Rule
+                      </SelectItem>
+                      <SelectItem value="interest_rate">
+                        Interest Rate
+                      </SelectItem>
                       <SelectItem value="loan_term">Loan Term</SelectItem>
                       <SelectItem value="loan_amount">Loan Amount</SelectItem>
                     </SelectContent>
@@ -389,13 +461,18 @@ function RegulatoryReportingPageContent() {
                 </div>
                 <div>
                   <Label>Executive View</Label>
-                  <Select value={executiveViewMode} onValueChange={setExecutiveViewMode}>
+                  <Select
+                    value={executiveViewMode}
+                    onValueChange={setExecutiveViewMode}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="summary">Executive Summary</SelectItem>
-                      <SelectItem value="detailed">Detailed Analysis</SelectItem>
+                      <SelectItem value="detailed">
+                        Detailed Analysis
+                      </SelectItem>
                       <SelectItem value="trends">Trend Analysis</SelectItem>
                     </SelectContent>
                   </Select>
@@ -425,7 +502,10 @@ function RegulatoryReportingPageContent() {
         >
           <div className="space-y-4">
             {complianceAlerts.map((alert, index) => (
-              <Alert key={index} variant={alert.type === "critical" ? "destructive" : "default"}>
+              <Alert
+                key={index}
+                variant={alert.type === "critical" ? "destructive" : "default"}
+              >
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>{alert.title}</AlertTitle>
                 <AlertDescription>
@@ -440,7 +520,11 @@ function RegulatoryReportingPageContent() {
       )}
 
       {/* Tabbed Interface */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -468,10 +552,12 @@ function RegulatoryReportingPageContent() {
             description="Key compliance performance indicators and regulatory adherence metrics"
             icon={Shield}
           >
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Compliance Rate</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Compliance Rate
+                  </CardTitle>
                   <Shield className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -482,13 +568,14 @@ function RegulatoryReportingPageContent() {
                       <div className="text-2xl font-bold">
                         {complianceMetrics.complianceRate.toFixed(2)}%
                       </div>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
                         {complianceMetrics.complianceRate >= 95 ? (
                           <TrendingUp className="h-3 w-3 text-green-500" />
                         ) : (
                           <TrendingDown className="h-3 w-3 text-red-500" />
                         )}
-                        {complianceMetrics.compliantLoans} of {complianceMetrics.totalLoans} loans compliant
+                        {complianceMetrics.compliantLoans} of{" "}
+                        {complianceMetrics.totalLoans} loans compliant
                       </p>
                     </>
                   )}
@@ -497,7 +584,9 @@ function RegulatoryReportingPageContent() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Compliant Loans</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Compliant Loans
+                  </CardTitle>
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 </CardHeader>
                 <CardContent>
@@ -510,8 +599,13 @@ function RegulatoryReportingPageContent() {
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {complianceMetrics.totalLoans > 0
-                          ? ((complianceMetrics.compliantLoans / complianceMetrics.totalLoans) * 100).toFixed(1)
-                          : 0}% of total portfolio
+                          ? (
+                              (complianceMetrics.compliantLoans /
+                                complianceMetrics.totalLoans) *
+                              100
+                            ).toFixed(1)
+                          : 0}
+                        % of total portfolio
                       </p>
                     </>
                   )}
@@ -520,7 +614,9 @@ function RegulatoryReportingPageContent() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Violations</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Violations
+                  </CardTitle>
                   <AlertTriangle className="h-4 w-4 text-red-500" />
                 </CardHeader>
                 <CardContent>
@@ -541,7 +637,9 @@ function RegulatoryReportingPageContent() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Risk Level</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Risk Level
+                  </CardTitle>
                   <Target className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -549,10 +647,15 @@ function RegulatoryReportingPageContent() {
                     <Skeleton className="h-8 w-24" />
                   ) : (
                     <>
-                      <div className={`text-2xl font-bold ${
-                        executiveSummary.riskLevel === "Low" ? "text-green-600" :
-                        executiveSummary.riskLevel === "Medium" ? "text-yellow-600" : "text-red-600"
-                      }`}>
+                      <div
+                        className={`text-2xl font-bold ${
+                          executiveSummary.riskLevel === "Low"
+                            ? "text-green-600"
+                            : executiveSummary.riskLevel === "Medium"
+                              ? "text-yellow-600"
+                              : "text-red-600"
+                        }`}
+                      >
                         {executiveSummary.riskLevel}
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -571,11 +674,13 @@ function RegulatoryReportingPageContent() {
             description="Visual breakdown of compliance status and violation types"
             icon={BarChart3}
           >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Compliance Status Distribution</CardTitle>
-                  <CardDescription>Overall compliance vs non-compliance breakdown</CardDescription>
+                  <CardDescription>
+                    Overall compliance vs non-compliance breakdown
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {overviewLoading ? (
@@ -585,13 +690,23 @@ function RegulatoryReportingPageContent() {
                       <PieChart>
                         <Pie
                           data={[
-                            { name: "Compliant", value: complianceMetrics.compliantLoans, color: "#00C49F" },
-                            { name: "Non-Compliant", value: complianceMetrics.nonCompliantLoans, color: "#FF8042" }
+                            {
+                              name: "Compliant",
+                              value: complianceMetrics.compliantLoans,
+                              color: "#00C49F",
+                            },
+                            {
+                              name: "Non-Compliant",
+                              value: complianceMetrics.nonCompliantLoans,
+                              color: "#FF8042",
+                            },
                           ]}
                           cx="50%"
                           cy="50%"
                           labelLine={false}
-                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                          label={({ name, percent }) =>
+                            `${name}: ${(percent * 100).toFixed(1)}%`
+                          }
                           outerRadius={80}
                           fill="#8884d8"
                           dataKey="value"
@@ -610,15 +725,19 @@ function RegulatoryReportingPageContent() {
               <Card>
                 <CardHeader>
                   <CardTitle>Violation Types Breakdown</CardTitle>
-                  <CardDescription>Distribution of different violation categories</CardDescription>
+                  <CardDescription>
+                    Distribution of different violation categories
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {overviewLoading ? (
                     <Skeleton className="h-[300px] w-full" />
                   ) : violationTypeData.length === 0 ? (
-                    <div className="text-center py-12">
-                      <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
-                      <p className="text-muted-foreground">No violations found</p>
+                    <div className="py-12 text-center">
+                      <CheckCircle className="mx-auto mb-4 h-12 w-12 text-green-500" />
+                      <p className="text-muted-foreground">
+                        No violations found
+                      </p>
                     </div>
                   ) : (
                     <ResponsiveContainer width="100%" height={300}>
@@ -651,7 +770,7 @@ function RegulatoryReportingPageContent() {
                   size="sm"
                   onClick={() => handleExportReport("csv")}
                 >
-                  <Download className="h-4 w-4 mr-2" />
+                  <Download className="mr-2 h-4 w-4" />
                   Export CSV
                 </Button>
                 <Button
@@ -659,7 +778,7 @@ function RegulatoryReportingPageContent() {
                   size="sm"
                   onClick={() => handleExportReport("excel")}
                 >
-                  <Download className="h-4 w-4 mr-2" />
+                  <Download className="mr-2 h-4 w-4" />
                   Export Excel
                 </Button>
               </>
@@ -669,16 +788,19 @@ function RegulatoryReportingPageContent() {
               <CardHeader>
                 <CardTitle>Violations Summary</CardTitle>
                 <CardDescription>
-                  Detailed breakdown of compliance violations by type and severity
+                  Detailed breakdown of compliance violations by type and
+                  severity
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {overviewLoading ? (
                   <Skeleton className="h-64 w-full" />
                 ) : filteredViolations.length === 0 ? (
-                  <div className="text-center py-12">
-                    <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
-                    <p className="text-muted-foreground">No violations found for selected criteria</p>
+                  <div className="py-12 text-center">
+                    <CheckCircle className="mx-auto mb-4 h-12 w-12 text-green-500" />
+                    <p className="text-muted-foreground">
+                      No violations found for selected criteria
+                    </p>
                   </div>
                 ) : (
                   <Table>
@@ -692,35 +814,43 @@ function RegulatoryReportingPageContent() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredViolations.map((violation: any, index: number) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">
-                            {violation.violation_type.replace('_', ' ').toUpperCase()}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">{violation.count}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={
-                                violation.severity === "high"
-                                  ? "destructive"
-                                  : violation.severity === "medium"
-                                  ? "default"
-                                  : "secondary"
-                              }
-                            >
-                              {violation.severity}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{violation.description}</TableCell>
-                          <TableCell>
-                            {violation.severity === "high" ? "Immediate review required" :
-                             violation.severity === "medium" ? "Review within 48 hours" :
-                             "Review during next audit cycle"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {filteredViolations.map(
+                        (violation: any, index: number) => (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium">
+                              {violation.violation_type
+                                .replace("_", " ")
+                                .toUpperCase()}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">
+                                {violation.count}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  violation.severity === "high"
+                                    ? "destructive"
+                                    : violation.severity === "medium"
+                                      ? "default"
+                                      : "secondary"
+                                }
+                              >
+                                {violation.severity}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{violation.description}</TableCell>
+                            <TableCell>
+                              {violation.severity === "high"
+                                ? "Immediate review required"
+                                : violation.severity === "medium"
+                                  ? "Review within 48 hours"
+                                  : "Review during next audit cycle"}
+                            </TableCell>
+                          </TableRow>
+                        )
+                      )}
                     </TableBody>
                   </Table>
                 )}
@@ -739,7 +869,9 @@ function RegulatoryReportingPageContent() {
             <Card>
               <CardHeader>
                 <CardTitle>Monthly Compliance Trends</CardTitle>
-                <CardDescription>Compliance rate and violation trends over time</CardDescription>
+                <CardDescription>
+                  Compliance rate and violation trends over time
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {overviewLoading ? (
@@ -753,26 +885,26 @@ function RegulatoryReportingPageContent() {
                       <YAxis yAxisId="right" orientation="right" />
                       <Tooltip />
                       <Legend />
-                      <Area 
+                      <Area
                         yAxisId="left"
-                        type="monotone" 
-                        dataKey="rate" 
-                        fill="#8884d8" 
+                        type="monotone"
+                        dataKey="rate"
+                        fill="#8884d8"
                         stroke="#8884d8"
                         fillOpacity={0.3}
                         name="Compliance Rate (%)"
                       />
-                      <Bar 
+                      <Bar
                         yAxisId="right"
-                        dataKey="violations" 
-                        fill="#ff7300" 
+                        dataKey="violations"
+                        fill="#ff7300"
                         name="Total Violations"
                       />
-                      <Line 
+                      <Line
                         yAxisId="right"
-                        type="monotone" 
-                        dataKey="critical" 
-                        stroke="#ff0000" 
+                        type="monotone"
+                        dataKey="critical"
+                        stroke="#ff0000"
                         strokeWidth={3}
                         name="Critical Violations"
                       />
@@ -792,36 +924,46 @@ function RegulatoryReportingPageContent() {
             icon={Users}
           >
             {/* Executive KPIs */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">Portfolio Compliance Score</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Portfolio Compliance Score
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className={`text-3xl font-bold flex items-center gap-2 ${
-                    executiveSummary.complianceScore >= 95 ? "text-green-600" :
-                    executiveSummary.complianceScore >= 90 ? "text-yellow-600" : "text-red-600"
-                  }`}>
+                  <div
+                    className={`flex items-center gap-2 text-3xl font-bold ${
+                      executiveSummary.complianceScore >= 95
+                        ? "text-green-600"
+                        : executiveSummary.complianceScore >= 90
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                    }`}
+                  >
                     <Shield className="h-6 w-6" />
                     {executiveSummary.complianceScore.toFixed(1)}%
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {executiveSummary.monthlyTrend >= 0 ? "↗" : "↘"} 
-                    {Math.abs(executiveSummary.monthlyTrend).toFixed(1)}% vs last month
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {executiveSummary.monthlyTrend >= 0 ? "↗" : "↘"}
+                    {Math.abs(executiveSummary.monthlyTrend).toFixed(1)}% vs
+                    last month
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">Critical Issues</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Critical Issues
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-red-600 flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-3xl font-bold text-red-600">
                     <AlertTriangle className="h-6 w-6" />
                     {executiveSummary.criticalViolations}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Require immediate attention
                   </p>
                 </CardContent>
@@ -829,18 +971,23 @@ function RegulatoryReportingPageContent() {
 
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">Portfolio Value at Risk</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Portfolio Value at Risk
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-blue-600 flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-3xl font-bold text-blue-600">
                     <DollarSign className="h-6 w-6" />
                     {new Intl.NumberFormat("en-ET", {
                       style: "currency",
                       currency: "ETB",
                       notation: "compact",
-                    }).format(executiveSummary.totalPortfolioValue * (1 - executiveSummary.complianceScore / 100))}
+                    }).format(
+                      executiveSummary.totalPortfolioValue *
+                        (1 - executiveSummary.complianceScore / 100)
+                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Non-compliant portfolio value
                   </p>
                 </CardContent>
@@ -851,7 +998,9 @@ function RegulatoryReportingPageContent() {
             <Card>
               <CardHeader>
                 <CardTitle>Recommended Executive Actions</CardTitle>
-                <CardDescription>Priority actions based on current compliance status</CardDescription>
+                <CardDescription>
+                  Priority actions based on current compliance status
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -860,26 +1009,33 @@ function RegulatoryReportingPageContent() {
                       <AlertTriangle className="h-4 w-4" />
                       <AlertTitle>Immediate Action Required</AlertTitle>
                       <AlertDescription>
-                        Compliance rate below 90% threshold. Recommend immediate review of loan approval processes and staff training on NBE regulations.
+                        Compliance rate below 90% threshold. Recommend immediate
+                        review of loan approval processes and staff training on
+                        NBE regulations.
                       </AlertDescription>
                     </Alert>
                   )}
-                  
+
                   {executiveSummary.criticalViolations > 0 && (
                     <Alert>
                       <Bell className="h-4 w-4" />
                       <AlertTitle>Critical Violations Detected</AlertTitle>
                       <AlertDescription>
-                        {executiveSummary.criticalViolations} critical violations require executive review. Consider implementing additional approval layers for high-risk applications.
+                        {executiveSummary.criticalViolations} critical
+                        violations require executive review. Consider
+                        implementing additional approval layers for high-risk
+                        applications.
                       </AlertDescription>
                     </Alert>
                   )}
-                  
+
                   <Alert>
                     <CheckCircle className="h-4 w-4" />
                     <AlertTitle>Continuous Monitoring</AlertTitle>
                     <AlertDescription>
-                      Maintain current compliance monitoring processes and consider quarterly compliance training for all loan officers.
+                      Maintain current compliance monitoring processes and
+                      consider quarterly compliance training for all loan
+                      officers.
                     </AlertDescription>
                   </Alert>
                 </div>
@@ -895,7 +1051,8 @@ function RegulatoryReportingPageContent() {
           <DialogHeader>
             <DialogTitle>Generate NBE Compliance Report</DialogTitle>
             <DialogDescription>
-              Generate a comprehensive compliance report for regulatory submission
+              Generate a comprehensive compliance report for regulatory
+              submission
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -924,9 +1081,15 @@ function RegulatoryReportingPageContent() {
               </Button>
               <Button
                 onClick={handleGenerateReport}
-                disabled={generateReportMutation.isPending || !reportPeriodStart || !reportPeriodEnd}
+                disabled={
+                  generateReportMutation.isPending ||
+                  !reportPeriodStart ||
+                  !reportPeriodEnd
+                }
               >
-                {generateReportMutation.isPending ? "Generating..." : "Generate Report"}
+                {generateReportMutation.isPending
+                  ? "Generating..."
+                  : "Generate Report"}
               </Button>
             </div>
           </div>

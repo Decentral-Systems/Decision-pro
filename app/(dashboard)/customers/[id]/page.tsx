@@ -16,7 +16,7 @@ import {
   History,
   TrendingUp,
 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import { transformCustomer360Data } from "@/lib/utils/customer360Transform";
 import { ApiStatusIndicator } from "@/components/api-status-indicator";
 import { CustomerAlertsBanner } from "@/components/customer/CustomerAlertsBanner";

@@ -19,7 +19,7 @@ import {
   Zap,
   Filter,
 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import { ApiStatusIndicator } from "@/components/api-status-indicator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";

@@ -3,9 +3,13 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
-import { DashboardSectionHeader } from "./DashboardSectionHeader";
+import { DashboardSectionHeader } from "./dashboard/DashboardSectionHeader";
 import type { LucideIcon } from "lucide-react";
 
 interface DashboardSectionProps {
@@ -14,7 +18,14 @@ interface DashboardSectionProps {
   icon?: LucideIcon;
   badge?: {
     label: string;
-    variant?: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info";
+    variant?:
+      | "default"
+      | "secondary"
+      | "destructive"
+      | "outline"
+      | "success"
+      | "warning"
+      | "info";
   };
   actions?: React.ReactNode;
   children: React.ReactNode;
@@ -46,11 +57,7 @@ export function DashboardSection({
 }: DashboardSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
-  const content = (
-    <div className={cn("space-y-4", className)}>
-      {children}
-    </div>
-  );
+  const content = <div className={cn("space-y-4", className)}>{children}</div>;
 
   const header = (
     <DashboardSectionHeader
@@ -64,7 +71,7 @@ export function DashboardSection({
             {actions}
             <Button
               variant="ghost"
-              size="icon-sm"
+              size="sm"
               onClick={() => setIsOpen(!isOpen)}
               className="h-8 w-8"
               aria-label={isOpen ? "Collapse section" : "Expand section"}
@@ -88,14 +95,18 @@ export function DashboardSection({
 
   if (collapsible) {
     return (
-      <div className="space-y-0" data-dashboard-section data-section-title={title}>
+      <div
+        className="space-y-0"
+        data-dashboard-section
+        data-section-title={title}
+      >
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleTrigger asChild>
             <div className="cursor-pointer" data-section-header>
               {header}
             </div>
           </CollapsibleTrigger>
-          <CollapsibleContent className="data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+          <CollapsibleContent className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
             {errorBoundary ? (
               <div className="pt-4">
                 {errorFallback ? (
@@ -117,15 +128,13 @@ export function DashboardSection({
   }
 
   return (
-    <section 
-      className="space-y-0 section-fade-in"
-      aria-labelledby={`section-${title.toLowerCase().replace(/\s+/g, '-')}`}
+    <section
+      className="section-fade-in space-y-0"
+      aria-labelledby={`section-${title.toLowerCase().replace(/\s+/g, "-")}`}
       data-dashboard-section
       data-section-title={title}
     >
-      <div data-section-header>
-        {header}
-      </div>
+      <div data-section-header>{header}</div>
       {errorBoundary ? (
         <div className="pt-4">
           {errorFallback ? (

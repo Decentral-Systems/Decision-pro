@@ -30,7 +30,7 @@ import {
   TrendingUp,
   FileText,
 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import { Badge } from "@/components/ui/badge";
 import { ApiStatusIndicator } from "@/components/api-status-indicator";
 import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";

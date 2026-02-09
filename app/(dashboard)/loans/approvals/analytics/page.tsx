@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { ApprovalAnalytics } from "@/components/approvals/ApprovalAnalytics";
 import { useApprovalAnalytics } from "@/lib/api/hooks/useLoans";
 import { Calendar, BarChart3 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 
 export default function ApprovalAnalyticsPage() {
   const [dateFrom, setDateFrom] = useState<string>("");
@@ -16,7 +16,7 @@ export default function ApprovalAnalyticsPage() {
 
   const { data, isLoading, error, refetch } = useApprovalAnalytics({
     date_from: dateFrom || undefined,
-    date_to: dateTo || undefined
+    date_to: dateTo || undefined,
   });
 
   const analytics = data?.data || null;
@@ -40,40 +40,40 @@ export default function ApprovalAnalyticsPage() {
       >
         <Card>
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="date-from">From Date</Label>
-              <Input
-                id="date-from"
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-              />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div>
+                <Label htmlFor="date-from">From Date</Label>
+                <Input
+                  id="date-from"
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="date-to">To Date</Label>
+                <Input
+                  id="date-to"
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+              </div>
+              <div className="flex items-end gap-2">
+                <Button onClick={() => refetch()} className="flex-1">
+                  Apply Filter
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDateFrom("");
+                    setDateTo("");
+                  }}
+                >
+                  Clear
+                </Button>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="date-to">To Date</Label>
-              <Input
-                id="date-to"
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-              />
-            </div>
-            <div className="flex items-end gap-2">
-              <Button onClick={() => refetch()} className="flex-1">
-                Apply Filter
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setDateFrom("");
-                  setDateTo("");
-                }}
-              >
-                Clear
-              </Button>
-            </div>
-          </div>
           </CardContent>
         </Card>
       </DashboardSection>
@@ -87,7 +87,9 @@ export default function ApprovalAnalyticsPage() {
         {error && (
           <Card>
             <CardContent className="pt-6">
-              <p className="text-destructive">Error loading analytics: {error.message}</p>
+              <p className="text-destructive">
+                Error loading analytics: {error.message}
+              </p>
             </CardContent>
           </Card>
         )}

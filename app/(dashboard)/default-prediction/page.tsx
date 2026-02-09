@@ -25,7 +25,7 @@ import {
   CheckCircle2,
   Brain,
 } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import { Button } from "@/components/ui/button";
 import { ApiStatusIndicator } from "@/components/api-status-indicator";
 import { SurvivalCurve } from "@/components/charts/SurvivalCurve";

@@ -1,13 +1,5 @@
-/**
- * Cache Manager
- * Handles React Query cache persistence (load on init, persist on demand) and full clear.
- * Use the QueryClient and useQuery/useMutation for get/set/invalidate; this only does persistence and clear.
- */
-
+import { METADATA_PREFIX, PERSIST_KEY } from "@/constants";
 import { QueryClient } from "@tanstack/react-query";
-
-const PERSIST_KEY = "react-query-cache";
-const METADATA_PREFIX = "cache_metadata_";
 
 class CacheManager {
   private queryClient: QueryClient | null = null;
@@ -29,19 +21,18 @@ class CacheManager {
       const entries = JSON.parse(raw);
       if (!Array.isArray(entries)) return;
 
-      entries.forEach((entry: { queryKey?: readonly unknown[]; data?: unknown }) => {
-        if (Array.isArray(entry?.queryKey)) {
-          this.queryClient!.setQueryData(entry.queryKey, entry.data);
+      entries.forEach(
+        (entry: { queryKey?: readonly unknown[]; data?: unknown }) => {
+          if (Array.isArray(entry?.queryKey)) {
+            this.queryClient!.setQueryData(entry.queryKey, entry.data);
+          }
         }
-      });
+      );
     } catch (error) {
       console.warn("[CacheManager] Failed to load persisted cache:", error);
     }
   }
 
-  /**
-   * Persist current React Query cache to localStorage. Call periodically (e.g. from provider).
-   */
   persistNow() {
     if (typeof window === "undefined" || !this.queryClient) {
       return;
@@ -62,9 +53,6 @@ class CacheManager {
     }
   }
 
-  /**
-   * Clear React Query cache and persisted cache + metadata from localStorage.
-   */
   clearAll() {
     if (!this.queryClient) return;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { ApiStatusIndicator } from "@/components/api-status-indicator";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditScoringForm } from "@/features/scoring/components/form/credit-scoring-form";

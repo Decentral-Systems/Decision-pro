@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useMemo, Suspense } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Download, Filter, BarChart3, List, History } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { DashboardSection } from "@/components/dashboard-section";
 import { ExportService } from "@/lib/utils/export-service";
 import { CustomerAutocomplete } from "@/components/common/CustomerAutocomplete";
 import { useCreditScoringHistory } from "@/lib/api/hooks/useCreditScoringHistory";
@@ -34,22 +40,42 @@ function CreditScoringHistoryPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  
+
   // Initialize state from URL params
-  const [customerId, setCustomerId] = useState<string>(searchParams.get("customer_id") || "");
-  const [dateFrom, setDateFrom] = useState<string>(searchParams.get("date_from") || "");
-  const [dateTo, setDateTo] = useState<string>(searchParams.get("date_to") || "");
-  const [scoreRange, setScoreRange] = useState<string>(searchParams.get("score_range") || "all");
+  const [customerId, setCustomerId] = useState<string>(
+    searchParams.get("customer_id") || ""
+  );
+  const [dateFrom, setDateFrom] = useState<string>(
+    searchParams.get("date_from") || ""
+  );
+  const [dateTo, setDateTo] = useState<string>(
+    searchParams.get("date_to") || ""
+  );
+  const [scoreRange, setScoreRange] = useState<string>(
+    searchParams.get("score_range") || "all"
+  );
   const [page, setPage] = useState(parseInt(searchParams.get("page") || "1"));
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "list");
-  const [channel, setChannel] = useState<string>(searchParams.get("channel") || "all");
-  const [product, setProduct] = useState<string>(searchParams.get("product") || "all");
-  const [decision, setDecision] = useState<string>(searchParams.get("decision") || "all");
-  const [sortBy, setSortBy] = useState<string>(searchParams.get("sort_by") || "date");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">((searchParams.get("sort_order") as "asc" | "desc") || "desc");
+  const [activeTab, setActiveTab] = useState<string>(
+    searchParams.get("tab") || "list"
+  );
+  const [channel, setChannel] = useState<string>(
+    searchParams.get("channel") || "all"
+  );
+  const [product, setProduct] = useState<string>(
+    searchParams.get("product") || "all"
+  );
+  const [decision, setDecision] = useState<string>(
+    searchParams.get("decision") || "all"
+  );
+  const [sortBy, setSortBy] = useState<string>(
+    searchParams.get("sort_by") || "date"
+  );
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(
+    (searchParams.get("sort_order") as "asc" | "desc") || "desc"
+  );
   const pageSize = 50;
-  
+
   // Sync filters to URL
   useEffect(() => {
     const params = new URLSearchParams();
@@ -64,8 +90,23 @@ function CreditScoringHistoryPageContent() {
     if (sortOrder !== "desc") params.set("sort_order", sortOrder);
     if (page > 1) params.set("page", page.toString());
     if (activeTab !== "list") params.set("tab", activeTab);
-    router.replace(`/credit-scoring/history?${params.toString()}`, { scroll: false });
-  }, [customerId, dateFrom, dateTo, scoreRange, channel, product, decision, sortBy, sortOrder, page, activeTab, router]);
+    router.replace(`/credit-scoring/history?${params.toString()}`, {
+      scroll: false,
+    });
+  }, [
+    customerId,
+    dateFrom,
+    dateTo,
+    scoreRange,
+    channel,
+    product,
+    decision,
+    sortBy,
+    sortOrder,
+    page,
+    activeTab,
+    router,
+  ]);
 
   // Calculate score range filters
   const scoreFilters = useMemo(() => {
@@ -90,7 +131,11 @@ function CreditScoringHistoryPageContent() {
   }, [scoreRange]);
 
   // Fetch credit scoring history
-  const { data: historyResponse, isLoading, error } = useCreditScoringHistory({
+  const {
+    data: historyResponse,
+    isLoading,
+    error,
+  } = useCreditScoringHistory({
     customer_id: customerId || undefined,
     start_date: dateFrom || undefined,
     end_date: dateTo || undefined,
@@ -115,7 +160,9 @@ function CreditScoringHistoryPageContent() {
     if (format === "pdf") {
       ExportService.exportCreditScoreToPDF(
         { items: historyData },
-        { filename: `credit_score_history_${new Date().toISOString().split("T")[0]}.pdf` }
+        {
+          filename: `credit_score_history_${new Date().toISOString().split("T")[0]}.pdf`,
+        }
       );
     } else {
       ExportService.exportToExcel(historyData, {
@@ -128,9 +175,12 @@ function CreditScoringHistoryPageContent() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center justify-between mb-2">
+          <div className="mb-2 flex items-center justify-between">
             <h1 className="text-3xl font-bold">Credit Scoring History</h1>
-            <CacheMetadata cacheKey="credit-scoring-history" variant="compact" />
+            <CacheMetadata
+              cacheKey="credit-scoring-history"
+              variant="compact"
+            />
           </div>
           <p className="text-muted-foreground">
             View and analyze past credit score calculations
@@ -164,92 +214,92 @@ function CreditScoringHistoryPageContent() {
       >
         <Card>
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label>Customer</Label>
-              <CustomerAutocomplete
-                value={customerId}
-                onSelect={setCustomerId}
-                placeholder="Search customer..."
-              />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-2">
+                <Label>Customer</Label>
+                <CustomerAutocomplete
+                  value={customerId}
+                  onSelect={setCustomerId}
+                  placeholder="Search customer..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Date From</Label>
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Date To</Label>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Score Range</Label>
+                <Select value={scoreRange} onValueChange={setScoreRange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Scores</SelectItem>
+                    <SelectItem value="excellent">Excellent (750+)</SelectItem>
+                    <SelectItem value="good">Good (700-749)</SelectItem>
+                    <SelectItem value="fair">Fair (650-699)</SelectItem>
+                    <SelectItem value="poor">Poor (&lt;650)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Channel</Label>
+                <Select value={channel} onValueChange={setChannel}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Channels</SelectItem>
+                    <SelectItem value="online">Online</SelectItem>
+                    <SelectItem value="branch">Branch</SelectItem>
+                    <SelectItem value="mobile">Mobile</SelectItem>
+                    <SelectItem value="api">API</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Product</Label>
+                <Select value={product} onValueChange={setProduct}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Products</SelectItem>
+                    <SelectItem value="personal_loan">Personal Loan</SelectItem>
+                    <SelectItem value="business_loan">Business Loan</SelectItem>
+                    <SelectItem value="mortgage">Mortgage</SelectItem>
+                    <SelectItem value="credit_card">Credit Card</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Decision</Label>
+                <Select value={decision} onValueChange={setDecision}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Decisions</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Date From</Label>
-              <Input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Date To</Label>
-              <Input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Score Range</Label>
-              <Select value={scoreRange} onValueChange={setScoreRange}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Scores</SelectItem>
-                  <SelectItem value="excellent">Excellent (750+)</SelectItem>
-                  <SelectItem value="good">Good (700-749)</SelectItem>
-                  <SelectItem value="fair">Fair (650-699)</SelectItem>
-                  <SelectItem value="poor">Poor (&lt;650)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Channel</Label>
-              <Select value={channel} onValueChange={setChannel}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Channels</SelectItem>
-                  <SelectItem value="online">Online</SelectItem>
-                  <SelectItem value="branch">Branch</SelectItem>
-                  <SelectItem value="mobile">Mobile</SelectItem>
-                  <SelectItem value="api">API</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Product</Label>
-              <Select value={product} onValueChange={setProduct}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Products</SelectItem>
-                  <SelectItem value="personal_loan">Personal Loan</SelectItem>
-                  <SelectItem value="business_loan">Business Loan</SelectItem>
-                  <SelectItem value="mortgage">Mortgage</SelectItem>
-                  <SelectItem value="credit_card">Credit Card</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Decision</Label>
-              <Select value={decision} onValueChange={setDecision}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Decisions</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
+          </CardContent>
         </Card>
       </DashboardSection>
 
@@ -281,183 +331,250 @@ function CreditScoringHistoryPageContent() {
           </>
         }
       >
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <div className="flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="list" className="gap-2">
-              <List className="h-4 w-4" />
-              List View
-            </TabsTrigger>
-            <TabsTrigger value="compare" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Compare
-              {selectedIds.length > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                  {selectedIds.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-          {selectedIds.length > 0 && (
-            <Button variant="outline" size="sm" onClick={() => setSelectedIds([])}>
-              Clear Selection
-            </Button>
-          )}
-        </div>
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-4"
+        >
+          <div className="flex items-center justify-between">
+            <TabsList>
+              <TabsTrigger value="list" className="gap-2">
+                <List className="h-4 w-4" />
+                List View
+              </TabsTrigger>
+              <TabsTrigger value="compare" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Compare
+                {selectedIds.length > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 flex h-5 w-5 items-center justify-center p-0 text-xs"
+                  >
+                    {selectedIds.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+            {selectedIds.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedIds([])}
+              >
+                Clear Selection
+              </Button>
+            )}
+          </div>
 
-        <TabsContent value="list">
-          <Card>
-            <CardHeader>
-              <CardTitle>History</CardTitle>
-              <CardDescription>
-                {historyData.length > 0
-                  ? `${historyData.length} credit score calculations found. Select items to compare.`
-                  : "No credit score history found"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  Loading credit score history...
-                </div>
-              ) : error ? (
-                <ErrorDisplay 
-                  error={error} 
-                  variant="inline"
-                  onRetry={() => window.location.reload()}
-                />
-              ) : historyData.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No credit score history available. Start calculating credit scores to see history here.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="rounded-md border">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b bg-muted/50">
-                          <th className="p-3 text-left text-sm font-medium w-12">
-                            <input
-                              type="checkbox"
-                              className="rounded border-gray-300"
-                              checked={selectedIds.length === historyData.length && historyData.length > 0}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedIds(historyData.map((item: any) => item.id || item.prediction_id));
-                                } else {
-                                  setSelectedIds([]);
+          <TabsContent value="list">
+            <Card>
+              <CardHeader>
+                <CardTitle>History</CardTitle>
+                <CardDescription>
+                  {historyData.length > 0
+                    ? `${historyData.length} credit score calculations found. Select items to compare.`
+                    : "No credit score history found"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="py-8 text-center text-muted-foreground">
+                    Loading credit score history...
+                  </div>
+                ) : error ? (
+                  <ErrorDisplay
+                    error={error}
+                    variant="inline"
+                    onRetry={() => window.location.reload()}
+                  />
+                ) : historyData.length === 0 ? (
+                  <div className="py-8 text-center text-muted-foreground">
+                    No credit score history available. Start calculating credit
+                    scores to see history here.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="rounded-md border">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b bg-muted/50">
+                            <th className="w-12 p-3 text-left text-sm font-medium">
+                              <input
+                                type="checkbox"
+                                className="rounded border-gray-300"
+                                checked={
+                                  selectedIds.length === historyData.length &&
+                                  historyData.length > 0
                                 }
-                              }}
-                            />
-                          </th>
-                          <th className="p-3 text-left text-sm font-medium">Customer ID</th>
-                          <th className="p-3 text-left text-sm font-medium">Score</th>
-                          <th className="p-3 text-left text-sm font-medium">Risk Category</th>
-                          <th className="p-3 text-left text-sm font-medium">Recommendation</th>
-                          <th className="p-3 text-left text-sm font-medium">Model Version</th>
-                          <th className="p-3 text-left text-sm font-medium">Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {historyData.map((item: any) => {
-                          const itemId = item.id || item.prediction_id;
-                          const isSelected = selectedIds.includes(itemId);
-                          return (
-                            <tr 
-                              key={itemId} 
-                              className={`border-b cursor-pointer hover:bg-muted/50 ${isSelected ? 'bg-primary/5' : ''}`}
-                              onClick={() => {
-                                if (isSelected) {
-                                  setSelectedIds(selectedIds.filter(id => id !== itemId));
-                                } else if (selectedIds.length < 4) {
-                                  setSelectedIds([...selectedIds, itemId]);
-                                }
-                              }}
-                            >
-                              <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                                <input
-                                  type="checkbox"
-                                  className="rounded border-gray-300"
-                                  checked={isSelected}
-                                  disabled={!isSelected && selectedIds.length >= 4}
-                                  onChange={(e) => {
-                                    if (e.target.checked && selectedIds.length < 4) {
-                                      setSelectedIds([...selectedIds, itemId]);
-                                    } else {
-                                      setSelectedIds(selectedIds.filter(id => id !== itemId));
-                                    }
-                                  }}
-                                />
-                              </td>
-                              <td className="p-3 text-sm">
-                                <Link
-                                  href={`/customers/${encodeURIComponent(item.customer_id)}`}
-                                  className="text-primary hover:underline"
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedIds(
+                                      historyData.map(
+                                        (item: any) =>
+                                          item.id || item.prediction_id
+                                      )
+                                    );
+                                  } else {
+                                    setSelectedIds([]);
+                                  }
+                                }}
+                              />
+                            </th>
+                            <th className="p-3 text-left text-sm font-medium">
+                              Customer ID
+                            </th>
+                            <th className="p-3 text-left text-sm font-medium">
+                              Score
+                            </th>
+                            <th className="p-3 text-left text-sm font-medium">
+                              Risk Category
+                            </th>
+                            <th className="p-3 text-left text-sm font-medium">
+                              Recommendation
+                            </th>
+                            <th className="p-3 text-left text-sm font-medium">
+                              Model Version
+                            </th>
+                            <th className="p-3 text-left text-sm font-medium">
+                              Date
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {historyData.map((item: any) => {
+                            const itemId = item.id || item.prediction_id;
+                            const isSelected = selectedIds.includes(itemId);
+                            return (
+                              <tr
+                                key={itemId}
+                                className={`cursor-pointer border-b hover:bg-muted/50 ${isSelected ? "bg-primary/5" : ""}`}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setSelectedIds(
+                                      selectedIds.filter((id) => id !== itemId)
+                                    );
+                                  } else if (selectedIds.length < 4) {
+                                    setSelectedIds([...selectedIds, itemId]);
+                                  }
+                                }}
+                              >
+                                <td
+                                  className="p-3"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  {item.customer_id}
-                                </Link>
-                              </td>
-                              <td className="p-3 text-sm font-medium">{item.credit_score}</td>
-                              <td className="p-3 text-sm">
-                                {item.correlation_id && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {item.correlation_id.substring(0, 8)}...
+                                  <input
+                                    type="checkbox"
+                                    className="rounded border-gray-300"
+                                    checked={isSelected}
+                                    disabled={
+                                      !isSelected && selectedIds.length >= 4
+                                    }
+                                    onChange={(e) => {
+                                      if (
+                                        e.target.checked &&
+                                        selectedIds.length < 4
+                                      ) {
+                                        setSelectedIds([
+                                          ...selectedIds,
+                                          itemId,
+                                        ]);
+                                      } else {
+                                        setSelectedIds(
+                                          selectedIds.filter(
+                                            (id) => id !== itemId
+                                          )
+                                        );
+                                      }
+                                    }}
+                                  />
+                                </td>
+                                <td className="p-3 text-sm">
+                                  <Link
+                                    href={`/customers/${encodeURIComponent(item.customer_id)}`}
+                                    className="text-primary hover:underline"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {item.customer_id}
+                                  </Link>
+                                </td>
+                                <td className="p-3 text-sm font-medium">
+                                  {item.credit_score}
+                                </td>
+                                <td className="p-3 text-sm">
+                                  {item.correlation_id && (
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {item.correlation_id.substring(0, 8)}...
+                                    </Badge>
+                                  )}
+                                </td>
+                                <td className="p-3 text-sm">
+                                  <Badge
+                                    variant={
+                                      item.risk_category === "low"
+                                        ? "default"
+                                        : item.risk_category === "medium"
+                                          ? "secondary"
+                                          : item.risk_category === "high"
+                                            ? "destructive"
+                                            : "outline"
+                                    }
+                                  >
+                                    {item.risk_category}
                                   </Badge>
-                                )}
-                              </td>
-                              <td className="p-3 text-sm">
-                                <Badge variant={
-                                  item.risk_category === "low" ? "default" :
-                                  item.risk_category === "medium" ? "secondary" :
-                                  item.risk_category === "high" ? "destructive" : "outline"
-                                }>
-                                  {item.risk_category}
-                                </Badge>
-                              </td>
-                              <td className="p-3 text-sm">{item.approval_recommendation}</td>
-                              <td className="p-3 text-sm text-muted-foreground">
-                                {item.model_version || item.version || "N/A"}
-                              </td>
-                              <td className="p-3 text-sm text-muted-foreground">
-                                {new Date(item.created_at).toLocaleDateString()}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                                </td>
+                                <td className="p-3 text-sm">
+                                  {item.approval_recommendation}
+                                </td>
+                                <td className="p-3 text-sm text-muted-foreground">
+                                  {item.model_version || item.version || "N/A"}
+                                </td>
+                                <td className="p-3 text-sm text-muted-foreground">
+                                  {new Date(
+                                    item.created_at
+                                  ).toLocaleDateString()}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    {historyResponse && (
+                      <Pagination
+                        currentPage={page}
+                        totalPages={Math.ceil(
+                          (historyResponse.total || historyData.length) /
+                            pageSize
+                        )}
+                        pageSize={pageSize}
+                        totalItems={historyResponse.total}
+                        onPageChange={setPage}
+                      />
+                    )}
                   </div>
-                  {historyResponse && (
-                    <Pagination
-                      currentPage={page}
-                      totalPages={Math.ceil((historyResponse.total || historyData.length) / pageSize)}
-                      pageSize={pageSize}
-                      totalItems={historyResponse.total}
-                      onPageChange={setPage}
-                    />
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="compare">
-          {historyData.length > 0 ? (
-            <ScoreComparison
-              items={historyData}
-              selectedIds={selectedIds}
-              onSelectionChange={setSelectedIds}
-              maxSelections={4}
-            />
-          ) : (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                No credit score history available for comparison.
+                )}
               </CardContent>
             </Card>
-          )}
+          </TabsContent>
+
+          <TabsContent value="compare">
+            {historyData.length > 0 ? (
+              <ScoreComparison
+                items={historyData}
+                selectedIds={selectedIds}
+                onSelectionChange={setSelectedIds}
+                maxSelections={4}
+              />
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  No credit score history available for comparison.
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </DashboardSection>
@@ -468,7 +585,13 @@ function CreditScoringHistoryPageContent() {
 // Main export with Suspense boundary
 export default function CreditScoringHistoryPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-96"><Skeleton className="h-full w-full" /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex h-96 items-center justify-center">
+          <Skeleton className="h-full w-full" />
+        </div>
+      }
+    >
       <CreditScoringHistoryPageContent />
     </Suspense>
   );

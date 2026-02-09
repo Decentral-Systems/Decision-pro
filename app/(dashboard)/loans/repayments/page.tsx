@@ -1,14 +1,31 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRepaymentSchedule, usePaymentHistory, useRecordPayment } from "@/lib/api/hooks/useLoans";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  useRepaymentSchedule,
+  usePaymentHistory,
+  useRecordPayment,
+} from "@/lib/api/hooks/useLoans";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Receipt, Plus, AlertTriangle, Clock, Calendar, History } from "lucide-react";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import {
+  Receipt,
+  Plus,
+  AlertTriangle,
+  Clock,
+  Calendar,
+  History,
+} from "lucide-react";
+import { DashboardSection } from "@/components/dashboard-section";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -38,19 +55,22 @@ import {
 
 function RepaymentsPageContent() {
   const [selectedLoanId, setSelectedLoanId] = useState<number | null>(null);
-  const [isRecordPaymentDialogOpen, setIsRecordPaymentDialogOpen] = useState(false);
+  const [isRecordPaymentDialogOpen, setIsRecordPaymentDialogOpen] =
+    useState(false);
   const [paymentFormData, setPaymentFormData] = useState({
     payment_amount: "",
     payment_method: "bank_transfer",
     payment_reference: "",
     payment_date: new Date().toISOString().split("T")[0],
   });
-  
-  const { data: schedule, isLoading: scheduleLoading } = useRepaymentSchedule(selectedLoanId);
-  const { data: paymentHistory, isLoading: historyLoading } = usePaymentHistory(selectedLoanId);
+
+  const { data: schedule, isLoading: scheduleLoading } =
+    useRepaymentSchedule(selectedLoanId);
+  const { data: paymentHistory, isLoading: historyLoading } =
+    usePaymentHistory(selectedLoanId);
   const recordPaymentMutation = useRecordPayment();
   const { toast } = useToast();
-  
+
   const handleRecordPayment = async () => {
     if (!selectedLoanId || !paymentFormData.payment_amount) {
       toast({
@@ -60,7 +80,7 @@ function RepaymentsPageContent() {
       });
       return;
     }
-    
+
     try {
       await recordPaymentMutation.mutateAsync({
         loan_application_id: selectedLoanId,
@@ -80,7 +100,7 @@ function RepaymentsPageContent() {
       // Error handled by mutation
     }
   };
-  
+
   const getPaymentStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
       pending: "bg-yellow-500",
@@ -88,14 +108,14 @@ function RepaymentsPageContent() {
       partial: "bg-blue-500",
       overdue: "bg-red-500",
     };
-    
+
     return (
       <Badge className={statusColors[status] || "bg-gray-500"}>
         {status.toUpperCase()}
       </Badge>
     );
   };
-  
+
   const payments = paymentHistory?.data?.payments || [];
   const schedulePayments = schedule?.data?.payments || [];
 
@@ -109,9 +129,12 @@ function RepaymentsPageContent() {
   });
 
   // Calculate total overdue amount
-  const totalOverdueAmount = overduePayments.reduce((sum: number, payment: any) => {
-    return sum + (payment.due_amount || 0) - (payment.paid_amount || 0);
-  }, 0);
+  const totalOverdueAmount = overduePayments.reduce(
+    (sum: number, payment: any) => {
+      return sum + (payment.due_amount || 0) - (payment.paid_amount || 0);
+    },
+    0
+  );
 
   // Calculate days overdue for each payment
   const calculateDaysOverdue = (dueDate: string) => {
@@ -122,7 +145,7 @@ function RepaymentsPageContent() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 0;
   };
-  
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -137,10 +160,17 @@ function RepaymentsPageContent() {
             type="number"
             placeholder="Loan Application ID"
             className="w-48"
-            onChange={(e) => setSelectedLoanId(e.target.value ? parseInt(e.target.value) : null)}
+            onChange={(e) =>
+              setSelectedLoanId(
+                e.target.value ? parseInt(e.target.value) : null
+              )
+            }
           />
           {selectedLoanId && (
-            <Dialog open={isRecordPaymentDialogOpen} onOpenChange={setIsRecordPaymentDialogOpen}>
+            <Dialog
+              open={isRecordPaymentDialogOpen}
+              onOpenChange={setIsRecordPaymentDialogOpen}
+            >
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
@@ -161,21 +191,35 @@ function RepaymentsPageContent() {
                       id="payment_amount"
                       type="number"
                       value={paymentFormData.payment_amount}
-                      onChange={(e) => setPaymentFormData({ ...paymentFormData, payment_amount: e.target.value })}
+                      onChange={(e) =>
+                        setPaymentFormData({
+                          ...paymentFormData,
+                          payment_amount: e.target.value,
+                        })
+                      }
                     />
                   </div>
                   <div>
                     <Label htmlFor="payment_method">Payment Method</Label>
                     <Select
                       value={paymentFormData.payment_method}
-                      onValueChange={(value) => setPaymentFormData({ ...paymentFormData, payment_method: value })}
+                      onValueChange={(value) =>
+                        setPaymentFormData({
+                          ...paymentFormData,
+                          payment_method: value,
+                        })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                        <SelectItem value="mobile_money">Mobile Money</SelectItem>
+                        <SelectItem value="bank_transfer">
+                          Bank Transfer
+                        </SelectItem>
+                        <SelectItem value="mobile_money">
+                          Mobile Money
+                        </SelectItem>
                         <SelectItem value="cash">Cash</SelectItem>
                         <SelectItem value="cheque">Cheque</SelectItem>
                       </SelectContent>
@@ -186,7 +230,12 @@ function RepaymentsPageContent() {
                     <Input
                       id="payment_reference"
                       value={paymentFormData.payment_reference}
-                      onChange={(e) => setPaymentFormData({ ...paymentFormData, payment_reference: e.target.value })}
+                      onChange={(e) =>
+                        setPaymentFormData({
+                          ...paymentFormData,
+                          payment_reference: e.target.value,
+                        })
+                      }
                     />
                   </div>
                   <div>
@@ -195,7 +244,12 @@ function RepaymentsPageContent() {
                       id="payment_date"
                       type="date"
                       value={paymentFormData.payment_date}
-                      onChange={(e) => setPaymentFormData({ ...paymentFormData, payment_date: e.target.value })}
+                      onChange={(e) =>
+                        setPaymentFormData({
+                          ...paymentFormData,
+                          payment_date: e.target.value,
+                        })
+                      }
                     />
                   </div>
                   <div className="flex justify-end space-x-2">
@@ -209,7 +263,9 @@ function RepaymentsPageContent() {
                       onClick={handleRecordPayment}
                       disabled={recordPaymentMutation.isPending}
                     >
-                      {recordPaymentMutation.isPending ? "Recording..." : "Record Payment"}
+                      {recordPaymentMutation.isPending
+                        ? "Recording..."
+                        : "Record Payment"}
                     </Button>
                   </div>
                 </div>
@@ -218,7 +274,7 @@ function RepaymentsPageContent() {
           )}
         </div>
       </div>
-      
+
       {selectedLoanId && (
         <>
           {/* Overdue Alerts */}
@@ -227,43 +283,57 @@ function RepaymentsPageContent() {
               title="Overdue Payments Alert"
               description={`${overduePayments.length} payment${overduePayments.length !== 1 ? "s" : ""} overdue requiring immediate attention`}
               icon={AlertTriangle}
-              badge={{ label: `${overduePayments.length} Overdue`, variant: "destructive" }}
+              badge={{
+                label: `${overduePayments.length} Overdue`,
+                variant: "destructive",
+              }}
             >
               <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
                 <CardContent className="pt-6">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Total Overdue Amount:</span>
-                    <span className="text-lg font-bold text-red-700 dark:text-red-400">
-                      {new Intl.NumberFormat("en-ET", {
-                        style: "currency",
-                        currency: "ETB",
-                      }).format(totalOverdueAmount)}
-                    </span>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Total Overdue Amount:</span>
+                      <span className="text-lg font-bold text-red-700 dark:text-red-400">
+                        {new Intl.NumberFormat("en-ET", {
+                          style: "currency",
+                          currency: "ETB",
+                        }).format(totalOverdueAmount)}
+                      </span>
+                    </div>
+                    <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+                      {overduePayments.slice(0, 3).map((payment: any) => {
+                        const daysOverdue = calculateDaysOverdue(
+                          payment.due_date
+                        );
+                        return (
+                          <div
+                            key={payment.payment_number}
+                            className="rounded-lg border bg-white p-3 dark:bg-gray-900"
+                          >
+                            <div className="mb-2 flex items-center justify-between">
+                              <span className="text-sm font-medium">
+                                Payment #{payment.payment_number}
+                              </span>
+                              <Badge variant="destructive">
+                                {daysOverdue} days overdue
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              Due:{" "}
+                              {new Date(payment.due_date).toLocaleDateString()}
+                            </div>
+                            <div className="mt-1 text-sm font-medium">
+                              Amount:{" "}
+                              {new Intl.NumberFormat("en-ET", {
+                                style: "currency",
+                                currency: "ETB",
+                              }).format(payment.due_amount || 0)}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                    {overduePayments.slice(0, 3).map((payment: any) => {
-                      const daysOverdue = calculateDaysOverdue(payment.due_date);
-                      return (
-                        <div key={payment.payment_number} className="border rounded-lg p-3 bg-white dark:bg-gray-900">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium">Payment #{payment.payment_number}</span>
-                            <Badge variant="destructive">{daysOverdue} days overdue</Badge>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Due: {new Date(payment.due_date).toLocaleDateString()}
-                          </div>
-                          <div className="text-sm font-medium mt-1">
-                            Amount: {new Intl.NumberFormat("en-ET", {
-                              style: "currency",
-                              currency: "ETB",
-                            }).format(payment.due_amount || 0)}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
                 </CardContent>
               </Card>
             </DashboardSection>
@@ -281,93 +351,111 @@ function RepaymentsPageContent() {
                   Complete repayment schedule with due dates and amounts
                 </CardDescription>
               </CardHeader>
-            <CardContent>
-              {scheduleLoading ? (
-                <Skeleton className="h-64 w-full" />
-              ) : schedulePayments.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No repayment schedule found</p>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Payment #</TableHead>
-                      <TableHead>Due Date</TableHead>
-                      <TableHead>Due Amount</TableHead>
-                      <TableHead>Principal</TableHead>
-                      <TableHead>Interest</TableHead>
-                      <TableHead>Late Fee</TableHead>
-                      <TableHead>Days Overdue</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {schedulePayments.map((payment: any) => {
-                      const daysOverdue = calculateDaysOverdue(payment.due_date);
-                      const isOverdue = daysOverdue > 0 && payment.payment_status !== "paid";
-                      return (
-                        <TableRow 
-                          key={payment.payment_number}
-                          className={isOverdue ? "bg-red-50 dark:bg-red-950/20" : ""}
-                        >
-                          <TableCell>{payment.payment_number}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {new Date(payment.due_date).toLocaleDateString()}
-                              {isOverdue && <Clock className="h-4 w-4 text-red-500" />}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {new Intl.NumberFormat("en-ET", {
-                              style: "currency",
-                              currency: "ETB",
-                            }).format(payment.due_amount || 0)}
-                          </TableCell>
-                          <TableCell>
-                            {new Intl.NumberFormat("en-ET", {
-                              style: "currency",
-                              currency: "ETB",
-                            }).format(payment.principal_amount || 0)}
-                          </TableCell>
-                          <TableCell>
-                            {new Intl.NumberFormat("en-ET", {
-                              style: "currency",
-                              currency: "ETB",
-                            }).format(payment.interest_amount || 0)}
-                          </TableCell>
-                          <TableCell>
-                            {payment.late_fee || payment.allocated_late_fee ? (
-                              <span className="text-red-600 dark:text-red-400 font-medium">
-                                {new Intl.NumberFormat("en-ET", {
-                                  style: "currency",
-                                  currency: "ETB",
-                                }).format(payment.late_fee || payment.allocated_late_fee || 0)}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {isOverdue ? (
-                              <Badge variant="destructive">{daysOverdue} days</Badge>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {getPaymentStatusBadge(payment.payment_status)}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
+              <CardContent>
+                {scheduleLoading ? (
+                  <Skeleton className="h-64 w-full" />
+                ) : schedulePayments.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <p className="text-muted-foreground">
+                      No repayment schedule found
+                    </p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Payment #</TableHead>
+                        <TableHead>Due Date</TableHead>
+                        <TableHead>Due Amount</TableHead>
+                        <TableHead>Principal</TableHead>
+                        <TableHead>Interest</TableHead>
+                        <TableHead>Late Fee</TableHead>
+                        <TableHead>Days Overdue</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {schedulePayments.map((payment: any) => {
+                        const daysOverdue = calculateDaysOverdue(
+                          payment.due_date
+                        );
+                        const isOverdue =
+                          daysOverdue > 0 && payment.payment_status !== "paid";
+                        return (
+                          <TableRow
+                            key={payment.payment_number}
+                            className={
+                              isOverdue ? "bg-red-50 dark:bg-red-950/20" : ""
+                            }
+                          >
+                            <TableCell>{payment.payment_number}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {new Date(
+                                  payment.due_date
+                                ).toLocaleDateString()}
+                                {isOverdue && (
+                                  <Clock className="h-4 w-4 text-red-500" />
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {new Intl.NumberFormat("en-ET", {
+                                style: "currency",
+                                currency: "ETB",
+                              }).format(payment.due_amount || 0)}
+                            </TableCell>
+                            <TableCell>
+                              {new Intl.NumberFormat("en-ET", {
+                                style: "currency",
+                                currency: "ETB",
+                              }).format(payment.principal_amount || 0)}
+                            </TableCell>
+                            <TableCell>
+                              {new Intl.NumberFormat("en-ET", {
+                                style: "currency",
+                                currency: "ETB",
+                              }).format(payment.interest_amount || 0)}
+                            </TableCell>
+                            <TableCell>
+                              {payment.late_fee ||
+                              payment.allocated_late_fee ? (
+                                <span className="font-medium text-red-600 dark:text-red-400">
+                                  {new Intl.NumberFormat("en-ET", {
+                                    style: "currency",
+                                    currency: "ETB",
+                                  }).format(
+                                    payment.late_fee ||
+                                      payment.allocated_late_fee ||
+                                      0
+                                  )}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {isOverdue ? (
+                                <Badge variant="destructive">
+                                  {daysOverdue} days
+                                </Badge>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {getPaymentStatusBadge(payment.payment_status)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
             </Card>
           </DashboardSection>
-          
+
           <DashboardSection
             title="Payment History"
             description={`Recorded payments and transaction history for loan application ${selectedLoanId}`}
@@ -380,61 +468,66 @@ function RepaymentsPageContent() {
                   Complete payment history with details
                 </CardDescription>
               </CardHeader>
-            <CardContent>
-              {historyLoading ? (
-                <Skeleton className="h-64 w-full" />
-              ) : payments.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No payments recorded</p>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Payment ID</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Method</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {payments.map((payment: any) => (
-                      <TableRow key={payment.payment_id}>
-                        <TableCell className="font-medium">
-                          {payment.payment_id}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(payment.payment_date).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          {new Intl.NumberFormat("en-ET", {
-                            style: "currency",
-                            currency: "ETB",
-                          }).format(payment.payment_amount || 0)}
-                        </TableCell>
-                        <TableCell>{payment.payment_method}</TableCell>
-                        <TableCell>
-                          {getPaymentStatusBadge(payment.payment_status)}
-                        </TableCell>
+              <CardContent>
+                {historyLoading ? (
+                  <Skeleton className="h-64 w-full" />
+                ) : payments.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <p className="text-muted-foreground">
+                      No payments recorded
+                    </p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Payment ID</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Method</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {payments.map((payment: any) => (
+                        <TableRow key={payment.payment_id}>
+                          <TableCell className="font-medium">
+                            {payment.payment_id}
+                          </TableCell>
+                          <TableCell>
+                            {new Date(
+                              payment.payment_date
+                            ).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            {new Intl.NumberFormat("en-ET", {
+                              style: "currency",
+                              currency: "ETB",
+                            }).format(payment.payment_amount || 0)}
+                          </TableCell>
+                          <TableCell>{payment.payment_method}</TableCell>
+                          <TableCell>
+                            {getPaymentStatusBadge(payment.payment_status)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
           </DashboardSection>
         </>
       )}
-      
+
       {!selectedLoanId && (
         <Card>
           <CardContent className="py-12">
             <div className="text-center">
-              <Receipt className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <Receipt className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
               <p className="text-muted-foreground">
-                Enter a loan application ID to view repayment schedule and payment history
+                Enter a loan application ID to view repayment schedule and
+                payment history
               </p>
             </div>
           </CardContent>
