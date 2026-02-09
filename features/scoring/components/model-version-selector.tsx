@@ -5,18 +5,16 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -26,18 +24,26 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  CheckCircle2,
-  AlertTriangle,
-  Info,
-  GitBranch,
-  Clock,
-  Activity,
-} from "lucide-react";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useGetModelVersions } from "@/features/ml/hooks/query/use-get-model-versions";
 import { useModelVersionHistory } from "@/lib/api/hooks/useModelVersionHistory";
 import { useAuditLogger } from "@/lib/utils/audit-logger";
-import { useAuth } from "@/lib/auth/auth-context";
+import {
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  GitBranch,
+  Info,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 export interface ModelVersionInfo {
   version_id: string;
@@ -73,19 +79,15 @@ export function ModelVersionSelector({
   showABTesting = false,
   className,
 }: ModelVersionSelectorProps) {
-  const [localSelectedVersion, setLocalSelectedVersion] = useState<string | undefined>(selectedVersion);
+  const [localSelectedVersion, setLocalSelectedVersion] = useState<
+    string | undefined
+  >(selectedVersion);
   const [showChangeDialog, setShowChangeDialog] = useState(false);
   const [changeReason, setChangeReason] = useState("");
   const [abTestEnabled, setAbTestEnabled] = useState(false);
-  const { user } = useAuth();
   const { logModelVersionChange } = useAuditLogger();
-
-  // Fetch model versions
-  const {
-    data: versions,
-    isLoading,
-    error,
-  } = useModelVersionHistory(modelId, !!modelId);
+  const { versions, isLoading, error } = useGetModelVersions({ modelId });
+  console.log("versions", versions);
 
   // Update local state when prop changes
   useEffect(() => {
@@ -100,7 +102,9 @@ export function ModelVersionSelector({
     }
   }, [selectedVersion, versions]);
 
-  const selectedVersionData = versions?.find((v) => v.version_id === localSelectedVersion);
+  const selectedVersionData = versions?.find(
+    (v) => v.version_id === localSelectedVersion
+  );
 
   const handleVersionChange = async (newVersionId: string) => {
     if (newVersionId === localSelectedVersion) return;
@@ -114,10 +118,16 @@ export function ModelVersionSelector({
     if (!localSelectedVersion) return;
 
     const oldVersion = selectedVersionData?.version || "unknown";
-    const newVersion = versions?.find((v) => v.version_id === localSelectedVersion)?.version || "unknown";
+    const newVersion =
+      versions?.find((v) => v.version_id === localSelectedVersion)?.version ||
+      "unknown";
 
     // Log version change to audit trail
-    await logModelVersionChange(oldVersion, newVersion, changeReason || "User selected new version");
+    await logModelVersionChange(
+      oldVersion,
+      newVersion,
+      changeReason || "User selected new version"
+    );
 
     // Call parent callback
     onVersionChange?.(localSelectedVersion, changeReason || undefined);
@@ -127,10 +137,29 @@ export function ModelVersionSelector({
   };
 
   const getVersionStatus = (version: ModelVersionInfo) => {
-    if (version.is_beta) return { label: "Beta", color: "bg-yellow-100 text-yellow-800", icon: AlertTriangle };
-    if (version.is_deployed && version.is_active) return { label: "Active", color: "bg-green-100 text-green-800", icon: CheckCircle2 };
-    if (version.is_deployed) return { label: "Deployed", color: "bg-blue-100 text-blue-800", icon: Activity };
-    return { label: "Archived", color: "bg-gray-100 text-gray-800", icon: Clock };
+    if (version.is_beta)
+      return {
+        label: "Beta",
+        color: "bg-yellow-100 text-yellow-800",
+        icon: AlertTriangle,
+      };
+    if (version.is_deployed && version.is_active)
+      return {
+        label: "Active",
+        color: "bg-green-100 text-green-800",
+        icon: CheckCircle2,
+      };
+    if (version.is_deployed)
+      return {
+        label: "Deployed",
+        color: "bg-blue-100 text-blue-800",
+        icon: Activity,
+      };
+    return {
+      label: "Archived",
+      color: "bg-gray-100 text-gray-800",
+      icon: Clock,
+    };
   };
 
   if (isLoading) {
@@ -143,7 +172,9 @@ export function ModelVersionSelector({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-sm text-muted-foreground">Loading model versions...</div>
+          <div className="text-sm text-muted-foreground">
+            Loading model versions...
+          </div>
         </CardContent>
       </Card>
     );
@@ -162,7 +193,9 @@ export function ModelVersionSelector({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              {error ? "Failed to load model versions" : "No model versions available"}
+              {error
+                ? "Failed to load model versions"
+                : "No model versions available"}
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -211,7 +244,10 @@ export function ModelVersionSelector({
                   const status = getVersionStatus(version);
                   const StatusIcon = status.icon;
                   return (
-                    <SelectItem key={version.version_id} value={version.version_id}>
+                    <SelectItem
+                      key={version.version_id}
+                      value={version.version_id}
+                    >
                       <div className="flex items-center gap-2">
                         <StatusIcon className="h-4 w-4" />
                         <span className="font-medium">{version.version}</span>
@@ -220,7 +256,7 @@ export function ModelVersionSelector({
                             Beta
                           </Badge>
                         )}
-                        <span className="text-xs text-muted-foreground ml-2">
+                        <span className="ml-2 text-xs text-muted-foreground">
                           (Acc: {(version.accuracy * 100).toFixed(1)}%)
                         </span>
                       </div>
@@ -233,12 +269,15 @@ export function ModelVersionSelector({
 
           {/* Selected Version Details */}
           {selectedVersionData && (
-            <div className="space-y-3 pt-4 border-t">
+            <div className="space-y-3 border-t pt-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Version Details</span>
                 {selectedVersionData.is_beta && (
-                  <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-200">
-                    <AlertTriangle className="h-3 w-3 mr-1" />
+                  <Badge
+                    variant="outline"
+                    className="border-yellow-200 bg-yellow-50 text-yellow-800"
+                  >
+                    <AlertTriangle className="mr-1 h-3 w-3" />
                     Beta
                   </Badge>
                 )}
@@ -247,15 +286,21 @@ export function ModelVersionSelector({
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <div className="text-muted-foreground">Accuracy</div>
-                  <div className="font-semibold">{(selectedVersionData.accuracy * 100).toFixed(2)}%</div>
+                  <div className="font-semibold">
+                    {(selectedVersionData.accuracy * 100).toFixed(2)}%
+                  </div>
                 </div>
                 <div>
                   <div className="text-muted-foreground">AUC ROC</div>
-                  <div className="font-semibold">{selectedVersionData.auc_roc.toFixed(3)}</div>
+                  <div className="font-semibold">
+                    {selectedVersionData.auc_roc.toFixed(3)}
+                  </div>
                 </div>
                 <div>
                   <div className="text-muted-foreground">F1 Score</div>
-                  <div className="font-semibold">{selectedVersionData.f1_score.toFixed(3)}</div>
+                  <div className="font-semibold">
+                    {selectedVersionData.f1_score.toFixed(3)}
+                  </div>
                 </div>
                 <div>
                   <div className="text-muted-foreground">Status</div>
@@ -263,33 +308,48 @@ export function ModelVersionSelector({
                     {(() => {
                       const status = getVersionStatus(selectedVersionData);
                       const StatusIcon = status.icon;
-                      return StatusIcon ? <StatusIcon className="h-3 w-3" /> : null;
+                      return StatusIcon ? (
+                        <StatusIcon className="h-3 w-3" />
+                      ) : null;
                     })()}
-                    <span className="text-xs">{getVersionStatus(selectedVersionData).label}</span>
+                    <span className="text-xs">
+                      {getVersionStatus(selectedVersionData).label}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {selectedVersionData.stability_metrics && (
-                <div className="pt-2 border-t space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground">Stability Metrics</div>
+                <div className="space-y-2 border-t pt-2">
+                  <div className="text-xs font-medium text-muted-foreground">
+                    Stability Metrics
+                  </div>
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div>
                       <div className="text-muted-foreground">Uptime</div>
                       <div className="font-semibold">
-                        {selectedVersionData.stability_metrics.uptime_percentage.toFixed(1)}%
+                        {selectedVersionData.stability_metrics.uptime_percentage.toFixed(
+                          1
+                        )}
+                        %
                       </div>
                     </div>
                     <div>
                       <div className="text-muted-foreground">Error Rate</div>
                       <div className="font-semibold">
-                        {selectedVersionData.stability_metrics.error_rate.toFixed(2)}%
+                        {selectedVersionData.stability_metrics.error_rate.toFixed(
+                          2
+                        )}
+                        %
                       </div>
                     </div>
                     <div>
                       <div className="text-muted-foreground">Latency</div>
                       <div className="font-semibold">
-                        {selectedVersionData.stability_metrics.avg_latency_ms.toFixed(0)}ms
+                        {selectedVersionData.stability_metrics.avg_latency_ms.toFixed(
+                          0
+                        )}
+                        ms
                       </div>
                     </div>
                   </div>
@@ -298,7 +358,10 @@ export function ModelVersionSelector({
 
               {selectedVersionData.deployment_date && (
                 <div className="text-xs text-muted-foreground">
-                  Deployed: {new Date(selectedVersionData.deployment_date).toLocaleDateString()}
+                  Deployed:{" "}
+                  {new Date(
+                    selectedVersionData.deployment_date
+                  ).toLocaleDateString()}
                 </div>
               )}
 
@@ -306,7 +369,8 @@ export function ModelVersionSelector({
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription className="text-xs">
-                    This is a beta version. Use with caution and monitor performance closely.
+                    This is a beta version. Use with caution and monitor
+                    performance closely.
                   </AlertDescription>
                 </Alert>
               )}
@@ -318,7 +382,8 @@ export function ModelVersionSelector({
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription className="text-xs">
-                A/B testing is enabled. Requests will be randomly assigned to different model versions.
+                A/B testing is enabled. Requests will be randomly assigned to
+                different model versions.
               </AlertDescription>
             </Alert>
           )}
@@ -331,7 +396,8 @@ export function ModelVersionSelector({
           <DialogHeader>
             <DialogTitle>Change Model Version</DialogTitle>
             <DialogDescription>
-              Please provide a reason for changing the model version. This will be logged to the audit trail.
+              Please provide a reason for changing the model version. This will
+              be logged to the audit trail.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -348,22 +414,25 @@ export function ModelVersionSelector({
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription className="text-xs">
-                  Changing from {versions?.find((v) => v.version_id === selectedVersion)?.version || "current"} 
+                  Changing from{" "}
+                  {versions?.find((v) => v.version_id === selectedVersion)
+                    ?.version || "current"}
                   to {selectedVersionData.version}
                 </AlertDescription>
               </Alert>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setShowChangeDialog(false);
-              setLocalSelectedVersion(selectedVersion); // Revert
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowChangeDialog(false);
+                setLocalSelectedVersion(selectedVersion); // Revert
+              }}
+            >
               Cancel
             </Button>
-            <Button onClick={confirmVersionChange}>
-              Confirm Change
-            </Button>
+            <Button onClick={confirmVersionChange}>Confirm Change</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

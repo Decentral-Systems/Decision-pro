@@ -144,7 +144,7 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <Label for="username">Username</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
                 type="text"
@@ -180,7 +180,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="h-11 w-full text-base font-semibold shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30"
-              loading={isLoading}
+              disabled={isLoading}
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>

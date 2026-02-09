@@ -4,13 +4,13 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ThemeProvider } from "next-themes";
 import { useState, useEffect } from "react";
-import { createQueryClient } from "@/lib/react-query/config";
 import { Toaster } from "@/components/ui/toaster";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { cacheManager } from "@/lib/utils/cache-manager";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { SessionTimeoutWarning } from "@/components/auth/SessionTimeoutWarning";
 import { NetworkRecoveryMonitor } from "@/components/common/NetworkRecoveryMonitor";
+import { createQueryClient } from "@/lib/config/react-query-config";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => {
@@ -38,17 +38,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
           const queryCache = queryClient.getQueryCache();
           const allQueries = queryCache.getAll();
 
-          // Find queries that are stuck (in error state for more than 5 minutes)
           const stuckQueries = allQueries.filter((query) => {
             const state = query.state;
             if (!state.error) return false;
 
-            // Check if error has been present for more than 5 minutes
             const errorAge = state.errorUpdatedAt
               ? Date.now() - state.errorUpdatedAt
               : Infinity;
 
-            // Only recover if not currently fetching and error is old
             return errorAge > 5 * 60 * 1000 && state.fetchStatus !== "fetching";
           });
 
@@ -57,10 +54,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
               `[Providers] Found ${stuckQueries.length} stuck queries, attempting recovery`
             );
 
-            // Reset stuck queries to allow retry
             stuckQueries.forEach((query) => {
               queryClient.resetQueries({ queryKey: query.queryKey });
-              // Invalidate to trigger refetch
               queryClient.invalidateQueries({ queryKey: query.queryKey });
             });
           }
