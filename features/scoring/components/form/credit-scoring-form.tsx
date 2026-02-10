@@ -1,3 +1,5 @@
+"use client";
+
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -27,22 +29,20 @@ import { useSubmitCreditScore } from "@/lib/api/hooks/useCreditScore";
 import { CreditScoreResponse } from "@/types/credit";
 import { useState, useEffect, useMemo } from "react";
 import { transformFormDataTo168Features } from "@/lib/utils/transformCreditScore";
-import { CustomerSearchFilter } from "../../../../components/forms/CustomerSearchFilter";
+import { CustomerSearchFilter } from "@/components/forms/CustomerSearchFilter";
 import { CustomerAutocomplete } from "@/components/common/CustomerAutocomplete";
 import { CreditScoreResponseDisplay } from "@/components/credit/CreditScoreResponseDisplay";
-import { useCustomer360 } from "@/lib/api/hooks/useCustomers";
+import { useCustomer360 } from "@/features/customers/hooks/use-customer-360";
 import { Loader2, AlertTriangle } from "lucide-react";
-import { nbeComplianceValidator } from "@/lib/utils/nbe-compliance";
-import { NBEComplianceDisplay } from "@/components/common/NBEComplianceDisplay";
 import { useAuditLogger } from "@/lib/utils/audit-logger";
-import { SupervisorOverrideDialog } from "@/components/common/SupervisorOverrideDialog";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useDebounce } from "@/lib/utils/debouncedValidation";
 import {
   InlineValidation,
   ValidatedField,
 } from "@/components/common/ValidationIndicator";
-import { ComplianceSummaryCard } from "@/components/common/ComplianceSummaryCard";
+import { useNbeCompliance } from "@/features/scoring/hooks/use-nbe-compliance";
+import { NbeComplianceBlock } from "@/features/scoring/components/nbe-compliance-block";
 import {
   ethiopianPhoneValidator,
   ethiopianIdValidator,
@@ -89,15 +89,6 @@ export function CreditScoringForm({
   const { user } = useAuth();
   const { toast } = useToast();
   const { addToRecent } = useRecentCustomers();
-  const {
-    markAsAutoFilled,
-    isAutoFilled,
-    getFieldInfo,
-    getAllDataSources,
-    getOverallConfidence,
-    getLastUpdated,
-    markAsManuallyEdited,
-  } = useAutoFilledFields();
 
   // Set user ID for audit logging
   useEffect(() => {
@@ -111,7 +102,17 @@ export function CreditScoringForm({
     data: customerData,
     isLoading: isLoadingCustomer,
     error: customerError,
-  } = useCustomer360(selectedCustomerId || null);
+  } = useCustomer360({ customerId: selectedCustomerId ?? null });
+
+  const {
+    markAsAutoFilled,
+    isAutoFilled,
+    getFieldInfo,
+    getAllDataSources,
+    getOverallConfidence,
+    getLastUpdated,
+    markAsManuallyEdited,
+  } = useAutoFilledFields();
 
   // Debug logging
   useEffect(() => {
@@ -177,21 +178,12 @@ export function CreditScoringForm({
   const debouncedPhoneNumber = useDebounce(phoneNumber, 100);
   const debouncedIdNumber = useDebounce(idNumber, 100);
 
-  // Calculate NBE compliance with debounced values
-  const nbeCompliance = useMemo(() => {
-    if (
-      debouncedLoanAmount &&
-      debouncedMonthlyIncome &&
-      debouncedLoanTermMonths
-    ) {
-      return nbeComplianceValidator.validateLoanCompliance(
-        debouncedLoanAmount,
-        debouncedMonthlyIncome,
-        debouncedLoanTermMonths
-      );
-    }
-    return null;
-  }, [debouncedLoanAmount, debouncedMonthlyIncome, debouncedLoanTermMonths]);
+  const { nbeCompliance, canSubmit } = useNbeCompliance({
+    loanAmount: debouncedLoanAmount,
+    monthlyIncome: debouncedMonthlyIncome,
+    loanTermMonths: debouncedLoanTermMonths,
+    overrideApproved,
+  });
 
   // Real-time phone number validation
   const [phoneValidating, setPhoneValidating] = useState(false);
@@ -231,13 +223,6 @@ export function CreditScoringForm({
     }
   }, [debouncedIdNumber]);
 
-  // Check if form can be submitted (compliant or override approved)
-  const canSubmit = useMemo(() => {
-    if (!nbeCompliance) return true; // Allow if no compliance check yet
-    if (nbeCompliance.compliant) return true; // Allow if compliant
-    return overrideApproved; // Allow only if override approved
-  }, [nbeCompliance, overrideApproved]);
-
   // Populate form when customer data is loaded
   useEffect(() => {
     console.log("Customer data effect triggered:", {
@@ -246,112 +231,146 @@ export function CreditScoringForm({
     });
     if (customerData && selectedCustomerId) {
       console.log("Populating form with customer data:", customerData);
-      const customer = customerData.customer || customerData;
-      const profile = customerData.profile || customerData;
-      const creditData = customerData.credit || customerData;
-      const riskData = customerData.risk || customerData;
+      const data = customerData as Record<string, unknown> & {
+        customer?: Record<string, unknown>;
+        profile?: Record<string, unknown>;
+        credit?: Record<string, unknown>;
+        risk?: Record<string, unknown>;
+        income?: unknown;
+        expenses?: unknown;
+        savings?: unknown;
+        checking?: unknown;
+        debt?: unknown;
+        credit_history_years?: unknown;
+        credit_accounts?: unknown;
+        payment_score?: unknown;
+        late_payments?: unknown;
+        defaults?: unknown;
+        utilization_ratio?: unknown;
+        employment_status?: unknown;
+        employment_years?: unknown;
+        employer?: unknown;
+        age?: unknown;
+        phone?: unknown;
+        id_number?: unknown;
+        region?: unknown;
+        city?: unknown;
+        location_type?: unknown;
+        sector?: unknown;
+      };
+      const customer = data.customer || data;
+      const profile = data.profile || data;
+      const _creditData = data.credit || data;
+      const _riskData = data.risk || data;
 
       // Map customer data to form fields
       const formData: Partial<CreditScoringFormData> = {
         customer_id: selectedCustomerId,
         // Map financial data
         monthly_income:
-          customer.monthly_income ||
-          profile?.monthly_income ||
-          customerData.income ||
+          (customer.monthly_income as number | undefined) ||
+          (profile?.monthly_income as number | undefined) ||
+          (data.income as number | undefined) ||
           0,
         monthly_expenses:
-          customer.monthly_expenses ||
-          profile?.monthly_expenses ||
-          customerData.expenses ||
+          (customer.monthly_expenses as number | undefined) ||
+          (profile?.monthly_expenses as number | undefined) ||
+          (data.expenses as number | undefined) ||
           0,
         savings_balance:
-          customer.savings_balance ||
-          profile?.savings_balance ||
-          customerData.savings ||
+          (customer.savings_balance as number | undefined) ||
+          (profile?.savings_balance as number | undefined) ||
+          (data.savings as number | undefined) ||
           0,
         checking_balance:
-          customer.checking_balance ||
-          profile?.checking_balance ||
-          customerData.checking ||
+          (customer.checking_balance as number | undefined) ||
+          (profile?.checking_balance as number | undefined) ||
+          (data.checking as number | undefined) ||
           0,
         total_debt:
-          customer.total_debt || profile?.total_debt || customerData.debt || 0,
+          (customer.total_debt as number | undefined) ||
+          (profile?.total_debt as number | undefined) ||
+          (data.debt as number | undefined) ||
+          0,
         // Map credit history
         credit_history_length:
-          customer.credit_history_length ||
-          profile?.credit_history_length ||
-          customerData.credit_history_years ||
+          (customer.credit_history_length as number | undefined) ||
+          (profile?.credit_history_length as number | undefined) ||
+          (data.credit_history_years as number | undefined) ||
           0,
         number_of_credit_accounts:
-          customer.number_of_credit_accounts ||
-          profile?.number_of_credit_accounts ||
-          customerData.credit_accounts ||
+          (customer.number_of_credit_accounts as number | undefined) ||
+          (profile?.number_of_credit_accounts as number | undefined) ||
+          (data.credit_accounts as number | undefined) ||
           0,
         payment_history_score:
-          customer.payment_history_score ||
-          profile?.payment_history_score ||
-          customerData.payment_score ||
+          (customer.payment_history_score as number | undefined) ||
+          (profile?.payment_history_score as number | undefined) ||
+          (data.payment_score as number | undefined) ||
           85,
         number_of_late_payments:
-          customer.number_of_late_payments ||
-          profile?.number_of_late_payments ||
-          customerData.late_payments ||
+          (customer.number_of_late_payments as number | undefined) ||
+          (profile?.number_of_late_payments as number | undefined) ||
+          (data.late_payments as number | undefined) ||
           0,
         number_of_defaults:
-          customer.number_of_defaults ||
-          profile?.number_of_defaults ||
-          customerData.defaults ||
+          (customer.number_of_defaults as number | undefined) ||
+          (profile?.number_of_defaults as number | undefined) ||
+          (data.defaults as number | undefined) ||
           0,
         credit_utilization_ratio:
-          customer.credit_utilization_ratio ||
-          profile?.credit_utilization_ratio ||
-          customerData.utilization_ratio ||
+          (customer.credit_utilization_ratio as number | undefined) ||
+          (profile?.credit_utilization_ratio as number | undefined) ||
+          (data.utilization_ratio as number | undefined) ||
           30,
         // Map employment
         employment_status:
-          customer.employment_status ||
-          profile?.employment_status ||
-          customerData.employment_status ||
+          (customer.employment_status as CreditScoringFormData["employment_status"]) ||
+          (profile?.employment_status as CreditScoringFormData["employment_status"]) ||
+          (data.employment_status as CreditScoringFormData["employment_status"]) ||
           "employed",
         years_employed:
-          customer.years_employed ||
-          profile?.years_employed ||
-          customerData.employment_years ||
+          (customer.years_employed as number | undefined) ||
+          (profile?.years_employed as number | undefined) ||
+          (data.employment_years as number | undefined) ||
           0,
         employer_name:
-          customer.employer_name ||
-          profile?.employer_name ||
-          customerData.employer ||
+          (customer.employer_name as string | undefined) ||
+          (profile?.employer_name as string | undefined) ||
+          (data.employer as string | undefined) ||
           "",
         // Map personal
-        age: customer.age || profile?.age || customerData.age || 35,
+        age:
+          (customer.age as number | undefined) ||
+          (profile?.age as number | undefined) ||
+          (data.age as number | undefined) ||
+          35,
         phone_number:
-          customer.phone_number ||
-          profile?.phone_number ||
-          customerData.phone ||
+          (customer.phone_number as string | undefined) ||
+          (profile?.phone_number as string | undefined) ||
+          (data.phone as string | undefined) ||
           "",
         id_number:
-          customer.id_number ||
-          profile?.id_number ||
-          customerData.id_number ||
+          (customer.id_number as string | undefined) ||
+          (profile?.id_number as string | undefined) ||
+          (data.id_number as string | undefined) ||
           "",
         region:
-          customer.region ||
-          profile?.region ||
-          customerData.region ||
-          customer.city ||
-          "",
+          (customer.region as CreditScoringFormData["region"]) ||
+          (profile?.region as CreditScoringFormData["region"]) ||
+          (data.region as CreditScoringFormData["region"]) ||
+          (customer.city as CreditScoringFormData["region"]) ||
+          undefined,
         urban_rural:
-          customer.urban_rural ||
-          profile?.urban_rural ||
-          customerData.location_type ||
+          (customer.urban_rural as CreditScoringFormData["urban_rural"]) ||
+          (profile?.urban_rural as CreditScoringFormData["urban_rural"]) ||
+          (data.location_type as CreditScoringFormData["urban_rural"]) ||
           "urban",
         business_sector:
-          customer.business_sector ||
-          profile?.business_sector ||
-          customerData.sector ||
-          "",
+          (customer.business_sector as CreditScoringFormData["business_sector"]) ||
+          (profile?.business_sector as CreditScoringFormData["business_sector"]) ||
+          (data.sector as CreditScoringFormData["business_sector"]) ||
+          undefined,
       };
 
       // Reset form with customer data
@@ -539,7 +558,7 @@ export function CreditScoringForm({
                   </AlertDescription>
                 </Alert>
               )}
-              {selectedCustomerId && customerData && (
+              {selectedCustomerId && customerData != null && (
                 <Alert className="mt-4">
                   <AlertDescription>
                     Customer data loaded. You can modify any values in the form
@@ -577,41 +596,14 @@ export function CreditScoringForm({
         </Alert>
       )}
 
-      {/* Critical NBE Compliance Warning Banner */}
-      {nbeCompliance && !nbeCompliance.compliant && (
-        <Alert
-          variant="destructive"
-          className="border-2 border-red-500 bg-red-50 dark:bg-red-950"
-        >
-          <AlertTriangle className="h-5 w-5 text-red-600" />
-          <AlertDescription className="font-semibold text-red-900 dark:text-red-100">
-            <div className="space-y-2">
-              <div className="text-lg">
-                ⚠️ CRITICAL: NBE Compliance Violations Detected
-              </div>
-              <div className="text-sm font-normal">
-                This loan application violates NBE regulatory requirements.
-                Submission is blocked until violations are resolved or
-                supervisor override is approved.
-              </div>
-              <ul className="mt-2 list-inside list-disc space-y-1 text-sm font-normal">
-                {nbeCompliance.violations.map((violation, index) => (
-                  <li key={index}>
-                    <strong>{violation.rule}:</strong> {violation.description}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Compliance Summary Card - Real-time */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {nbeCompliance && <ComplianceSummaryCard compliance={nbeCompliance} />}
-        {/* NBE Compliance Display */}
-        {nbeCompliance && <NBEComplianceDisplay compliance={nbeCompliance} />}
-      </div>
+      <NbeComplianceBlock
+        compliance={nbeCompliance}
+        showOverrideDialog={showOverrideDialog}
+        onOpenOverrideDialogChange={setShowOverrideDialog}
+        onOverride={handleOverride}
+        customerId={watch("customer_id")}
+        supervisorId={user?.id}
+      />
 
       {/* Data Source Display */}
       {selectedCustomerId && Object.keys(getAllDataSources()).length > 0 && (
@@ -1246,18 +1238,6 @@ export function CreditScoringForm({
             }}
           />
         </div>
-      )}
-
-      {/* Supervisor Override Dialog */}
-      {nbeCompliance && !nbeCompliance.compliant && (
-        <SupervisorOverrideDialog
-          open={showOverrideDialog}
-          onOpenChange={setShowOverrideDialog}
-          violations={nbeCompliance.violations}
-          customerId={watch("customer_id")}
-          onOverride={handleOverride}
-          supervisorId={user?.id}
-        />
       )}
     </form>
   );

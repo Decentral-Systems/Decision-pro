@@ -1,8 +1,3 @@
-/**
- * Model Version Selector Component
- * Allows users to select model version for credit scoring with A/B testing support
- */
-
 "use client";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -33,36 +28,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetModelVersions } from "@/features/ml/hooks/query/use-get-model-versions";
-import { useModelVersionHistory } from "@/lib/api/hooks/useModelVersionHistory";
 import { useAuditLogger } from "@/lib/utils/audit-logger";
-import {
-  Activity,
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  GitBranch,
-  Info,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-
-export interface ModelVersionInfo {
-  version_id: string;
-  version: string;
-  model_name: string;
-  accuracy: number;
-  auc_roc: number;
-  f1_score: number;
-  created_at: string;
-  is_active: boolean;
-  is_deployed: boolean;
-  is_beta?: boolean;
-  deployment_date?: string;
-  stability_metrics?: {
-    uptime_percentage: number;
-    error_rate: number;
-    avg_latency_ms: number;
-  };
-}
+import { AlertTriangle, GitBranch, Info } from "lucide-react";
+import { startTransition, useEffect, useState } from "react";
+import { getVersionStatus } from "../utils/scoring.utils";
 
 interface ModelVersionSelectorProps {
   modelId?: string;
@@ -87,17 +56,18 @@ export function ModelVersionSelector({
   const [abTestEnabled, setAbTestEnabled] = useState(false);
   const { logModelVersionChange } = useAuditLogger();
   const { versions, isLoading, error } = useGetModelVersions({ modelId });
-  console.log("versions", versions);
 
-  // Update local state when prop changes
   useEffect(() => {
     if (selectedVersion) {
-      setLocalSelectedVersion(selectedVersion);
-    } else if (versions && versions.length > 0) {
-      // Default to active/deployed version
+      startTransition(() => setLocalSelectedVersion(selectedVersion));
+      return;
+    }
+    if (versions?.length) {
       const activeVersion = versions.find((v) => v.is_active || v.is_deployed);
       if (activeVersion) {
-        setLocalSelectedVersion(activeVersion.version_id);
+        startTransition(() =>
+          setLocalSelectedVersion(activeVersion.version_id)
+        );
       }
     }
   }, [selectedVersion, versions]);
@@ -134,32 +104,6 @@ export function ModelVersionSelector({
 
     setShowChangeDialog(false);
     setChangeReason("");
-  };
-
-  const getVersionStatus = (version: ModelVersionInfo) => {
-    if (version.is_beta)
-      return {
-        label: "Beta",
-        color: "bg-yellow-100 text-yellow-800",
-        icon: AlertTriangle,
-      };
-    if (version.is_deployed && version.is_active)
-      return {
-        label: "Active",
-        color: "bg-green-100 text-green-800",
-        icon: CheckCircle2,
-      };
-    if (version.is_deployed)
-      return {
-        label: "Deployed",
-        color: "bg-blue-100 text-blue-800",
-        icon: Activity,
-      };
-    return {
-      label: "Archived",
-      color: "bg-gray-100 text-gray-800",
-      icon: Clock,
-    };
   };
 
   if (isLoading) {
@@ -229,7 +173,6 @@ export function ModelVersionSelector({
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Version Selector */}
           <div className="space-y-2">
             <Label>Select Model Version</Label>
             <Select

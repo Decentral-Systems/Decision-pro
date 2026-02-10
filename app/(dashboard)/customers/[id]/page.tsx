@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { navigateTo } from "@/lib/utils/navigation";
 import { useState } from "react";
-import { useCustomer360 } from "@/lib/api/hooks/useCustomers";
+import { useCustomer360 } from "@/features/customers/hooks/use-customer-360";
 import { Customer360View } from "@/components/customer/Customer360View";
 import { CustomerReportExport } from "@/components/customer/CustomerReportExport";
 import { CustomerEditDialog } from "@/components/customer/CustomerEditDialog";
@@ -36,8 +36,9 @@ export default function Customer360Page() {
   const rawCustomerId = params.id as string;
   const customerId = rawCustomerId ? decodeURIComponent(rawCustomerId) : null;
 
-  const { data, isLoading, error, refetch, isError } =
-    useCustomer360(customerId);
+  const { data, isLoading, error, refetch, isError } = useCustomer360({
+    customerId,
+  });
 
   // Generate alerts from customer data
   const alerts = useMemo(() => {

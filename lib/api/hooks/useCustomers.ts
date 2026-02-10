@@ -27,57 +27,13 @@ export interface CustomersListParams {
   employment_status?: string;
 }
 
+import { useCustomer360 as useCustomer360Hook } from "@/features/customers/hooks/use-customer-360";
+
+/**
+ * Customer 360 data (route-based). Prefer importing from @/features/customers/hooks/use-customer-360.
+ */
 export function useCustomer360(customerId: string | null) {
-  const { isAuthenticated, tokenSynced, status, session } = useAuth();
-
-  return useQuery<any | null>({
-    queryKey: ["customer360", customerId],
-    queryFn: async () => {
-      if (!customerId) {
-        console.warn("[useCustomer360] No customer ID provided");
-        return null;
-      }
-
-      try {
-        console.log(
-          "[useCustomer360] Fetching customer 360 data for:",
-          customerId
-        );
-        // Use apiGatewayClient since the endpoint is on API Gateway
-        const data = await apiGatewayClient.getCustomer360(customerId);
-        console.log(
-          "[useCustomer360] Successfully fetched customer 360 data:",
-          !!data
-        );
-        return data;
-      } catch (error: any) {
-        // Log error details for debugging
-        console.error("[useCustomer360] Customer 360 fetch error:", error);
-        const statusCode = error?.statusCode || error?.response?.status;
-        console.error("[useCustomer360] Error details:", {
-          statusCode,
-          message: error?.message,
-          customerId,
-        });
-
-        // Return null for 401/404 errors to allow graceful fallback UI
-        if (statusCode === 401 || statusCode === 404 || statusCode === 403) {
-          console.warn(
-            `[useCustomer360] Returning null for status code: ${statusCode}`
-          );
-          return null;
-        }
-
-        // Re-throw other errors to let React Query handle them
-        throw error;
-      }
-    },
-    enabled:
-      !!customerId && isAuthenticated && tokenSynced && !!session?.accessToken,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: networkAwareRetry,
-    retryDelay: networkAwareRetryDelay,
-  });
+  return useCustomer360Hook({ customerId });
 }
 
 export function useCustomersList(params: CustomersListParams = {}) {

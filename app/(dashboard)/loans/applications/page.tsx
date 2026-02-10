@@ -7,10 +7,8 @@ import {
   useBulkLoanOperations,
 } from "@/lib/api/hooks/useLoans";
 import { apiGatewayClient } from "@/lib/api/clients/api-gateway";
-import {
-  useCustomerSearchAutocomplete,
-  useCustomer360,
-} from "@/lib/api/hooks/useCustomers";
+import { useCustomerSearchAutocomplete } from "@/lib/api/hooks/useCustomers";
+import { useCustomer360 } from "@/features/customers/hooks/use-customer-360";
 import {
   Card,
   CardContent,
@@ -196,13 +194,13 @@ function LoanApplicationsPageContent() {
     });
 
   // Fetch customer 360 data when customer is selected
-  const { data: customer360Data } = useCustomer360(
-    selectedCustomer?.customer_id || null
-  );
+  const { data: customer360Data } = useCustomer360({
+    customerId: selectedCustomer?.customer_id ?? null,
+  });
 
   useEffect(() => {
-    if (customer360Data?.data) {
-      const credit = customer360Data.data.credit;
+    if (customer360Data?.credit) {
+      const credit = customer360Data.credit;
       if (credit?.score) {
         setCustomerCreditScore(credit.score);
       }
@@ -521,8 +519,8 @@ function LoanApplicationsPageContent() {
               monthly_income: monthlyIncome,
               credit_score: customerCreditScore || undefined,
               employment_years:
-                customer360Data?.data?.employment?.years || undefined,
-              age: customer360Data?.data?.personal?.age || undefined,
+                customer360Data?.employment?.years || undefined,
+              age: customer360Data?.personal?.age || undefined,
             });
             setDefaultPrediction(defaultResult?.data || defaultResult);
           } catch (err: any) {
@@ -1507,22 +1505,22 @@ function LoanApplicationsPageContent() {
                       </div>
                     )}
                     {/* Customer History Display */}
-                    {customer360Data?.data && (
+                    {customer360Data && (
                       <div className="mt-2 space-y-2 border-t pt-2">
                         <div className="mb-2 text-xs font-medium">
                           Customer History:
                         </div>
 
                         {/* Previous Loans */}
-                        {customer360Data.data.loans &&
-                          customer360Data.data.loans.length > 0 && (
+                        {customer360Data.loans &&
+                          customer360Data.loans.length > 0 && (
                             <div className="space-y-1">
                               <div className="text-xs font-medium text-muted-foreground">
                                 Previous Loans (
-                                {customer360Data.data.loans.length}):
+                                {customer360Data.loans.length}):
                               </div>
                               <div className="max-h-32 space-y-1 overflow-y-auto">
-                                {customer360Data.data.loans
+                                {customer360Data.loans
                                   .slice(0, 5)
                                   .map((loan: any, idx: number) => (
                                     <div
@@ -1561,9 +1559,9 @@ function LoanApplicationsPageContent() {
                                       )}
                                     </div>
                                   ))}
-                                {customer360Data.data.loans.length > 5 && (
+                                {customer360Data.loans.length > 5 && (
                                   <div className="pt-1 text-center text-xs text-muted-foreground">
-                                    +{customer360Data.data.loans.length - 5}{" "}
+                                    +{customer360Data.loans.length - 5}{" "}
                                     more loans
                                   </div>
                                 )}
@@ -1572,15 +1570,15 @@ function LoanApplicationsPageContent() {
                           )}
 
                         {/* Payment History */}
-                        {customer360Data.data.payments &&
-                          customer360Data.data.payments.length > 0 && (
+                        {customer360Data.payments &&
+                          customer360Data.payments.length > 0 && (
                             <div className="space-y-1">
                               <div className="text-xs font-medium text-muted-foreground">
                                 Payment History (
-                                {customer360Data.data.payments.length} records):
+                                {customer360Data.payments.length} records):
                               </div>
                               <div className="max-h-24 space-y-1 overflow-y-auto">
-                                {customer360Data.data.payments
+                                {customer360Data.payments
                                   .slice(0, 3)
                                   .map((payment: any, idx: number) => (
                                     <div
@@ -1611,9 +1609,9 @@ function LoanApplicationsPageContent() {
                                       )}
                                     </div>
                                   ))}
-                                {customer360Data.data.payments.length > 3 && (
+                                {customer360Data.payments.length > 3 && (
                                   <div className="pt-1 text-center text-xs text-muted-foreground">
-                                    +{customer360Data.data.payments.length - 3}{" "}
+                                    +{customer360Data.payments.length - 3}{" "}
                                     more payments
                                   </div>
                                 )}
@@ -1622,29 +1620,29 @@ function LoanApplicationsPageContent() {
                           )}
 
                         {/* Customer Risk Profile */}
-                        {customer360Data.data.credit && (
+                        {customer360Data.credit && (
                           <div className="space-y-1 border-t pt-1">
                             <div className="text-xs font-medium text-muted-foreground">
                               Risk Profile:
                             </div>
                             <div className="grid grid-cols-2 gap-1 text-xs">
-                              {customer360Data.data.credit.credit_score && (
+                              {customer360Data.credit.credit_score && (
                                 <div>
                                   <span className="text-muted-foreground">
                                     Score:{" "}
                                   </span>
                                   <span className="font-medium">
-                                    {customer360Data.data.credit.credit_score}
+                                    {customer360Data.credit.credit_score}
                                   </span>
                                 </div>
                               )}
-                              {customer360Data.data.credit.risk_level && (
+                              {customer360Data.credit.risk_level && (
                                 <div>
                                   <span className="text-muted-foreground">
                                     Level:{" "}
                                   </span>
                                   {getRiskBadge(
-                                    customer360Data.data.credit.risk_level
+                                    customer360Data.credit.risk_level
                                   )}
                                 </div>
                               )}
