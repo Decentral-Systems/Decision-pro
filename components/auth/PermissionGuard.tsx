@@ -35,38 +35,36 @@ export function PermissionGuard({
   // Check permission if specified
   if (permission && !hasPermission(user.roles, permission)) {
     return (
-      fallback || (
-        showError ? (
-          <Alert variant="destructive" className="my-4">
-            <ShieldAlert className="h-4 w-4" />
-            <AlertTitle>Access Denied</AlertTitle>
-            <AlertDescription>
-              You don't have permission to access this resource.
-              <br />
-              Required permission: <code className="text-xs">{permission}</code>
-            </AlertDescription>
-          </Alert>
-        ) : null
-      )
+      fallback ||
+      (showError ? (
+        <Alert variant="destructive" className="my-4">
+          <ShieldAlert className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>
+            You don&apos;t have permission to access this resource.
+            <br />
+            Required permission: <code className="text-xs">{permission}</code>
+          </AlertDescription>
+        </Alert>
+      ) : null)
     );
   }
 
   // Check roles if specified
   if (roles && !hasAnyRole(user.roles, roles)) {
     return (
-      fallback || (
-        showError ? (
-          <Alert variant="destructive" className="my-4">
-            <ShieldAlert className="h-4 w-4" />
-            <AlertTitle>Access Denied</AlertTitle>
-            <AlertDescription>
-              You don't have the required role to access this resource.
-              <br />
-              Required roles: <code className="text-xs">{roles.join(", ")}</code>
-            </AlertDescription>
-          </Alert>
-        ) : null
-      )
+      fallback ||
+      (showError ? (
+        <Alert variant="destructive" className="my-4">
+          <ShieldAlert className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>
+            You don&apos;t have the required role to access this resource.
+            <br />
+            Required roles: <code className="text-xs">{roles.join(", ")}</code>
+          </AlertDescription>
+        </Alert>
+      ) : null)
     );
   }
 

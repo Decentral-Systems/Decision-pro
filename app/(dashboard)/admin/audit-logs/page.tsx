@@ -229,8 +229,8 @@ export default function AuditLogsPage() {
     const failureCount = logs.filter((log) => log.status === "failure").length;
     const errorCount = logs.filter((log) => log.status === "error").length;
 
-    return `
-      <!DOCTYPE html>
+    return ` 
+    <!DOCTYPE html>
       <html>
       <head>
         <title>Audit Logs Report</title>
