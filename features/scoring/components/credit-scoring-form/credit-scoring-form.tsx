@@ -1,21 +1,17 @@
 "use client";
 
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { DataSourceDisplay } from "@/components/common/DataSourceDisplay";
+import { OfflineModeIndicator } from "@/components/common/OfflineModeIndicator";
 import {
-  creditScoringFormSchema,
-  CreditScoringFormData,
-} from "@/lib/utils/validation";
+  RecentCustomersList,
+  useRecentCustomers,
+} from "@/components/common/RecentCustomersList";
+import { AffordabilityIndicator } from "@/components/credit/AffordabilityIndicator";
+import { CreditScoreResponseDisplay } from "@/components/credit/CreditScoreResponseDisplay";
+import { HistoricalScoreSummary } from "@/components/credit/HistoricalScoreSummary";
+import { CustomerSearchFilter } from "@/components/forms/CustomerSearchFilter";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -24,41 +20,35 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useSubmitCreditScore } from "@/lib/api/hooks/useCreditScore";
-import { CreditScoreResponse } from "@/types/credit";
-import { useState, useEffect, useMemo } from "react";
-import { transformFormDataTo168Features } from "@/lib/utils/transformCreditScore";
-import { CustomerSearchFilter } from "@/components/forms/CustomerSearchFilter";
-import { CustomerAutocomplete } from "@/components/common/CustomerAutocomplete";
-import { CreditScoreResponseDisplay } from "@/components/credit/CreditScoreResponseDisplay";
 import { useCustomer360 } from "@/features/customers/hooks/use-customer-360";
-import { Loader2, AlertTriangle } from "lucide-react";
-import { useAuditLogger } from "@/lib/utils/audit-logger";
+import { NbeComplianceBlock } from "@/features/scoring/components/nbe-compliance-block";
+import { useNbeCompliance } from "@/features/scoring/hooks/use-nbe-compliance";
+import { useToast } from "@/hooks/use-toast";
+import { useSubmitCreditScore } from "@/lib/api/hooks/useCreditScore";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useAutoFilledFields } from "@/lib/hooks/useAutoFilledFields";
+import { useAuditLogger } from "@/lib/utils/audit-logger";
 import { useDebounce } from "@/lib/utils/debouncedValidation";
 import {
-  InlineValidation,
-  ValidatedField,
-} from "@/components/common/ValidationIndicator";
-import { useNbeCompliance } from "@/features/scoring/hooks/use-nbe-compliance";
-import { NbeComplianceBlock } from "@/features/scoring/components/nbe-compliance-block";
-import {
-  ethiopianPhoneValidator,
   ethiopianIdValidator,
+  ethiopianPhoneValidator,
 } from "@/lib/utils/ethiopianValidators";
-import { AffordabilityIndicator } from "@/components/credit/AffordabilityIndicator";
-import { useFormPersistence, saveFormData } from "@/lib/utils/formPersistence";
-import { useToast } from "@/hooks/use-toast";
+import { saveFormData, useFormPersistence } from "@/lib/utils/formPersistence";
+import { transformFormDataTo168Features } from "@/lib/utils/transformCreditScore";
 import {
-  RecentCustomersList,
-  useRecentCustomers,
-} from "@/components/common/RecentCustomersList";
-import { AutoFilledFieldWrapper } from "@/components/common/AutoFilledFieldWrapper";
-import { DataSourceDisplay } from "@/components/common/DataSourceDisplay";
-import { HistoricalScoreSummary } from "@/components/credit/HistoricalScoreSummary";
-import { useAutoFilledFields } from "@/lib/hooks/useAutoFilledFields";
-import { OfflineModeIndicator } from "@/components/common/OfflineModeIndicator";
+  CreditScoringFormData,
+  creditScoringFormSchema,
+} from "@/lib/utils/validation";
+import { CreditScoreResponse } from "@/types/credit";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertTriangle, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { CreditScoringBasicInfoTab } from "./credit-scoring-basic-info-tab";
+import { CreditScoringCreditHistoryTab } from "./credit-scoring-credit-history-tab";
+import { CreditScoringEmploymentTab } from "./credit-scoring-employment-tab";
+import { CreditScoringFinancialTab } from "./credit-scoring-financial-tab";
+import { CreditScoringPersonalTab } from "./credit-scoring-personal-tab";
 
 interface CreditScoringFormProps {
   onResult?: (result: CreditScoreResponse) => void;
@@ -229,6 +219,7 @@ export function CreditScoringForm({
       customerData,
       selectedCustomerId,
     });
+
     if (customerData && selectedCustomerId) {
       console.log("Populating form with customer data:", customerData);
       const data = customerData as Record<string, unknown> & {
@@ -653,536 +644,66 @@ export function CreditScoringForm({
           </TabsTrigger>
         </TabsList>
 
-        {/* Basic Info Tab */}
         <TabsContent value="basic" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>Customer and loan details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="customer_id">Customer ID *</Label>
-                  {customerType === "new" ? (
-                    <CustomerAutocomplete
-                      value={watch("customer_id") || selectedCustomerId}
-                      onSelect={(customerId) => {
-                        if (customerId) {
-                          setValue("customer_id", customerId, {
-                            shouldValidate: true,
-                          });
-                        }
-                      }}
-                      placeholder="Search or enter customer ID..."
-                      error={errors.customer_id?.message}
-                      required
-                    />
-                  ) : (
-                    <Input
-                      id="customer_id"
-                      {...register("customer_id")}
-                      placeholder="CUST_001"
-                      value={selectedCustomerId || ""}
-                      readOnly={!!selectedCustomerId}
-                    />
-                  )}
-                  {errors.customer_id && (
-                    <p className="text-sm text-destructive">
-                      {errors.customer_id.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="loan_amount">Loan Amount (ETB) *</Label>
-                  <AutoFilledFieldWrapper
-                    fieldName="loan_amount"
-                    isAutoFilled={isAutoFilled("loan_amount")}
-                    dataSource={getFieldInfo("loan_amount")?.dataSource}
-                    onManualEdit={() => markAsManuallyEdited("loan_amount")}
-                  >
-                    <Input
-                      id="loan_amount"
-                      type="number"
-                      {...register("loan_amount", { valueAsNumber: true })}
-                      placeholder="50000"
-                    />
-                  </AutoFilledFieldWrapper>
-                  {errors.loan_amount && (
-                    <p className="text-sm text-destructive">
-                      {errors.loan_amount.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="loan_term_months">Loan Term (Months) *</Label>
-                  <Input
-                    id="loan_term_months"
-                    type="number"
-                    {...register("loan_term_months", { valueAsNumber: true })}
-                    placeholder="12"
-                  />
-                  {errors.loan_term_months && (
-                    <p className="text-sm text-destructive">
-                      {errors.loan_term_months.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="loan_purpose">Loan Purpose</Label>
-                  <Input
-                    id="loan_purpose"
-                    {...register("loan_purpose")}
-                    placeholder="Business expansion"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <CreditScoringBasicInfoTab
+            register={register}
+            control={control}
+            errors={errors}
+            watch={watch}
+            setValue={setValue}
+            customerType={customerType}
+            selectedCustomerId={selectedCustomerId}
+            isAutoFilled={isAutoFilled}
+            getFieldInfo={getFieldInfo}
+            markAsManuallyEdited={markAsManuallyEdited}
+          />
         </TabsContent>
 
-        {/* Financial Tab */}
         <TabsContent value="financial" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Financial Information</CardTitle>
-              <CardDescription>Income, expenses, and balances</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="monthly_income">Monthly Income (ETB) *</Label>
-                  <AutoFilledFieldWrapper
-                    fieldName="monthly_income"
-                    isAutoFilled={isAutoFilled("monthly_income")}
-                    dataSource={getFieldInfo("monthly_income")?.dataSource}
-                    onManualEdit={() => markAsManuallyEdited("monthly_income")}
-                  >
-                    <Input
-                      id="monthly_income"
-                      type="number"
-                      {...register("monthly_income", { valueAsNumber: true })}
-                      placeholder="20000"
-                    />
-                  </AutoFilledFieldWrapper>
-                  {errors.monthly_income && (
-                    <p className="text-sm text-destructive">
-                      {errors.monthly_income.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="monthly_expenses">
-                    Monthly Expenses (ETB) *
-                  </Label>
-                  <Input
-                    id="monthly_expenses"
-                    type="number"
-                    {...register("monthly_expenses", { valueAsNumber: true })}
-                    placeholder="15000"
-                  />
-                  {errors.monthly_expenses && (
-                    <p className="text-sm text-destructive">
-                      {errors.monthly_expenses.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="savings_balance">
-                    Savings Balance (ETB) *
-                  </Label>
-                  <Input
-                    id="savings_balance"
-                    type="number"
-                    {...register("savings_balance", { valueAsNumber: true })}
-                    placeholder="50000"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="checking_balance">
-                    Checking Balance (ETB) *
-                  </Label>
-                  <Input
-                    id="checking_balance"
-                    type="number"
-                    {...register("checking_balance", { valueAsNumber: true })}
-                    placeholder="10000"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="total_debt">Total Debt (ETB) *</Label>
-                  <Input
-                    id="total_debt"
-                    type="number"
-                    {...register("total_debt", { valueAsNumber: true })}
-                    placeholder="30000"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="credit_utilization_ratio">
-                    Credit Utilization Ratio (%) *
-                  </Label>
-                  <Input
-                    id="credit_utilization_ratio"
-                    type="number"
-                    step="0.01"
-                    {...register("credit_utilization_ratio", {
-                      valueAsNumber: true,
-                    })}
-                    placeholder="30"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="collateral_value">
-                    Collateral Value (ETB)
-                  </Label>
-                  <Input
-                    id="collateral_value"
-                    type="number"
-                    {...register("collateral_value", { valueAsNumber: true })}
-                    placeholder="100000"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <CreditScoringFinancialTab
+            register={register}
+            control={control}
+            errors={errors}
+            watch={watch}
+            setValue={setValue}
+            isAutoFilled={isAutoFilled}
+            getFieldInfo={getFieldInfo}
+            markAsManuallyEdited={markAsManuallyEdited}
+          />
         </TabsContent>
 
-        {/* Credit History Tab */}
         <TabsContent value="credit" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Credit History</CardTitle>
-              <CardDescription>
-                Credit accounts and payment history
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="credit_history_length">
-                    Credit History Length (Years) *
-                  </Label>
-                  <Input
-                    id="credit_history_length"
-                    type="number"
-                    {...register("credit_history_length", {
-                      valueAsNumber: true,
-                    })}
-                    placeholder="5"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="number_of_credit_accounts">
-                    Number of Credit Accounts *
-                  </Label>
-                  <Input
-                    id="number_of_credit_accounts"
-                    type="number"
-                    {...register("number_of_credit_accounts", {
-                      valueAsNumber: true,
-                    })}
-                    placeholder="3"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="payment_history_score">
-                    Payment History Score (0-100) *
-                  </Label>
-                  <Input
-                    id="payment_history_score"
-                    type="number"
-                    {...register("payment_history_score", {
-                      valueAsNumber: true,
-                    })}
-                    placeholder="85"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="number_of_late_payments">
-                    Number of Late Payments *
-                  </Label>
-                  <Input
-                    id="number_of_late_payments"
-                    type="number"
-                    {...register("number_of_late_payments", {
-                      valueAsNumber: true,
-                    })}
-                    placeholder="0"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="number_of_defaults">
-                    Number of Defaults *
-                  </Label>
-                  <Input
-                    id="number_of_defaults"
-                    type="number"
-                    {...register("number_of_defaults", { valueAsNumber: true })}
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <CreditScoringCreditHistoryTab
+            register={register}
+            control={control}
+            errors={errors}
+            watch={watch}
+            setValue={setValue}
+          />
         </TabsContent>
 
-        {/* Employment Tab */}
         <TabsContent value="employment" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Employment Information</CardTitle>
-              <CardDescription>Employment status and details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="employment_status">Employment Status *</Label>
-                  <Controller
-                    name="employment_status"
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select employment status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="employed">Employed</SelectItem>
-                          <SelectItem value="self_employed">
-                            Self Employed
-                          </SelectItem>
-                          <SelectItem value="unemployed">Unemployed</SelectItem>
-                          <SelectItem value="retired">Retired</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="years_employed">Years Employed *</Label>
-                  <Input
-                    id="years_employed"
-                    type="number"
-                    step="0.1"
-                    {...register("years_employed", { valueAsNumber: true })}
-                    placeholder="5"
-                  />
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="employer_name">Employer Name</Label>
-                  <Input
-                    id="employer_name"
-                    {...register("employer_name")}
-                    placeholder="Company Name"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <CreditScoringEmploymentTab
+            register={register}
+            control={control}
+            errors={errors}
+            watch={watch}
+            setValue={setValue}
+          />
         </TabsContent>
 
-        {/* Personal Tab */}
         <TabsContent value="personal" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>Demographics and location</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="age">Age *</Label>
-                  <Input
-                    id="age"
-                    type="number"
-                    {...register("age", { valueAsNumber: true })}
-                    placeholder="35"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone_number">Phone Number</Label>
-                  <ValidatedField
-                    status={
-                      !phoneNumber
-                        ? "idle"
-                        : phoneValidation.isValidating
-                          ? "validating"
-                          : phoneValidation.valid
-                            ? "valid"
-                            : "invalid"
-                    }
-                  >
-                    <Input
-                      id="phone_number"
-                      {...register("phone_number")}
-                      placeholder="+251912345678"
-                      className={
-                        phoneValidation.valid && phoneNumber
-                          ? "border-green-500"
-                          : ""
-                      }
-                    />
-                  </ValidatedField>
-                  {phoneNumber && (
-                    <InlineValidation
-                      status={
-                        phoneValidation.isValidating
-                          ? "validating"
-                          : phoneValidation.valid
-                            ? "valid"
-                            : "invalid"
-                      }
-                      message={
-                        phoneValidation.isValidating
-                          ? "Validating..."
-                          : phoneValidation.valid
-                            ? "Valid Ethiopian phone number"
-                            : phoneValidation.error || "Invalid format"
-                      }
-                    />
-                  )}
-                  {errors.phone_number && (
-                    <p className="text-sm text-destructive">
-                      {errors.phone_number.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="id_number">ID Number</Label>
-                  <ValidatedField
-                    status={
-                      !idNumber
-                        ? "idle"
-                        : idValidation.isValidating
-                          ? "validating"
-                          : idValidation.valid
-                            ? "valid"
-                            : "invalid"
-                    }
-                  >
-                    <Input
-                      id="id_number"
-                      {...register("id_number")}
-                      placeholder="1234567890"
-                      maxLength={10}
-                      className={
-                        idValidation.valid && idNumber ? "border-green-500" : ""
-                      }
-                    />
-                  </ValidatedField>
-                  {idNumber && (
-                    <InlineValidation
-                      status={
-                        idValidation.isValidating
-                          ? "validating"
-                          : idValidation.valid
-                            ? "valid"
-                            : "invalid"
-                      }
-                      message={
-                        idValidation.isValidating
-                          ? "Validating..."
-                          : idValidation.valid
-                            ? "Valid Ethiopian ID number"
-                            : idValidation.error || "Must be exactly 10 digits"
-                      }
-                    />
-                  )}
-                  {errors.id_number && (
-                    <p className="text-sm text-destructive">
-                      {errors.id_number.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="region">Region</Label>
-                  <Input
-                    id="region"
-                    {...register("region")}
-                    placeholder="Addis Ababa"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="urban_rural">Urban/Rural</Label>
-                  <Controller
-                    name="urban_rural"
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="urban">Urban</SelectItem>
-                          <SelectItem value="rural">Rural</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="business_sector">Business Sector</Label>
-                  <Input
-                    id="business_sector"
-                    {...register("business_sector")}
-                    placeholder="Technology"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="guarantor_available">
-                    Guarantor Available
-                  </Label>
-                  <Controller
-                    name="guarantor_available"
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        onValueChange={(value) =>
-                          field.onChange(value === "true")
-                        }
-                        value={field.value?.toString()}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="true">Yes</SelectItem>
-                          <SelectItem value="false">No</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <CreditScoringPersonalTab
+            register={register}
+            control={control}
+            errors={errors}
+            watch={watch}
+            setValue={setValue}
+            phoneNumber={phoneNumber}
+            idNumber={idNumber}
+            phoneValidation={phoneValidation}
+            idValidation={idValidation}
+          />
         </TabsContent>
       </Tabs>
 
