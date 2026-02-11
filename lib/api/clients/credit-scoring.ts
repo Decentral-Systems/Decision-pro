@@ -1,13 +1,9 @@
-/**
- * Credit Scoring Service Client
- * Handles all Credit Scoring Service requests via API Gateway (http://196.188.249.48:4000)
- */
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from "axios";
-import {
-  APIServiceError,
-  APITimeoutError,
-  APINetworkError,
-} from "@/types/api";
+import axios, {
+  AxiosInstance,
+  AxiosError,
+  InternalAxiosRequestConfig,
+} from "axios";
+import { APIServiceError, APITimeoutError, APINetworkError } from "@/types/api";
 import {
   CreditScoreRequest,
   CreditScoreResponse,
@@ -17,8 +13,7 @@ import {
 
 // Use API Gateway URL (port 4000) instead of direct Credit Scoring Service (port 4001)
 const CREDIT_SCORING_URL =
-  process.env.NEXT_PUBLIC_API_GATEWAY_URL ||
-  "http://196.188.249.48:4000";
+  process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://196.188.249.48:4000";
 
 class CreditScoringClient {
   private client: AxiosInstance;
@@ -41,7 +36,9 @@ class CreditScoringClient {
           config.headers.Authorization = `Bearer ${this.accessToken}`;
           console.log(`[Credit Scoring] Token added to request: ${config.url}`);
         } else {
-          console.warn(`[Credit Scoring] No token available for request: ${config.url}`);
+          console.warn(
+            `[Credit Scoring] No token available for request: ${config.url}`
+          );
         }
         return config;
       },
@@ -52,36 +49,54 @@ class CreditScoringClient {
     this.client.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
-        const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+        const originalRequest = error.config as InternalAxiosRequestConfig & {
+          _retry?: boolean;
+        };
 
         // Handle 401 Unauthorized - attempt token refresh
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
-          
+
           try {
-            console.log("[Credit Scoring] 401 error detected, attempting token refresh");
-            
+            console.log(
+              "[Credit Scoring] 401 error detected, attempting token refresh"
+            );
+
             // Wait for potential token refresh
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
             // Get the latest token from the client
             if (this.accessToken) {
               originalRequest.headers.Authorization = `Bearer ${this.accessToken}`;
-              console.log("[Credit Scoring] Retrying request with refreshed token");
+              console.log(
+                "[Credit Scoring] Retrying request with refreshed token"
+              );
               return this.client(originalRequest);
             }
-            
-            throw new APIServiceError(401, "Authentication required - please login again");
+
+            throw new APIServiceError(
+              401,
+              "Authentication required - please login again"
+            );
           } catch (refreshError: any) {
-            console.error("[Credit Scoring] Token refresh/retry failed:", refreshError);
+            console.error(
+              "[Credit Scoring] Token refresh/retry failed:",
+              refreshError
+            );
             if (refreshError instanceof APIServiceError) {
               throw refreshError;
             }
-            throw new APIServiceError(401, "Session expired - please login again");
+            throw new APIServiceError(
+              401,
+              "Session expired - please login again"
+            );
           }
         }
 
-        if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+        if (
+          error.code === "ECONNABORTED" ||
+          error.message.includes("timeout")
+        ) {
           throw new APITimeoutError("Request timeout");
         }
 
@@ -112,43 +127,64 @@ class CreditScoringClient {
     try {
       // Use the API Gateway endpoint which proxies to Credit Scoring Service
       // This endpoint expects Complete164FeatureRequest format (168 features)
-      const response = await this.client.post<any>(
+      const response = (await this.client.post<any>(
         "/api/intelligence/credit-scoring/realtime",
         data
-      ) as any;
+      )) as any;
 
       // API Gateway wraps the response
       const responseData = response.data?.data || response.data || response;
-      
+
       // Transform API Gateway response to CreditScoreResponse format
       if (responseData) {
         return {
           success: true,
           customer_id: responseData.customer_id || data.customer_id,
-          credit_score: responseData.credit_score || responseData.ensemble_score || 0,
-          risk_category: (responseData.risk_level || responseData.risk_category || "medium") as "low" | "medium" | "high" | "very_high",
-          approval_recommendation: (responseData.approval_recommendation || 
-            (responseData.credit_score >= 700 ? "approve" : 
-             responseData.credit_score >= 600 ? "review" : "reject")) as "approve" | "reject" | "review",
-          confidence: responseData.confidence_score || responseData.confidence || 0.8,
-          ensemble_score: responseData.ensemble_score || responseData.credit_score || 0,
-          model_predictions: responseData.ensemble_details?.individual_predictions ? 
-            Object.entries(responseData.ensemble_details.individual_predictions).map(([name, score]: [string, any]) => ({
-              model_name: name,
-              score: typeof score === 'number' ? score : 0,
-              probability: typeof score === 'number' ? score / 1000 : 0,
-              weight: name === 'xgboost' ? 0.6 : name === 'lightgbm' ? 0.4 : 0.1,
-            })) : [],
+          credit_score:
+            responseData.credit_score || responseData.ensemble_score || 0,
+          risk_category: (responseData.risk_level ||
+            responseData.risk_category ||
+            "medium") as "low" | "medium" | "high" | "very_high",
+          approval_recommendation: (responseData.approval_recommendation ||
+            (responseData.credit_score >= 700
+              ? "approve"
+              : responseData.credit_score >= 600
+                ? "review"
+                : "reject")) as "approve" | "reject" | "review",
+          confidence:
+            responseData.confidence_score || responseData.confidence || 0.8,
+          ensemble_score:
+            responseData.ensemble_score || responseData.credit_score || 0,
+          model_predictions: responseData.ensemble_details
+            ?.individual_predictions
+            ? Object.entries(
+                responseData.ensemble_details.individual_predictions
+              ).map(([name, score]: [string, any]) => ({
+                model_name: name,
+                score: typeof score === "number" ? score : 0,
+                probability: typeof score === "number" ? score / 1000 : 0,
+                weight:
+                  name === "xgboost" ? 0.6 : name === "lightgbm" ? 0.4 : 0.1,
+              }))
+            : [],
           compliance_check: {
-            compliant: responseData.nbe_compliance_status?.overall_compliant ?? true,
+            compliant:
+              responseData.nbe_compliance_status?.overall_compliant ?? true,
             violations: responseData.nbe_compliance_status?.violations || [],
           },
-          explanation: responseData.explainability ? {
-            shap_values: responseData.explainability.shap_analysis,
-            lime_explanation: responseData.explainability.lime_explanation,
-            top_features: responseData.explainability.feature_importance?.slice(0, 10) || [],
-          } : undefined,
-          correlation_id: responseData.correlation_id || responseData.request_id,
+          explanation: responseData.explainability
+            ? {
+                shap_values: responseData.explainability.shap_analysis,
+                lime_explanation: responseData.explainability.lime_explanation,
+                top_features:
+                  responseData.explainability.feature_importance?.slice(
+                    0,
+                    10
+                  ) || [],
+              }
+            : undefined,
+          correlation_id:
+            responseData.correlation_id || responseData.request_id,
         };
       }
 
@@ -171,31 +207,36 @@ class CreditScoringClient {
   async getCustomer360(customerId: string): Promise<any> {
     try {
       console.log(`Fetching customer 360 data for: ${customerId}`);
-      
+
       // Try API Gateway unified customer endpoint with all sections
-      const allSections = "profile,credit,risk,loans,payments,engagement,journey,intelligence";
-      
+      const allSections =
+        "profile,credit,risk,loans,payments,engagement,journey,intelligence";
+
       let response;
       let lastError: any;
-      
+
       // Try primary endpoint: /api/customers/{customerId}
       try {
-        response = await this.client.get(
-          `/api/customers/${customerId}`,
-          {
-            params: {
-              include: allSections,
-              format: "detailed",
-            },
-          }
-        );
+        response = await this.client.get(`/api/customers/${customerId}`, {
+          params: {
+            include: allSections,
+            format: "detailed",
+          },
+        });
         console.log("Customer 360 response (primary endpoint):", response.data);
       } catch (err: any) {
         lastError = err;
-        console.log("Primary endpoint failed, trying alternative...", err.response?.status);
-        
+        console.log(
+          "Primary endpoint failed, trying alternative...",
+          err.response?.status
+        );
+
         // Try alternative endpoint: /api/intelligence/customer360/{customerId}
-        if (err.response?.status === 404 || err.response?.status === 400 || err.response?.status === 502) {
+        if (
+          err.response?.status === 404 ||
+          err.response?.status === 400 ||
+          err.response?.status === 502
+        ) {
           try {
             response = await this.client.get(
               `/api/intelligence/customer360/${customerId}`,
@@ -206,10 +247,16 @@ class CreditScoringClient {
                 },
               }
             );
-            console.log("Customer 360 response (alternative endpoint):", response.data);
+            console.log(
+              "Customer 360 response (alternative endpoint):",
+              response.data
+            );
           } catch (err2: any) {
             lastError = err2;
-            console.error("All endpoints failed:", err2.response?.status || err2.message);
+            console.error(
+              "All endpoints failed:",
+              err2.response?.status || err2.message
+            );
             throw err2;
           }
         } else {
@@ -221,25 +268,26 @@ class CreditScoringClient {
       if (response && response.data) {
         // Check for error response
         if (response.data.success === false) {
-          const errorMsg = (response.data as any)?.error || 
-                          response.data.message || 
-                          (response.data as any)?.detail ||
-                          "Failed to fetch customer 360";
+          const errorMsg =
+            (response.data as any)?.error ||
+            response.data.message ||
+            (response.data as any)?.detail ||
+            "Failed to fetch customer 360";
           throw new APIServiceError(
             response.status || 500,
             errorMsg,
             (response.data as any)?.correlation_id
           );
         }
-        
+
         // Return data - handle nested structure
         const data = response.data.data || response.data;
-        
+
         // Ensure customer_id is present
         if (!data.customer_id && customerId) {
           data.customer_id = customerId;
         }
-        
+
         console.log("Returning customer data:", data);
         return data;
       }
@@ -250,7 +298,7 @@ class CreditScoringClient {
       );
     } catch (error: any) {
       console.error("Customer 360 fetch error:", error);
-      
+
       if (
         error instanceof APIServiceError ||
         error instanceof APITimeoutError ||
@@ -258,32 +306,38 @@ class CreditScoringClient {
       ) {
         throw error;
       }
-      
+
       // Convert axios errors to APIServiceError
       if (error.response) {
         const status = error.response.status || 500;
-        const errorMsg = error.response.data?.detail || 
-                        error.response.data?.message || 
-                        error.response.data?.error ||
-                        error.message || 
-                        "Customer 360 request failed";
+        const errorMsg =
+          error.response.data?.detail ||
+          error.response.data?.message ||
+          error.response.data?.error ||
+          error.message ||
+          "Customer 360 request failed";
         throw new APIServiceError(
           status,
           errorMsg,
           error.response.data?.correlation_id
         );
       }
-      
+
       // Network/timeout errors
       if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
         throw new APITimeoutError("Customer 360 request timeout");
       }
-      
+
       if (error.code === "ERR_NETWORK" || !error.response) {
-        throw new APINetworkError("Network error - cannot reach Customer 360 endpoint");
+        throw new APINetworkError(
+          "Network error - cannot reach Customer 360 endpoint"
+        );
       }
-      
-      throw new APIServiceError(500, error.message || "Customer 360 request failed");
+
+      throw new APIServiceError(
+        500,
+        error.message || "Customer 360 request failed"
+      );
     }
   }
 
@@ -419,7 +473,10 @@ class CreditScoringClient {
 
       return this.submitBatchCreditScore({ items });
     } catch (error: any) {
-      throw new APIServiceError(500, `Failed to process CSV file: ${error.message}`);
+      throw new APIServiceError(
+        500,
+        `Failed to process CSV file: ${error.message}`
+      );
     }
   }
 
@@ -435,10 +492,14 @@ class CreditScoringClient {
   }): Promise<any> {
     try {
       const queryParams = new URLSearchParams();
-      if (params?.product_type) queryParams.append("product_type", params.product_type);
-      if (params?.evaluation_scope) queryParams.append("evaluation_scope", params.evaluation_scope);
-      if (params?.is_active !== undefined) queryParams.append("is_active", String(params.is_active));
-      if (params?.is_mandatory !== undefined) queryParams.append("is_mandatory", String(params.is_mandatory));
+      if (params?.product_type)
+        queryParams.append("product_type", params.product_type);
+      if (params?.evaluation_scope)
+        queryParams.append("evaluation_scope", params.evaluation_scope);
+      if (params?.is_active !== undefined)
+        queryParams.append("is_active", String(params.is_active));
+      if (params?.is_mandatory !== undefined)
+        queryParams.append("is_mandatory", String(params.is_mandatory));
       if (params?.limit) queryParams.append("limit", String(params.limit));
       if (params?.offset) queryParams.append("offset", String(params.offset));
       if (params?.search) queryParams.append("search", params.search);
@@ -448,7 +509,11 @@ class CreditScoringClient {
       );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to fetch custom product rules");
@@ -457,10 +522,16 @@ class CreditScoringClient {
 
   async getCustomProductRule(ruleId: number): Promise<any> {
     try {
-      const response = await this.client.get(`/api/v1/product-rules/rules/${ruleId}`);
+      const response = await this.client.get(
+        `/api/v1/product-rules/rules/${ruleId}`
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to fetch custom product rule");
@@ -469,10 +540,17 @@ class CreditScoringClient {
 
   async createCustomProductRule(rule: any): Promise<any> {
     try {
-      const response = await this.client.post("/api/v1/product-rules/rules", rule);
+      const response = await this.client.post(
+        "/api/v1/product-rules/rules",
+        rule
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to create custom product rule");
@@ -481,10 +559,17 @@ class CreditScoringClient {
 
   async updateCustomProductRule(ruleId: number, rule: any): Promise<any> {
     try {
-      const response = await this.client.put(`/api/v1/product-rules/rules/${ruleId}`, rule);
+      const response = await this.client.put(
+        `/api/v1/product-rules/rules/${ruleId}`,
+        rule
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to update custom product rule");
@@ -495,7 +580,11 @@ class CreditScoringClient {
     try {
       await this.client.delete(`/api/v1/product-rules/rules/${ruleId}`);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to delete custom product rule");
@@ -504,10 +593,17 @@ class CreditScoringClient {
 
   async evaluateRules(request: any): Promise<any> {
     try {
-      const response = await this.client.post("/api/v1/product-rules/rules/evaluate", request);
+      const response = await this.client.post(
+        "/api/v1/product-rules/rules/evaluate",
+        request
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to evaluate rules");
@@ -527,9 +623,12 @@ class CreditScoringClient {
     try {
       const queryParams = new URLSearchParams();
       if (params?.rule_type) queryParams.append("rule_type", params.rule_type);
-      if (params?.product_type) queryParams.append("product_type", params.product_type);
-      if (params?.customer_segment) queryParams.append("customer_segment", params.customer_segment);
-      if (params?.is_active !== undefined) queryParams.append("is_active", String(params.is_active));
+      if (params?.product_type)
+        queryParams.append("product_type", params.product_type);
+      if (params?.customer_segment)
+        queryParams.append("customer_segment", params.customer_segment);
+      if (params?.is_active !== undefined)
+        queryParams.append("is_active", String(params.is_active));
       if (params?.limit) queryParams.append("limit", String(params.limit));
       if (params?.offset) queryParams.append("offset", String(params.offset));
       if (params?.search) queryParams.append("search", params.search);
@@ -539,7 +638,11 @@ class CreditScoringClient {
       );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to fetch workflow rules");
@@ -548,10 +651,16 @@ class CreditScoringClient {
 
   async getWorkflowRule(ruleId: number): Promise<any> {
     try {
-      const response = await this.client.get(`/api/v1/workflow/rules/${ruleId}`);
+      const response = await this.client.get(
+        `/api/v1/workflow/rules/${ruleId}`
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to fetch workflow rule");
@@ -563,7 +672,11 @@ class CreditScoringClient {
       const response = await this.client.post("/api/v1/workflow/rules", rule);
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to create workflow rule");
@@ -572,10 +685,17 @@ class CreditScoringClient {
 
   async updateWorkflowRule(ruleId: number, rule: any): Promise<any> {
     try {
-      const response = await this.client.put(`/api/v1/workflow/rules/${ruleId}`, rule);
+      const response = await this.client.put(
+        `/api/v1/workflow/rules/${ruleId}`,
+        rule
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to update workflow rule");
@@ -586,7 +706,11 @@ class CreditScoringClient {
     try {
       await this.client.delete(`/api/v1/workflow/rules/${ruleId}`);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to delete workflow rule");
@@ -595,10 +719,17 @@ class CreditScoringClient {
 
   async evaluateWorkflow(request: any): Promise<any> {
     try {
-      const response = await this.client.post("/api/v1/workflow/evaluate", request);
+      const response = await this.client.post(
+        "/api/v1/workflow/evaluate",
+        request
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to evaluate workflow");
@@ -617,10 +748,14 @@ class CreditScoringClient {
   }): Promise<any> {
     try {
       const queryParams = new URLSearchParams();
-      if (params?.config_type) queryParams.append("config_type", params.config_type);
-      if (params?.product_type) queryParams.append("product_type", params.product_type);
-      if (params?.customer_segment) queryParams.append("customer_segment", params.customer_segment);
-      if (params?.is_active !== undefined) queryParams.append("is_active", String(params.is_active));
+      if (params?.config_type)
+        queryParams.append("config_type", params.config_type);
+      if (params?.product_type)
+        queryParams.append("product_type", params.product_type);
+      if (params?.customer_segment)
+        queryParams.append("customer_segment", params.customer_segment);
+      if (params?.is_active !== undefined)
+        queryParams.append("is_active", String(params.is_active));
       if (params?.limit) queryParams.append("limit", String(params.limit));
       if (params?.offset) queryParams.append("offset", String(params.offset));
       if (params?.search) queryParams.append("search", params.search);
@@ -630,7 +765,11 @@ class CreditScoringClient {
       );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to fetch risk appetite configs");
@@ -639,10 +778,16 @@ class CreditScoringClient {
 
   async getRiskAppetiteConfig(configId: number): Promise<any> {
     try {
-      const response = await this.client.get(`/api/v1/risk-appetite/config/${configId}`);
+      const response = await this.client.get(
+        `/api/v1/risk-appetite/config/${configId}`
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to fetch risk appetite config");
@@ -651,10 +796,17 @@ class CreditScoringClient {
 
   async createRiskAppetiteConfig(config: any): Promise<any> {
     try {
-      const response = await this.client.post("/api/v1/risk-appetite/config", config);
+      const response = await this.client.post(
+        "/api/v1/risk-appetite/config",
+        config
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to create risk appetite config");
@@ -663,10 +815,17 @@ class CreditScoringClient {
 
   async updateRiskAppetiteConfig(configId: number, config: any): Promise<any> {
     try {
-      const response = await this.client.put(`/api/v1/risk-appetite/config/${configId}`, config);
+      const response = await this.client.put(
+        `/api/v1/risk-appetite/config/${configId}`,
+        config
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to update risk appetite config");
@@ -677,7 +836,11 @@ class CreditScoringClient {
     try {
       await this.client.delete(`/api/v1/risk-appetite/config/${configId}`);
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to delete risk appetite config");
@@ -685,17 +848,25 @@ class CreditScoringClient {
   }
 
   // Rule Versioning
-  async getRuleVersionHistory(ruleId: number, ruleType: "product" | "workflow" | "risk"): Promise<any> {
+  async getRuleVersionHistory(
+    ruleId: number,
+    ruleType: "product" | "workflow" | "risk"
+  ): Promise<any> {
     try {
-      const endpoint = ruleType === "product" 
-        ? `/api/v1/product-rules/rules/${ruleId}/versions`
-        : ruleType === "workflow"
-        ? `/api/v1/workflow/rules/${ruleId}/versions`
-        : `/api/v1/risk-appetite/config/${ruleId}/versions`;
+      const endpoint =
+        ruleType === "product"
+          ? `/api/v1/product-rules/rules/${ruleId}/versions`
+          : ruleType === "workflow"
+            ? `/api/v1/workflow/rules/${ruleId}/versions`
+            : `/api/v1/risk-appetite/config/${ruleId}/versions`;
       const response = await this.client.get(endpoint);
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to fetch rule version history");
@@ -708,15 +879,20 @@ class CreditScoringClient {
     version: number
   ): Promise<any> {
     try {
-      const endpoint = ruleType === "product"
-        ? `/api/v1/product-rules/rules/${ruleId}/rollback`
-        : ruleType === "workflow"
-        ? `/api/v1/workflow/rules/${ruleId}/rollback`
-        : `/api/v1/risk-appetite/config/${ruleId}/rollback`;
+      const endpoint =
+        ruleType === "product"
+          ? `/api/v1/product-rules/rules/${ruleId}/rollback`
+          : ruleType === "workflow"
+            ? `/api/v1/workflow/rules/${ruleId}/rollback`
+            : `/api/v1/risk-appetite/config/${ruleId}/rollback`;
       const response = await this.client.post(endpoint, { version });
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to rollback rule version");
@@ -726,84 +902,147 @@ class CreditScoringClient {
   // Bulk Operations for Product Rules
   async bulkDeleteProductRules(ruleIds: number[]): Promise<any> {
     try {
-      const response = await this.client.post("/api/v1/product-rules/rules/bulk-delete", { rule_ids: ruleIds });
+      const response = await this.client.post(
+        "/api/v1/product-rules/rules/bulk-delete",
+        { rule_ids: ruleIds }
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to bulk delete product rules");
     }
   }
 
-  async bulkToggleProductRulesActive(ruleIds: number[], isActive: boolean): Promise<any> {
+  async bulkToggleProductRulesActive(
+    ruleIds: number[],
+    isActive: boolean
+  ): Promise<any> {
     try {
-      const response = await this.client.put("/api/v1/product-rules/rules/bulk-toggle-active", {
-        rule_ids: ruleIds,
-        is_active: isActive,
-      });
+      const response = await this.client.put(
+        "/api/v1/product-rules/rules/bulk-toggle-active",
+        {
+          rule_ids: ruleIds,
+          is_active: isActive,
+        }
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
-      throw new APIServiceError(500, "Failed to bulk toggle product rules active status");
+      throw new APIServiceError(
+        500,
+        "Failed to bulk toggle product rules active status"
+      );
     }
   }
 
   // Bulk Operations for Workflow Rules
   async bulkDeleteWorkflowRules(ruleIds: number[]): Promise<any> {
     try {
-      const response = await this.client.post("/api/v1/workflow/rules/bulk-delete", { rule_ids: ruleIds });
+      const response = await this.client.post(
+        "/api/v1/workflow/rules/bulk-delete",
+        { rule_ids: ruleIds }
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to bulk delete workflow rules");
     }
   }
 
-  async bulkToggleWorkflowRulesActive(ruleIds: number[], isActive: boolean): Promise<any> {
+  async bulkToggleWorkflowRulesActive(
+    ruleIds: number[],
+    isActive: boolean
+  ): Promise<any> {
     try {
-      const response = await this.client.put("/api/v1/workflow/rules/bulk-toggle-active", {
-        rule_ids: ruleIds,
-        is_active: isActive,
-      });
+      const response = await this.client.put(
+        "/api/v1/workflow/rules/bulk-toggle-active",
+        {
+          rule_ids: ruleIds,
+          is_active: isActive,
+        }
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
-      throw new APIServiceError(500, "Failed to bulk toggle workflow rules active status");
+      throw new APIServiceError(
+        500,
+        "Failed to bulk toggle workflow rules active status"
+      );
     }
   }
 
   // Bulk Operations for Risk Appetite Configs
   async bulkDeleteRiskAppetiteConfigs(configIds: number[]): Promise<any> {
     try {
-      const response = await this.client.post("/api/v1/risk-appetite/config/bulk-delete", { config_ids: configIds });
+      const response = await this.client.post(
+        "/api/v1/risk-appetite/config/bulk-delete",
+        { config_ids: configIds }
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
-      throw new APIServiceError(500, "Failed to bulk delete risk appetite configs");
+      throw new APIServiceError(
+        500,
+        "Failed to bulk delete risk appetite configs"
+      );
     }
   }
 
-  async bulkToggleRiskAppetiteConfigsActive(configIds: number[], isActive: boolean): Promise<any> {
+  async bulkToggleRiskAppetiteConfigsActive(
+    configIds: number[],
+    isActive: boolean
+  ): Promise<any> {
     try {
-      const response = await this.client.put("/api/v1/risk-appetite/config/bulk-toggle-active", {
-        config_ids: configIds,
-        is_active: isActive,
-      });
+      const response = await this.client.put(
+        "/api/v1/risk-appetite/config/bulk-toggle-active",
+        {
+          config_ids: configIds,
+          is_active: isActive,
+        }
+      );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
-      throw new APIServiceError(500, "Failed to bulk toggle risk appetite configs active status");
+      throw new APIServiceError(
+        500,
+        "Failed to bulk toggle risk appetite configs active status"
+      );
     }
   }
 
@@ -813,7 +1052,11 @@ class CreditScoringClient {
       const response = await this.client.get("/api/v1/approval/rules");
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to fetch approval workflow rules");
@@ -825,10 +1068,17 @@ class CreditScoringClient {
       const response = await this.client.put("/api/v1/approval/rules", rules);
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
-      throw new APIServiceError(500, "Failed to update approval workflow rules");
+      throw new APIServiceError(
+        500,
+        "Failed to update approval workflow rules"
+      );
     }
   }
 
@@ -845,10 +1095,14 @@ class CreditScoringClient {
   }): Promise<any> {
     try {
       const queryParams = new URLSearchParams();
-      if (params?.rule_type && params.rule_type !== "all") queryParams.append("rule_type", params.rule_type);
-      if (params?.rule_id) queryParams.append("rule_id", String(params.rule_id));
-      if (params?.status && params.status !== "all") queryParams.append("status", params.status);
-      if (params?.start_date) queryParams.append("start_date", params.start_date);
+      if (params?.rule_type && params.rule_type !== "all")
+        queryParams.append("rule_type", params.rule_type);
+      if (params?.rule_id)
+        queryParams.append("rule_id", String(params.rule_id));
+      if (params?.status && params.status !== "all")
+        queryParams.append("status", params.status);
+      if (params?.start_date)
+        queryParams.append("start_date", params.start_date);
       if (params?.end_date) queryParams.append("end_date", params.end_date);
       if (params?.limit) queryParams.append("limit", String(params.limit));
       if (params?.offset) queryParams.append("offset", String(params.offset));
@@ -859,7 +1113,11 @@ class CreditScoringClient {
       );
       return response.data;
     } catch (error: any) {
-      if (error instanceof APIServiceError || error instanceof APITimeoutError || error instanceof APINetworkError) {
+      if (
+        error instanceof APIServiceError ||
+        error instanceof APITimeoutError ||
+        error instanceof APINetworkError
+      ) {
         throw error;
       }
       throw new APIServiceError(500, "Failed to fetch execution logs");
@@ -869,4 +1127,3 @@ class CreditScoringClient {
 
 // Singleton instance
 export const creditScoringClient = new CreditScoringClient();
-

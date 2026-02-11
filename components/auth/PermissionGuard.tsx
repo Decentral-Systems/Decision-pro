@@ -14,10 +14,6 @@ interface PermissionGuardProps {
   showError?: boolean;
 }
 
-/**
- * Permission Guard Component
- * Renders children only if user has required permission or role
- */
 export function PermissionGuard({
   permission,
   roles,

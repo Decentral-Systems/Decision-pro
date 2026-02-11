@@ -5,6 +5,7 @@ import type {
   UseFormSetValue,
   UseFormWatch,
 } from "react-hook-form";
+import type { FieldDataSource } from "@/components/common/FieldDataSourceBadge";
 import type { CreditScoringFormData } from "@/lib/utils/validation";
 
 export interface CreditScoringSectionProps {
@@ -16,7 +17,7 @@ export interface CreditScoringSectionProps {
   customerType?: "new" | "existing";
   selectedCustomerId?: string;
   isAutoFilled?: (field: string) => boolean;
-  getFieldInfo?: (field: string) => { dataSource?: unknown } | undefined;
+  getFieldInfo?: (field: string) => { dataSource?: FieldDataSource } | undefined;
   markAsManuallyEdited?: (field: string) => void;
   phoneNumber?: string;
   idNumber?: string;

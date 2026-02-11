@@ -33,7 +33,7 @@ import {
   ethiopianIdValidator,
   ethiopianPhoneValidator,
 } from "@/lib/utils/ethiopianValidators";
-import { saveFormData, useFormPersistence } from "@/lib/utils/formPersistence";
+import { saveFormData, useFormPersistence } from "@/lib/utils/form-persistance";
 import { transformFormDataTo168Features } from "@/lib/utils/transformCreditScore";
 import {
   CreditScoringFormData,
@@ -111,6 +111,8 @@ export function CreditScoringForm({
       console.log("Fetching customer 360 data for:", selectedCustomerId);
     }
   }, [selectedCustomerId]);
+
+  console.log("existing customer", selectedCustomerId);
 
   useEffect(() => {
     if (customerError) {

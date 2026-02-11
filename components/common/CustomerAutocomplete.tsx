@@ -38,7 +38,8 @@ export function CustomerAutocomplete({
 }: CustomerAutocompleteProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerListItem | null>(null);
+  const [selectedCustomer, setSelectedCustomer] =
+    useState<CustomerListItem | null>(null);
   const [page, setPage] = useState(1);
   const [showLoadingAfterDelay, setShowLoadingAfterDelay] = useState(false);
   const [searchCancelled, setSearchCancelled] = useState(false);
@@ -48,10 +49,10 @@ export function CustomerAutocomplete({
 
   // Debounce search term using shared hook (300ms delay)
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  
+
   // Track if search is in debounce period for loading indicator
   const [isDebouncing, setIsDebouncing] = useState(false);
-  
+
   useEffect(() => {
     if (searchTerm !== debouncedSearchTerm) {
       setIsDebouncing(true);
@@ -65,7 +66,7 @@ export function CustomerAutocomplete({
     if (isOpen && debouncedSearchTerm.length >= 2) {
       setShowLoadingAfterDelay(false);
       setSearchCancelled(false);
-      
+
       loadingTimeoutRef.current = setTimeout(() => {
         setShowLoadingAfterDelay(true);
       }, 500);
@@ -81,20 +82,25 @@ export function CustomerAutocomplete({
   }, [isOpen, debouncedSearchTerm]);
 
   // Fetch customer data if value is provided
-  const { data: searchResults, isLoading, isError } = useCustomerSearchAutocomplete(
-    debouncedSearchTerm,
-    {
-      limit: 10, // Reduced for pagination
-      enabled: isOpen && debouncedSearchTerm.length >= 2 && !searchCancelled,
-    }
-  );
+  const {
+    data: searchResults,
+    isLoading,
+    isError,
+  } = useCustomerSearchAutocomplete(debouncedSearchTerm, {
+    limit: 10, // Reduced for pagination
+    enabled: isOpen && debouncedSearchTerm.length >= 2 && !searchCancelled,
+  });
 
   // Track search analytics
   useEffect(() => {
-    if (debouncedSearchTerm.length >= 2 && searchResults !== undefined && !isLoading) {
+    if (
+      debouncedSearchTerm.length >= 2 &&
+      searchResults !== undefined &&
+      !isLoading
+    ) {
       const startTime = performance.now();
       const duration = performance.now() - startTime;
-      
+
       searchAnalytics.trackSearch({
         query: debouncedSearchTerm,
         resultCount: searchResults?.length || 0,
@@ -129,12 +135,16 @@ export function CustomerAutocomplete({
     setSelectedCustomer(customer);
     setSearchTerm(customer.full_name || customer.customer_id);
     setIsOpen(false);
-    
+
     // Track selection in analytics
     if (debouncedSearchTerm) {
-      searchAnalytics.trackSelection(debouncedSearchTerm, customer.customer_id, "autocomplete");
+      searchAnalytics.trackSelection(
+        debouncedSearchTerm,
+        customer.customer_id,
+        "autocomplete"
+      );
     }
-    
+
     onSelect(customer.customer_id, customer);
   };
 
@@ -177,7 +187,7 @@ export function CustomerAutocomplete({
                 error && "border-destructive focus-visible:ring-destructive"
               )}
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
               {(isLoading || isDebouncing) && (
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               )}
@@ -209,7 +219,9 @@ export function CustomerAutocomplete({
           {isLoading && (
             <div className="flex items-center justify-center p-4">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-sm text-muted-foreground">Searching...</span>
+              <span className="ml-2 text-sm text-muted-foreground">
+                Searching...
+              </span>
             </div>
           )}
 
@@ -247,40 +259,49 @@ export function CustomerAutocomplete({
                     type="button"
                     onClick={() => handleSelect(customer)}
                     className={cn(
-                      "w-full text-left px-4 py-3 hover:bg-accent transition-colors border-b last:border-b-0",
+                      "w-full border-b px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-accent",
                       selectedCustomer?.customer_id === customer.customer_id &&
                         "bg-accent"
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                          <span className="font-medium truncate">
+                          <User className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                          <span className="truncate font-medium">
                             {customer.full_name || customer.customer_id}
                           </span>
                         </div>
-                        <div className="mt-1 text-sm text-muted-foreground space-y-1">
-                          <div className="truncate">ID: {customer.customer_id}</div>
+                        <div className="mt-1 space-y-1 text-sm text-muted-foreground">
+                          <div className="truncate">
+                            ID: {customer.customer_id}
+                          </div>
                           {customer.phone_number && (
-                            <div className="truncate">Phone: {customer.phone_number}</div>
+                            <div className="truncate">
+                              Phone: {customer.phone_number}
+                            </div>
                           )}
                           {customer.email && (
-                            <div className="truncate">Email: {customer.email}</div>
+                            <div className="truncate">
+                              Email: {customer.email}
+                            </div>
                           )}
                           {customer.customer_segment && (
-                            <Badge variant="outline" className="text-xs mt-1">
+                            <Badge variant="outline" className="mt-1 text-xs">
                               {customer.customer_segment}
                             </Badge>
                           )}
                           {customer.last_interaction_date && (
                             <div className="text-xs text-muted-foreground">
-                              Last: {new Date(customer.last_interaction_date).toLocaleDateString()}
+                              Last:{" "}
+                              {new Date(
+                                customer.last_interaction_date
+                              ).toLocaleDateString()}
                             </div>
                           )}
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      <div className="flex flex-shrink-0 flex-col items-end gap-1">
                         {customer.last_credit_score !== undefined && (
                           <Badge variant="outline" className="text-xs">
                             Last Score: {customer.last_credit_score}
@@ -297,8 +318,8 @@ export function CustomerAutocomplete({
                               customer.risk_score < 0.3
                                 ? "default"
                                 : customer.risk_score < 0.6
-                                ? "secondary"
-                                : "destructive"
+                                  ? "secondary"
+                                  : "destructive"
                             }
                             className="text-xs"
                           >
@@ -311,7 +332,7 @@ export function CustomerAutocomplete({
                 ))}
                 {/* Pagination for >10 results */}
                 {searchResults && searchResults.length >= 10 && (
-                  <div className="p-2 border-t flex items-center justify-between">
+                  <div className="flex items-center justify-between border-t p-2">
                     <div className="text-xs text-muted-foreground">
                       Showing {searchResults.length} results
                     </div>
@@ -332,14 +353,14 @@ export function CustomerAutocomplete({
             )}
         </PopoverContent>
       </Popover>
-      {error && (
-        <p className="mt-1 text-sm text-destructive">{error}</p>
-      )}
+      {error && <p className="mt-1 text-sm text-destructive">{error}</p>}
       {selectedCustomer && (
-        <input type="hidden" name="customer_id" value={selectedCustomer.customer_id} />
+        <input
+          type="hidden"
+          name="customer_id"
+          value={selectedCustomer.customer_id}
+        />
       )}
     </div>
   );
 }
-
-
