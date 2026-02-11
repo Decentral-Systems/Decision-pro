@@ -43,6 +43,9 @@ pnpm-debug.log*
 *_server.log.*
 BROWSER_TEST_SUMMARY.txt
 
+# AIS service manager (./ais) runtime
+.ais/
+
 # vercel
 .vercel
 

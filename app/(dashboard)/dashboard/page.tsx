@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { useDashboardData } from "@/lib/api/hooks/useDashboard";
 import { useExecutiveDashboardData } from "@/lib/api/hooks/useExecutiveDashboard";
-// Real-time WebSocket imports removed - executive dashboard uses manual refresh only
+
 import {
   AlertTriangle,
   AlertCircle,

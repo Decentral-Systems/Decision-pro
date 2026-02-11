@@ -21,6 +21,10 @@ interface SLAStatusChipsProps {
   compact?: boolean;
 }
 
+const creditScoringBase =
+  process.env.NEXT_PUBLIC_CREDIT_SCORING_API_URL || "http://196.188.249.48:4001";
+const CREDIT_SCORING_HEALTH_URL = creditScoringBase.replace(/\/$/, "") + "/health";
+
 const DEFAULT_SERVICES: ServiceSLA[] = [
   {
     name: "API Gateway",
@@ -28,7 +32,12 @@ const DEFAULT_SERVICES: ServiceSLA[] = [
     label: "Gateway",
     showLatency: true,
   },
-  // Removed "Scoring" and "Prediction" status pills as they were showing incorrect information
+  {
+    name: "Credit Scoring Engine",
+    endpoint: CREDIT_SCORING_HEALTH_URL,
+    label: "Credit Scoring",
+    showLatency: true,
+  },
 ];
 
 export function SLAStatusChips({
