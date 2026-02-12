@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Search, User, X } from "lucide-react";
-import { useCustomerSearchAutocomplete } from "@/lib/api/hooks/useCustomers";
+import { useSearchCustomers } from "@/features/customers/hooks/use-search-customers";
 import { CustomerListItem } from "@/types/api";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -81,15 +81,19 @@ export function CustomerAutocomplete({
     }
   }, [isOpen, debouncedSearchTerm]);
 
-  // Fetch customer data if value is provided
+  // Fetch customer data via route → service → hook (customers feature)
   const {
     data: searchResults,
     isLoading,
     isError,
-  } = useCustomerSearchAutocomplete(debouncedSearchTerm, {
-    limit: 10, // Reduced for pagination
+  } = useSearchCustomers({
+    query: debouncedSearchTerm,
+    limit: 10,
+    offset: 0,
     enabled: isOpen && debouncedSearchTerm.length >= 2 && !searchCancelled,
   });
+
+  console.log("searched customers", searchResults);
 
   // Track search analytics
   useEffect(() => {

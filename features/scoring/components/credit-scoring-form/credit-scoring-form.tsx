@@ -112,8 +112,6 @@ export function CreditScoringForm({
     }
   }, [selectedCustomerId]);
 
-  console.log("existing customer", selectedCustomerId);
-
   useEffect(() => {
     if (customerError) {
       console.error("Customer 360 fetch error:", customerError);

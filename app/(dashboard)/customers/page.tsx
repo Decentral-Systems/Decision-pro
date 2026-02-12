@@ -179,7 +179,7 @@ const ColumnChooser = dynamic(
   }
 );
 
-// Import hooks that are used (must be imported directly, not lazy loaded)
+//Import hooks that are used (must be imported directly, not lazy loaded)
 import type { SearchCondition } from "@/components/customers/AdvancedSearchBuilder";
 
 function CustomersPageContentInternal() {
@@ -200,6 +200,7 @@ function CustomersPageContentInternal() {
   const [order, setOrder] = useState<"asc" | "desc">(
     () => (searchParams.get("order") as "asc" | "desc") || "desc"
   );
+
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
 
