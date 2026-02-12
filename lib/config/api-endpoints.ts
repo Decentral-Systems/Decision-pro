@@ -1,10 +1,6 @@
-/**
- * API Endpoint Configuration
- * Centralized configuration for all API Gateway endpoints
- */
-
 const API_GATEWAY_BASE =
   process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://196.188.249.48:4000";
+
 const CREDIT_SCORING_BASE =
   process.env.NEXT_PUBLIC_CREDIT_SCORING_API_URL ||
   "http://196.188.249.48:4001";
@@ -12,7 +8,7 @@ const CREDIT_SCORING_BASE =
 export const API_ENDPOINTS = {
   // Authentication
   auth: {
-    login: "/api/v1/auth/login", // Use Credit Scoring Service login endpoint which works
+    login: "/api/v1/auth/login",
     refresh: "/auth/refresh",
     logout: "/auth/logout",
   },
@@ -66,8 +62,8 @@ export const API_ENDPOINTS = {
 
   // Credit Scoring (paths from API Gateway Swagger)
   creditScoring: {
-    score: "/api/v1/credit-scoring/realtime",
-    batch: "/api/v1/credit-scoring/batch",
+    score: "/api/intelligence/credit-scoring/realtime",
+    batch: "/api/scoring/batch",
   },
 
   // Default Prediction

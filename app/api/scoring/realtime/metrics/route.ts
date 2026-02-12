@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { API_BASE_URLS } from "@/lib/config/api-endpoints";
+import type { RealtimeScoringMetrics } from "@/features/scoring/types/scoring.type";
 import {
   normalizeApiResponse,
   normalizeErrorResponse,
 } from "@/lib/utils/api-response-normalizer";
 import { generateCorrelationId } from "@/lib/utils/correlationId";
 import { tryCatch } from "@/lib/try-catch";
-import type { RealtimeScoringMetrics } from "@/features/scoring/types/scoring.type";
 
 const BACKEND_PATH = "/api/scoring/realtime/metrics";
 

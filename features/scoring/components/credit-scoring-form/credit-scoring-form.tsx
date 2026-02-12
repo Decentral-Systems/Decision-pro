@@ -9,7 +9,7 @@ import {
 import { AffordabilityIndicator } from "@/components/credit/AffordabilityIndicator";
 import { CreditScoreResponseDisplay } from "@/components/credit/CreditScoreResponseDisplay";
 import { HistoricalScoreSummary } from "@/components/credit/HistoricalScoreSummary";
-import { CustomerSearchFilter } from "@/components/forms/CustomerSearchFilter";
+import { CustomerSearchFilter } from "@/features/customers/components/customer-search-filter";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {

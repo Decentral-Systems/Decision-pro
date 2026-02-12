@@ -1,62 +1,62 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useWebSocket, useWebSocketChannel } from "@/lib/hooks/useWebSocket";
-import { Badge } from "@/components/ui/badge";
-import {
-  Wifi,
-  WifiOff,
-  AlertTriangle,
-  AlertCircle,
-  Pause,
-  Play,
-  Download,
-  Settings,
-  Clock,
-  FileText,
-  BarChart3,
-  Activity,
-  Zap,
-  Filter,
-} from "lucide-react";
-import { DashboardSection } from "@/components/dashboard-section";
 import { ApiStatusIndicator } from "@/components/api-status-indicator";
-import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { RealtimeDashboard } from "@/components/realtime/RealtimeDashboard";
-import { ScoreFeed } from "@/components/realtime/ScoreFeed";
-import { CustomerRealtimeDashboard } from "@/components/realtime/CustomerRealtimeDashboard";
-import {
-  useRealtimeDashboard,
-  useRealtimeScoreFeed,
-  useRealtimeScoringFeed,
-  useRealtimeMetrics,
-  RealtimeScoreEntry,
-  RealtimeMetrics,
-} from "@/lib/api/hooks/useRealtimeScoring";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CacheMetadata } from "@/components/common/CacheMetadata";
 import { CustomerAutocomplete } from "@/components/common/CustomerAutocomplete";
+import { DashboardSection } from "@/components/dashboard-section";
+import { CustomerRealtimeDashboard } from "@/components/realtime/CustomerRealtimeDashboard";
+import { RealtimeDashboard } from "@/components/realtime/RealtimeDashboard";
 import {
   RealtimeScoringFilters,
   useRealtimeFilters,
 } from "@/components/realtime/RealtimeScoringFilters";
-import { useToast } from "@/hooks/use-toast";
-import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
-import {
-  exportToCSV,
-  exportToPDF,
-  exportToExcel,
-} from "@/lib/utils/exportHelpers";
-import { Slider } from "@/components/ui/slider";
-import { CacheMetadata } from "@/components/common/CacheMetadata";
+import { ScoreFeed } from "@/components/realtime/ScoreFeed";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useGetRealtimeScoringMetrics } from "@/features/scoring/hooks/use-get-realtime-scoring-metrics";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { useGetRealtimeScoringMetrics } from "@/features/scoring/hooks/query/use-get-realtime-scoring-metrics";
+import { useToast } from "@/hooks/use-toast";
+import {
+  RealtimeMetrics,
+  RealtimeScoreEntry,
+  useRealtimeDashboard,
+  useRealtimeMetrics,
+  useRealtimeScoreFeed,
+  useRealtimeScoringFeed,
+} from "@/lib/api/hooks/useRealtimeScoring";
+import { useWebSocket, useWebSocketChannel } from "@/lib/hooks/useWebSocket";
+import { getOrCreateCorrelationId } from "@/lib/utils/correlationId";
+import {
+  exportToCSV,
+  exportToExcel,
+  exportToPDF,
+} from "@/lib/utils/exportHelpers";
+import {
+  Activity,
+  AlertCircle,
+  AlertTriangle,
+  BarChart3,
+  Clock,
+  Download,
+  FileText,
+  Filter,
+  Pause,
+  Play,
+  Settings,
+  Wifi,
+  WifiOff,
+  Zap,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function RealtimeScoringPage() {
   const [customerId, setCustomerId] = useState<string>("");
@@ -151,9 +151,8 @@ export default function RealtimeScoringPage() {
           }
         }
 
-        // Add new score at the beginning, limit to windowSize
         const updated = [realtimeScoreUpdate, ...prev];
-        // Backpressure handling: if we exceed max retention, remove oldest
+
         if (updated.length > maxRetention) {
           return updated.slice(0, maxRetention);
         }
