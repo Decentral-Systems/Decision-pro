@@ -20,7 +20,10 @@ export function useCreditScore(customerId: string | null) {
           maxRetries: 3,
           initialDelay: 1000,
           onRetry: (attempt, error) => {
-            console.log(`Retry attempt ${attempt} for credit score fetch:`, error);
+            console.log(
+              `Retry attempt ${attempt} for credit score fetch:`,
+              error
+            );
           },
         }
       );
@@ -43,7 +46,10 @@ export function useSubmitCreditScore() {
           maxRetries: 3,
           initialDelay: 1000,
           onRetry: (attempt, error) => {
-            console.log(`Retry attempt ${attempt} for credit score submission:`, error);
+            console.log(
+              `Retry attempt ${attempt} for credit score submission:`,
+              error
+            );
           },
         }
       );
@@ -64,7 +70,10 @@ export function useBatchCreditScore() {
           maxRetries: 3,
           initialDelay: 2000, // Longer delay for batch operations
           onRetry: (attempt, error) => {
-            console.log(`Retry attempt ${attempt} for batch credit score:`, error);
+            console.log(
+              `Retry attempt ${attempt} for batch credit score:`,
+              error
+            );
           },
         }
       );
@@ -75,4 +84,3 @@ export function useBatchCreditScore() {
     },
   });
 }
-

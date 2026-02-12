@@ -4,9 +4,9 @@ import {
   networkAwareRetry,
   networkAwareRetryDelay,
 } from "@/lib/utils/network-aware-retry-standalone";
-import { scoringKeys } from "../constants/scoring.keys";
-import { getRealtimeScoringMetrics } from "../services/scoring.service";
-import type { RealtimeScoringMetrics } from "../types/scoring.type";
+import { scoringKeys } from "../../constants/scoring.keys";
+import { getRealtimeScoringMetrics } from "../../services/scoring.service";
+import { RealtimeScoringMetrics } from "../../types/scoring.type";
 
 export function useGetRealtimeScoringMetrics() {
   const { isAuthenticated, accessToken } = useAuth();

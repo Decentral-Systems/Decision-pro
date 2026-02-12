@@ -22,9 +22,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCustomer360 } from "@/features/customers/hooks/use-customer-360";
 import { NbeComplianceBlock } from "@/features/scoring/components/nbe-compliance-block";
+import { useSubmitCreditScore } from "@/features/scoring/hooks/mutation/use-submit-credit-score";
 import { useNbeCompliance } from "@/features/scoring/hooks/use-nbe-compliance";
+import {
+  type CreditScoringFormData,
+  creditScoringFormSchema,
+} from "@/features/scoring/schema/scoring.schema";
 import { useToast } from "@/hooks/use-toast";
-import { useSubmitCreditScore } from "@/lib/api/hooks/useCreditScore";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useAutoFilledFields } from "@/lib/hooks/useAutoFilledFields";
 import { useAuditLogger } from "@/lib/utils/audit-logger";
@@ -35,10 +39,6 @@ import {
 } from "@/lib/utils/ethiopianValidators";
 import { saveFormData, useFormPersistence } from "@/lib/utils/form-persistance";
 import { transformFormDataTo168Features } from "@/lib/utils/transformCreditScore";
-import {
-  CreditScoringFormData,
-  creditScoringFormSchema,
-} from "@/lib/utils/validation";
 import { CreditScoreResponse } from "@/types/credit";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, Loader2 } from "lucide-react";
@@ -67,7 +67,8 @@ export function CreditScoringForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showOverrideDialog, setShowOverrideDialog] = useState(false);
   const [overrideApproved, setOverrideApproved] = useState(false);
-  const submitMutation = useSubmitCreditScore();
+  const { submitCreditScoreMutation, isPending } = useSubmitCreditScore();
+
   const {
     logComplianceViolation,
     logCreditScoreCalculation,
@@ -149,7 +150,6 @@ export function CreditScoringForm({
   useEffect(() => {
     const savedData = loadData();
     if (savedData && !selectedCustomerId) {
-      // Only restore if no customer is selected (to avoid overwriting customer data)
       reset(savedData);
     }
   }, []); // Only on mount
@@ -396,6 +396,8 @@ export function CreditScoringForm({
   }, [customerData, selectedCustomerId, reset, markAsAutoFilled]);
 
   const onSubmit = async (data: CreditScoringFormData) => {
+    console.log("onSubmit called with data:", data);
+
     try {
       setSubmitError(null);
       console.log("Form data submitted:", data);
@@ -436,7 +438,9 @@ export function CreditScoringForm({
       console.log("Transformed to 168 features:", transformedData);
 
       // Submit the transformed data
-      const response = await submitMutation.mutateAsync(transformedData as any);
+      const response = await submitCreditScoreMutation(
+        transformedData as CreditScoringFormData
+      );
       console.log("Credit score response:", response);
 
       // Set correlation ID from response if available
@@ -475,12 +479,6 @@ export function CreditScoringForm({
       clearData();
     } catch (error: any) {
       console.error("Credit scoring error:", error);
-      const errorMessage =
-        error?.message ||
-        error?.detail ||
-        error?.response?.data?.detail ||
-        "Failed to calculate credit score. Please try again.";
-      setSubmitError(errorMessage);
     }
   };
 
@@ -490,7 +488,7 @@ export function CreditScoringForm({
 
     // Re-submit form after override
     const formData = watch();
-    await onSubmit(formData as CreditScoringFormData);
+    submitCreditScoreMutation(formData as CreditScoringFormData);
   };
 
   const onError = (errors: any) => {
@@ -729,14 +727,14 @@ export function CreditScoringForm({
         </Button>
         <Button
           type="submit"
-          disabled={submitMutation.isPending || isLoadingCustomer || !canSubmit}
+          disabled={isPending || isLoadingCustomer || !canSubmit}
           title={
             !canSubmit && nbeCompliance && !nbeCompliance.compliant
               ? "NBE compliance violations must be resolved or supervisor override required"
               : undefined
           }
         >
-          {submitMutation.isPending ? (
+          {isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Calculating...

@@ -3,13 +3,16 @@
  * Centralized configuration for all API Gateway endpoints
  */
 
-const API_GATEWAY_BASE = process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://196.188.249.48:4000";
-const CREDIT_SCORING_BASE = process.env.NEXT_PUBLIC_CREDIT_SCORING_API_URL || "http://196.188.249.48:4001";
+const API_GATEWAY_BASE =
+  process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://196.188.249.48:4000";
+const CREDIT_SCORING_BASE =
+  process.env.NEXT_PUBLIC_CREDIT_SCORING_API_URL ||
+  "http://196.188.249.48:4001";
 
 export const API_ENDPOINTS = {
   // Authentication
   auth: {
-    login: "/api/v1/auth/login",  // Use Credit Scoring Service login endpoint which works
+    login: "/api/v1/auth/login", // Use Credit Scoring Service login endpoint which works
     refresh: "/auth/refresh",
     logout: "/auth/logout",
   },
@@ -53,17 +56,17 @@ export const API_ENDPOINTS = {
 
   // Admin
   admin: {
-    users: "/api/v1/admin/users", // Updated to use v1 endpoint
-    user: (id: string) => `/api/v1/admin/users/${id}`, // Updated to use v1 endpoint
-    userActivity: (id: string) => `/api/v1/admin/users/${id}/activity`, // Updated to use v1 endpoint
-    auditLogs: "/api/v1/audit/logs", // Updated to use v1 endpoint
+    users: "/api/v1/admin/users",
+    user: (id: string) => `/api/v1/admin/users/${id}`,
+    userActivity: (id: string) => `/api/v1/admin/users/${id}/activity`,
+    auditLogs: "/api/v1/audit/logs",
     settings: "/api/admin/settings",
     resetSettings: "/api/admin/settings/reset",
   },
 
-  // Credit Scoring
+  // Credit Scoring (paths from API Gateway Swagger)
   creditScoring: {
-    score: "/api/intelligence/credit-scoring/realtime",
+    score: "/api/v1/credit-scoring/realtime",
     batch: "/api/v1/credit-scoring/batch",
   },
 
@@ -88,6 +91,3 @@ export const API_BASE_URLS = {
   apiGateway: API_GATEWAY_BASE,
   creditScoring: CREDIT_SCORING_BASE,
 } as const;
-
-
-

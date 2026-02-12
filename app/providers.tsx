@@ -4,13 +4,13 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ThemeProvider } from "next-themes";
 import { useState, useEffect } from "react";
-import { Toaster } from "@/components/ui/toaster";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { cacheManager } from "@/lib/utils/cache-manager";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { SessionTimeoutWarning } from "@/components/auth/SessionTimeoutWarning";
 import { NetworkRecoveryMonitor } from "@/components/common/NetworkRecoveryMonitor";
 import { createQueryClient } from "@/lib/config/react-query-config";
+import { Toaster } from "sonner";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => {
@@ -76,7 +76,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <QueryClientProvider client={queryClient}>
             <NetworkRecoveryMonitor />
             {children}
-            <Toaster />
+            <Toaster position="top-right" />
             <SessionTimeoutWarning />
             {process.env.NODE_ENV === "development" && (
               <ReactQueryDevtools initialIsOpen={false} />
