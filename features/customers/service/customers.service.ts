@@ -1,5 +1,6 @@
 import type {
   Customer360Data,
+  CustomerSearchItem,
   SearchCustomersParams,
   SearchCustomersResult,
 } from "../types/customers.types";
@@ -7,7 +8,7 @@ import type {
 export async function searchCustomers(
   params: SearchCustomersParams
 ): Promise<SearchCustomersResult> {
-  const { query, limit = 20, offset = 0, sort_by = "created_at", sort_order = "desc", accessToken } = params;
+  const { query, limit = 20, offset = 0, sort_by = "created_at", sort_order = "desc" } = params;
   const searchParams = new URLSearchParams();
   if (query.trim()) searchParams.set("query", query.trim());
   searchParams.set("limit", String(limit));
@@ -15,14 +16,9 @@ export async function searchCustomers(
   searchParams.set("sort_by", sort_by);
   searchParams.set("sort_order", sort_order);
 
-  const headers: HeadersInit = { Accept: "application/json" };
-  if (accessToken) {
-    headers.Authorization = `Bearer ${accessToken}`;
-  }
-
   const res = await fetch(`/api/customers/search?${searchParams.toString()}`, {
     method: "GET",
-    headers,
+    headers: { Accept: "application/json" },
     credentials: "include",
   });
 
@@ -36,7 +32,9 @@ export async function searchCustomers(
   }
 
   const data = await res.json();
-  const results = Array.isArray(data?.results) ? data.results : [];
+  // API may return "customers" (gateway) or "results"
+  const rawList = Array.isArray(data?.customers) ? data.customers : (Array.isArray(data?.results) ? data.results : []);
+  const results: CustomerSearchItem[] = rawList;
   return {
     results,
     total: typeof data?.total === "number" ? data.total : results.length,

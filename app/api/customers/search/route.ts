@@ -91,18 +91,19 @@ export async function GET(request: NextRequest) {
 
   const data = normalizeApiResponse<{
     results?: unknown[];
+    customers?: unknown[];
     total?: number;
     limit?: number;
     offset?: number;
   }>(parseResult.data);
 
-  return NextResponse.json(
-    data ?? {
-      results: [],
-      total: 0,
-      limit: Number(limit),
-      offset: Number(offset),
-    },
-    { status: 200 }
-  );
+  // Gateway returns "customers"; normalize to "results" for the frontend
+  const list = Array.isArray(data?.customers) ? data.customers : (data?.results ?? []);
+  const payload = {
+    results: list,
+    total: typeof data?.total === "number" ? data.total : list.length,
+    limit: typeof data?.limit === "number" ? data.limit : Number(limit),
+    offset: typeof data?.offset === "number" ? data.offset : Number(offset),
+  };
+  return NextResponse.json(data ? { ...data, ...payload } : payload, { status: 200 });
 }

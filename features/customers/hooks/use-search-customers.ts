@@ -2,7 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth/auth-context";
 import { customersKeys } from "../constants/customers.keys";
 import { searchCustomers } from "../service/customers.service";
-import type { SearchCustomersParams } from "../types/customers.types";
+import type {
+  CustomerSearchItem,
+  SearchCustomersParams,
+} from "../types/customers.types";
+
+export interface UseSearchCustomersReturn {
+  data: CustomerSearchItem[];
+  total: number;
+  limit: number;
+  offset: number;
+  isLoading: boolean;
+  isError: boolean;
+  error: Error | null;
+  refetch: () => void;
+}
 
 interface UseSearchCustomersProps extends SearchCustomersParams {
   enabled?: boolean;
@@ -32,21 +46,22 @@ export function useSearchCustomers({
         offset,
         sort_by,
         sort_order,
-        accessToken: accessToken ?? undefined,
       }),
     enabled: isEnabled,
     staleTime,
     retry: false,
   });
 
+  const data: CustomerSearchItem[] = queryResult.data?.results ?? [];
+
   return {
-    data: queryResult.data?.results ?? [],
+    data,
     total: queryResult.data?.total ?? 0,
     limit: queryResult.data?.limit ?? limit,
     offset: queryResult.data?.offset ?? offset,
     isLoading: queryResult.isLoading,
     isError: queryResult.isError,
-    error: queryResult.error,
+    error: queryResult.error as Error | null,
     refetch: queryResult.refetch,
-  };
+  } satisfies UseSearchCustomersReturn;
 }
